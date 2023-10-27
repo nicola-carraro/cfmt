@@ -1,8 +1,11 @@
 package main
 
-import "fmt"
-import "os"
-import "unicode/utf8"
+import (
+	"fmt"
+	"log"
+	"os"
+	"unicode/utf8"
+)
 
 type TokenType uint32
 
@@ -24,6 +27,18 @@ func isSpace(r rune) bool {
 	return r == ' ' || r == '\t' || r == '\r' || r == '\n' || r == '\v' || r == '\f'
 }
 
+func consumeRune(data *[]byte) rune {
+	r, size := utf8.DecodeRune(*data)
+
+	if r == utf8.RuneError {
+		log.Fatal("Invalid character")
+	}
+
+	*data = (*data)[size:]
+
+	return r
+}
+
 func main() {
 
 	const path = "test.c"
@@ -31,18 +46,24 @@ func main() {
 	data, error := os.ReadFile(path)
 
 	if error != nil {
-		fmt.Println("Error reading ", path)
-		os.Exit(1)
+		log.Fatal("Error reading ", path)
 	}
 
 	//tokens := make([]Token, 100)
 
-	firstRune, _ := utf8.DecodeRune(data)
+	index := 0
+	for len(data) > 0 {
+		r := consumeRune(&data)
 
-	if isSpace(firstRune) {
-		fmt.Println("Space")
-	} else {
-		fmt.Println("Not space")
+		fmt.Print(index, " ")
+
+		if isSpace(r) {
+			fmt.Println("Space")
+		} else {
+			fmt.Println("Not space")
+		}
+
+		index++
 	}
 
 }
