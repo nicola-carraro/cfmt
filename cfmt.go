@@ -20,23 +20,41 @@ const (
 
 type Token struct {
 	Type    TokenType
-	Content string
+	Content []byte
 }
 
 func isSpace(r rune) bool {
 	return r == ' ' || r == '\t' || r == '\r' || r == '\n' || r == '\v' || r == '\f'
 }
 
-func consumeRune(data *[]byte) rune {
-	r, size := utf8.DecodeRune(*data)
+func peakRune(data []byte) (rune, int) {
+	r, size := utf8.DecodeRune(data)
 
 	if r == utf8.RuneError {
 		log.Fatal("Invalid character")
 	}
 
-	*data = (*data)[size:]
+	return r, size
+}
 
-	return r
+func consumeBytes(data *[]byte, size int) {
+
+	*data = (*data)[size:]
+}
+
+func consumeSpace(data *[]byte) int {
+
+	result := 0
+
+	r, size := peakRune(*data)
+
+	for isSpace(r) {
+		result += size
+		consumeBytes(data, size)
+		r, size = peakRune(*data)
+	}
+
+	return result
 }
 
 func main() {
@@ -49,21 +67,30 @@ func main() {
 		log.Fatal("Error reading ", path)
 	}
 
-	//tokens := make([]Token, 100)
+	tokens := make([]Token, 0, 100)
 
-	index := 0
 	for len(data) > 0 {
-		r := consumeRune(&data)
-
-		fmt.Print(index, " ")
-
+		r, size := peakRune(data)
+		token := Token{}
+		start := data
 		if isSpace(r) {
-			fmt.Println("Space")
-		} else {
-			fmt.Println("Not space")
+			token.Type = Space
+			tSize := consumeSpace(&data)
+
+			fmt.Println("Space", " ", tSize)
+
+			token.Content = start[:tSize]
+
+			tokens = append(tokens, token)
+		}
+		if !isSpace(r) {
+			consumeBytes(&data, size)
 		}
 
-		index++
+	}
+
+	for i, token := range tokens {
+		fmt.Println(i, " ", len(token.Content))
 	}
 
 }
