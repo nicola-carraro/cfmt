@@ -75,6 +75,10 @@ func isDoubleQuote(r rune) bool {
 	return r == '"'
 }
 
+func isSingleQuote(r rune) bool {
+	return r == '\''
+}
+
 func peakRune(data []byte) (rune, int) {
 	r, size := utf8.DecodeRune(data)
 
@@ -141,6 +145,27 @@ func consumeString(data *[]byte) int {
 	panic("unreachable")
 }
 
+func consumeChar(data *[]byte) int {
+	result := 1
+	consumeBytes(data, 1)
+
+	for true {
+		r, size := peakRune(*data)
+		result += size
+		consumeBytes(data, size)
+		if r == '\'' {
+			return result
+		} else if r == '\\' {
+			_, size := peakRune(*data)
+			consumeBytes(data, size)
+		} else if r == utf8.RuneError && size == 0 {
+			log.Fatal("Unclosed character literal")
+		}
+	}
+
+	panic("unreachable")
+}
+
 func main() {
 
 	const path = "test.c"
@@ -173,6 +198,11 @@ func main() {
 			tSize := consumeString(&data)
 			token.Content = start[:tSize]
 			tokens = append(tokens, token)
+		} else if isSingleQuote(r) {
+			token.Type = Char
+			tSize := consumeChar(&data)
+			token.Content = start[:tSize]
+			tokens = append(tokens, token)
 		} else {
 			consumeBytes(&data, size)
 		}
@@ -183,10 +213,13 @@ func main() {
 		if token.Type == Space {
 			fmt.Println(i, " ", "Space", " ", len(token.Content))
 		} else if token.Type == Identifier {
-			fmt.Print(i, " ", "Identifier", " ")
+			fmt.Println(i, " ", "Identifier", " ")
 			fmt.Printf("%s\n", token.Content)
 		} else if token.Type == String {
 			fmt.Print(i, " ", "String", " ")
+			fmt.Printf("%s\n", token.Content)
+		} else if token.Type == Char {
+			fmt.Print(i, " ", "Char", " ")
 			fmt.Printf("%s\n", token.Content)
 		}
 	}
