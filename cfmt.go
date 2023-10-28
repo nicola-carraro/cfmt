@@ -124,6 +124,7 @@ func consumeIdentifier(data *[]byte) int {
 	return result
 }
 
+// TODO: handle wide strings
 func consumeString(data *[]byte) int {
 	result := 1
 	consumeBytes(data, 1)
@@ -145,6 +146,7 @@ func consumeString(data *[]byte) int {
 	panic("unreachable")
 }
 
+// TODO: handle wide chars
 func consumeChar(data *[]byte) int {
 	result := 1
 	consumeBytes(data, 1)
