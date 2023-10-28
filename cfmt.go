@@ -13,9 +13,9 @@ const (
 	None TokenType = iota
 	Space
 	Identifier
-	IntConst
-	CharConst
-	FloatConst
+	Number
+	Char
+	String
 )
 
 var keywords = [...]string{
@@ -71,10 +71,14 @@ func isSpace(r rune) bool {
 	return r == ' ' || r == '\t' || r == '\r' || r == '\n' || r == '\v' || r == '\f'
 }
 
+func isDoubleQuote(r rune) bool {
+	return r == '"'
+}
+
 func peakRune(data []byte) (rune, int) {
 	r, size := utf8.DecodeRune(data)
 
-	if r == utf8.RuneError && size == 0 {
+	if r == utf8.RuneError && size == 1 {
 		log.Fatal("Invalid character")
 	}
 
@@ -116,6 +120,27 @@ func consumeIdentifier(data *[]byte) int {
 	return result
 }
 
+func consumeString(data *[]byte) int {
+	result := 1
+	consumeBytes(data, 1)
+
+	for true {
+		r, size := peakRune(*data)
+		result += size
+		consumeBytes(data, size)
+		if r == '"' {
+			return result
+		} else if r == '\\' {
+			_, size := peakRune(*data)
+			consumeBytes(data, size)
+		} else if r == utf8.RuneError && size == 0 {
+			log.Fatal("Unclosed string literal")
+		}
+	}
+
+	panic("unreachable")
+}
+
 func main() {
 
 	const path = "test.c"
@@ -143,6 +168,11 @@ func main() {
 			tSize := consumeIdentifier(&data)
 			token.Content = start[:tSize]
 			tokens = append(tokens, token)
+		} else if isDoubleQuote(r) {
+			token.Type = String
+			tSize := consumeString(&data)
+			token.Content = start[:tSize]
+			tokens = append(tokens, token)
 		} else {
 			consumeBytes(&data, size)
 		}
@@ -154,6 +184,9 @@ func main() {
 			fmt.Println(i, " ", "Space", " ", len(token.Content))
 		} else if token.Type == Identifier {
 			fmt.Print(i, " ", "Identifier", " ")
+			fmt.Printf("%s\n", token.Content)
+		} else if token.Type == String {
+			fmt.Print(i, " ", "String", " ")
 			fmt.Printf("%s\n", token.Content)
 		}
 	}
