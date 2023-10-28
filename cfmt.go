@@ -30,7 +30,7 @@ func isSpace(r rune) bool {
 func peakRune(data []byte) (rune, int) {
 	r, size := utf8.DecodeRune(data)
 
-	if r == utf8.RuneError {
+	if r == utf8.RuneError && size == 0 {
 		log.Fatal("Invalid character")
 	}
 
