@@ -18,6 +18,50 @@ const (
 	FloatConst
 )
 
+var keywords = [...]string{
+	"auto",
+	"break",
+	"case",
+	"char",
+	"const",
+	"continue",
+	"default",
+	"do",
+	"enum",
+	"extern",
+	"float",
+	"for",
+	"goto",
+	"if",
+	"int",
+	"long",
+	"register",
+	"return",
+	"short",
+	"signed",
+	"sizeof",
+	"static",
+	"struct",
+	"switch",
+	"typedef",
+	"union",
+	"unsigned",
+	"void",
+	"volatile",
+	"while"}
+
+func isIdentifierStart(r rune) bool {
+	return (r >= 'A' && r <= 'Z') || (r >= 'a' && r <= 'z') || (r == '_')
+}
+
+func isIdentifierChar(r rune) bool {
+	return isIdentifierStart(r) || isDigit(r)
+}
+
+func isDigit(r rune) bool {
+	return r >= '0' && r <= '9'
+}
+
 type Token struct {
 	Type    TokenType
 	Content []byte
@@ -57,6 +101,21 @@ func consumeSpace(data *[]byte) int {
 	return result
 }
 
+func consumeIdentifier(data *[]byte) int {
+
+	result := 0
+
+	r, size := peakRune(*data)
+
+	for isIdentifierChar(r) {
+		result += size
+		consumeBytes(data, size)
+		r, size = peakRune(*data)
+	}
+
+	return result
+}
+
 func main() {
 
 	const path = "test.c"
@@ -76,21 +135,27 @@ func main() {
 		if isSpace(r) {
 			token.Type = Space
 			tSize := consumeSpace(&data)
-
-			fmt.Println("Space", " ", tSize)
-
 			token.Content = start[:tSize]
 
 			tokens = append(tokens, token)
-		}
-		if !isSpace(r) {
+		} else if isIdentifierStart(r) {
+			token.Type = Identifier
+			tSize := consumeIdentifier(&data)
+			token.Content = start[:tSize]
+			tokens = append(tokens, token)
+		} else {
 			consumeBytes(&data, size)
 		}
 
 	}
 
 	for i, token := range tokens {
-		fmt.Println(i, " ", len(token.Content))
+		if token.Type == Space {
+			fmt.Println(i, " ", "Space", " ", len(token.Content))
+		} else if token.Type == Identifier {
+			fmt.Print(i, " ", "Identifier", " ")
+			fmt.Printf("%s\n", token.Content)
+		}
 	}
 
 }
