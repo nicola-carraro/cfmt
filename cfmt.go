@@ -177,7 +177,7 @@ func parseChar(text string) string {
 	panic("unreachable")
 }
 
-func parseDecimalInteger(text string) string {
+func parseDecimal(text string) string {
 	tokenSize := 0
 
 	next := text
@@ -235,7 +235,7 @@ func main() {
 		} else if isNonzeroDigit(r) {
 			//TODO: handle octal and hex
 			token.Type = Integer
-			token.Content = parseDecimalInteger(text)
+			token.Content = parseDecimal(text)
 			text, _ = strings.CutPrefix(text, token.Content)
 			tokens = append(tokens, token)
 		} else {
