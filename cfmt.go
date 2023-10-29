@@ -195,6 +195,55 @@ func parseDecimal(text string) string {
 
 }
 
+func isExponentStart(r rune) bool {
+	return r == 'e' || r == 'E'
+}
+
+func isFloatSuffix(r rune) bool {
+	return r == 'f' || r == 'l' || r == 'F' || r == 'L'
+}
+
+// Todo: handle floats of the form 123e+1
+func tryParseFloat(text string) (string, bool) {
+
+	tokenSize := 0
+	next := text
+
+	r, size := peakRune(next)
+
+	if !isDigit(r) && r != '.' {
+		return "", false
+	}
+
+	for isDigit(r) {
+		tokenSize += size
+		next = next[size:]
+		r, size = peakRune(next)
+	}
+
+	if r != '.' {
+		return "", false
+	}
+
+	tokenSize += size
+	next = next[size:]
+	r, size = peakRune(next)
+
+	for isDigit(r) {
+
+		tokenSize += size
+		next = next[size:]
+		r, size = peakRune(next)
+	}
+
+	if isFloatSuffix(r) {
+		tokenSize += size
+	}
+
+	return text[:tokenSize], true
+
+}
+
 func main() {
 
 	const path = "test.c"
@@ -232,14 +281,24 @@ func main() {
 			token.Content = parseChar(text)
 			text, _ = strings.CutPrefix(text, token.Content)
 			tokens = append(tokens, token)
-		} else if isNonzeroDigit(r) {
-			//TODO: handle octal and hex
-			token.Type = Integer
-			token.Content = parseDecimal(text)
-			text, _ = strings.CutPrefix(text, token.Content)
-			tokens = append(tokens, token)
 		} else {
-			text = text[size:]
+
+			content, isFloat := tryParseFloat(text)
+
+			if isFloat {
+				token.Type = Float
+				token.Content = content
+				text, _ = strings.CutPrefix(text, token.Content)
+				tokens = append(tokens, token)
+			} else if isNonzeroDigit(r) {
+				//TODO: handle octal and hex
+				token.Type = Integer
+				token.Content = parseDecimal(text)
+				text, _ = strings.CutPrefix(text, token.Content)
+				tokens = append(tokens, token)
+			} else {
+				text = text[size:]
+			}
 		}
 
 	}
@@ -255,6 +314,8 @@ func main() {
 			fmt.Println(i, " ", "Char", " ", token.Content)
 		} else if token.Type == Integer {
 			fmt.Println(i, " ", "Integer", " ", token.Content)
+		} else if token.Type == Float {
+			fmt.Println(i, " ", "Float", " ", token.Content)
 		}
 	}
 

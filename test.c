@@ -6,6 +6,10 @@ int main(void)
 
     char letter2 = '\'';
 
+    float f = 55.0f;
+
+    double d = .4;
+
     int num = 123;
     return 0;
 }
