@@ -1,4 +1,7 @@
 *.exe
+*.exe~
 *.obj
 *.pdb
 .vscode
+.vs
+enc_temp_folder

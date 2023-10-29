@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -69,7 +70,7 @@ func isNonzeroDigit(r rune) bool {
 
 type Token struct {
 	Type    TokenType
-	Content []byte
+	Content string
 }
 
 func isSpace(r rune) bool {
@@ -84,8 +85,8 @@ func isSingleQuote(r rune) bool {
 	return r == '\''
 }
 
-func peakRune(data []byte) (rune, int) {
-	r, size := utf8.DecodeRune(data)
+func peakRune(text string) (rune, int) {
+	r, size := utf8.DecodeRuneInString(text)
 
 	if r == utf8.RuneError && size == 1 {
 		log.Fatal("Invalid character")
@@ -94,55 +95,58 @@ func peakRune(data []byte) (rune, int) {
 	return r, size
 }
 
-func consumeBytes(data *[]byte, size int) {
+func _consumeBytes(data *[]byte, size int) {
 
 	*data = (*data)[size:]
 }
 
-func consumeSpace(data *[]byte) int {
+func parseSpace(text string) string {
 
-	result := 0
+	tokenSize := 0
 
-	r, size := peakRune(*data)
+	next := text
+
+	r, size := peakRune(next)
 
 	for isSpace(r) {
-		result += size
-		consumeBytes(data, size)
-		r, size = peakRune(*data)
+		tokenSize += size
+		next = next[size:]
+		r, size = peakRune(next)
 	}
 
-	return result
+	return text[:tokenSize]
 }
 
-func consumeIdentifier(data *[]byte) int {
+func parseIdentifier(text string) string {
 
-	result := 0
+	tokenSize := 0
+	next := text
 
-	r, size := peakRune(*data)
+	r, size := peakRune(next)
 
 	for isIdentifierChar(r) {
-		result += size
-		consumeBytes(data, size)
-		r, size = peakRune(*data)
+		tokenSize += size
+		next = next[size:]
+		r, size = peakRune(next)
 	}
 
-	return result
+	return text[:tokenSize]
 }
 
 // TODO: handle wide strings
-func consumeString(data *[]byte) int {
-	result := 1
-	consumeBytes(data, 1)
+func parseString(text string) string {
+	tokenSize := 1
+	next := text[1:]
 
 	for true {
-		r, size := peakRune(*data)
-		result += size
-		consumeBytes(data, size)
+		r, size := peakRune(next)
+		tokenSize += size
+		next = next[size:]
 		if r == '"' {
-			return result
+			return text[:tokenSize]
 		} else if r == '\\' {
-			_, size := peakRune(*data)
-			consumeBytes(data, size)
+			_, size := peakRune(next)
+			next = next[size:]
 		} else if r == utf8.RuneError && size == 0 {
 			log.Fatal("Unclosed string literal")
 		}
@@ -152,19 +156,19 @@ func consumeString(data *[]byte) int {
 }
 
 // TODO: handle wide chars
-func consumeChar(data *[]byte) int {
-	result := 1
-	consumeBytes(data, 1)
+func parseChar(text string) string {
+	tokenSize := 1
+	next := text[1:]
 
 	for true {
-		r, size := peakRune(*data)
-		result += size
-		consumeBytes(data, size)
+		r, size := peakRune(text)
+		tokenSize += size
+		next = next[size:]
 		if r == '\'' {
-			return result
+			return text[:tokenSize]
 		} else if r == '\\' {
-			_, size := peakRune(*data)
-			consumeBytes(data, size)
+			_, size := peakRune(text)
+			next = next[size:]
 		} else if r == utf8.RuneError && size == 0 {
 			log.Fatal("Unclosed character literal")
 		}
@@ -173,19 +177,21 @@ func consumeChar(data *[]byte) int {
 	panic("unreachable")
 }
 
-func consumeDecimalInteger(data *[]byte) int {
-	result := 0
+func parseDecimalInteger(text string) string {
+	tokenSize := 0
 
-	r, size := peakRune(*data)
+	next := text
+
+	r, size := peakRune(text)
 
 	for isDigit(r) {
-		result += size
-		consumeBytes(data, size)
-		r, size = peakRune(*data)
+		tokenSize += size
+		next = next[size:]
+		r, size = peakRune(next)
 	}
 	//TODO: handle suffixes
 
-	return result
+	return text[:tokenSize]
 
 }
 
@@ -199,41 +205,41 @@ func main() {
 		log.Fatal("Error reading ", path)
 	}
 
+	text := fmt.Sprintf("%s", data)
+
 	tokens := make([]Token, 0, 100)
 
-	for len(data) > 0 {
-		r, size := peakRune(data)
+	for len(text) > 0 {
+		r, size := peakRune(text)
 		token := Token{}
-		start := data
 		if isSpace(r) {
 			token.Type = Space
-			tSize := consumeSpace(&data)
-			token.Content = start[:tSize]
-
+			token.Content = parseSpace(text)
+			text, _ = strings.CutPrefix(text, token.Content)
 			tokens = append(tokens, token)
 		} else if isIdentifierStart(r) {
 			token.Type = Identifier
-			tSize := consumeIdentifier(&data)
-			token.Content = start[:tSize]
+			token.Content = parseIdentifier(text)
+			text, _ = strings.CutPrefix(text, token.Content)
 			tokens = append(tokens, token)
 		} else if isDoubleQuote(r) {
 			token.Type = String
-			tSize := consumeString(&data)
-			token.Content = start[:tSize]
+			token.Content = parseString(text)
+			text, _ = strings.CutPrefix(text, token.Content)
 			tokens = append(tokens, token)
 		} else if isSingleQuote(r) {
 			token.Type = Char
-			tSize := consumeChar(&data)
-			token.Content = start[:tSize]
+			token.Content = parseChar(text)
+			text, _ = strings.CutPrefix(text, token.Content)
 			tokens = append(tokens, token)
 		} else if isNonzeroDigit(r) {
 			//TODO: handle octal and hex
 			token.Type = Integer
-			tSize := consumeDecimalInteger(&data)
-			token.Content = start[:tSize]
+			token.Content = parseDecimalInteger(text)
+			text, _ = strings.CutPrefix(text, token.Content)
 			tokens = append(tokens, token)
 		} else {
-			consumeBytes(&data, size)
+			text = text[size:]
 		}
 
 	}
@@ -242,17 +248,13 @@ func main() {
 		if token.Type == Space {
 			fmt.Println(i, " ", "Space", " ", len(token.Content))
 		} else if token.Type == Identifier {
-			fmt.Println(i, " ", "Identifier", " ")
-			fmt.Printf("%s\n", token.Content)
+			fmt.Println(i, " ", "Identifier", " ", token.Content)
 		} else if token.Type == String {
-			fmt.Print(i, " ", "String", " ")
-			fmt.Printf("%s\n", token.Content)
+			fmt.Println(i, " ", "String", " ", token.Content)
 		} else if token.Type == Char {
-			fmt.Print(i, " ", "Char", " ")
-			fmt.Printf("%s\n", token.Content)
+			fmt.Println(i, " ", "Char", " ", token.Content)
 		} else if token.Type == Integer {
-			fmt.Print(i, " ", "Integer", " ")
-			fmt.Printf("%s\n", token.Content)
+			fmt.Println(i, " ", "Integer", " ", token.Content)
 		}
 	}
 
