@@ -13,7 +13,8 @@ const (
 	None TokenType = iota
 	Space
 	Identifier
-	Number
+	Integer
+	Float
 	Char
 	String
 )
@@ -60,6 +61,10 @@ func isIdentifierChar(r rune) bool {
 
 func isDigit(r rune) bool {
 	return r >= '0' && r <= '9'
+}
+
+func isNonzeroDigit(r rune) bool {
+	return r >= '1' && r <= '9'
 }
 
 type Token struct {
@@ -168,6 +173,22 @@ func consumeChar(data *[]byte) int {
 	panic("unreachable")
 }
 
+func consumeDecimalInteger(data *[]byte) int {
+	result := 0
+
+	r, size := peakRune(*data)
+
+	for isDigit(r) {
+		result += size
+		consumeBytes(data, size)
+		r, size = peakRune(*data)
+	}
+	//TODO: handle suffixes
+
+	return result
+
+}
+
 func main() {
 
 	const path = "test.c"
@@ -205,6 +226,12 @@ func main() {
 			tSize := consumeChar(&data)
 			token.Content = start[:tSize]
 			tokens = append(tokens, token)
+		} else if isNonzeroDigit(r) {
+			//TODO: handle octal and hex
+			token.Type = Integer
+			tSize := consumeDecimalInteger(&data)
+			token.Content = start[:tSize]
+			tokens = append(tokens, token)
 		} else {
 			consumeBytes(&data, size)
 		}
@@ -222,6 +249,9 @@ func main() {
 			fmt.Printf("%s\n", token.Content)
 		} else if token.Type == Char {
 			fmt.Print(i, " ", "Char", " ")
+			fmt.Printf("%s\n", token.Content)
+		} else if token.Type == Integer {
+			fmt.Print(i, " ", "Integer", " ")
 			fmt.Printf("%s\n", token.Content)
 		}
 	}
