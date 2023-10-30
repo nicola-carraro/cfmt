@@ -147,6 +147,7 @@ func parseString(text string) string {
 			return text[:tokenSize]
 		} else if r == '\\' {
 			_, size := peakRune(next)
+			tokenSize += size
 			next = next[size:]
 		} else if r == utf8.RuneError && size == 0 {
 			log.Fatal("Unclosed string literal")

@@ -14,6 +14,8 @@ int main(void)
 
     int num = 007;
 
+    printf("%d\n", num);
+
     if (d <= 1)
     {
         return -1;
