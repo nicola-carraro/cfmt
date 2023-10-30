@@ -18,6 +18,7 @@ const (
 	Float
 	Char
 	String
+	Punctuation
 )
 
 var keywords = [...]string{
@@ -161,14 +162,16 @@ func parseChar(text string) string {
 	next := text[1:]
 
 	for true {
-		r, size := peakRune(text)
+		r, size := peakRune(next)
 		tokenSize += size
 		next = next[size:]
 		if r == '\'' {
 			return text[:tokenSize]
 		} else if r == '\\' {
-			_, size := peakRune(text)
+			_, size := peakRune(next)
 			next = next[size:]
+			tokenSize += size
+
 		} else if r == utf8.RuneError && size == 0 {
 			log.Fatal("Unclosed character literal")
 		}
@@ -244,6 +247,53 @@ func tryParseFloat(text string) (string, bool) {
 
 }
 
+func isFourCharsPunctuation(text string) bool {
+	return strings.HasPrefix(text, "%:%:")
+}
+
+func isThreeCharsPunctuation(text string) bool {
+	threeChars := [...]string{"<<=", ">>=", "..."}
+
+	for _, o := range threeChars {
+		if strings.HasPrefix(text, o) {
+			return true
+
+		}
+	}
+
+	return false
+}
+
+func isTwoCharsPunctuation(text string) bool {
+	twoChars := [...]string{"++", "--", "<<", ">>", "<=", ">=", "==",
+		"!=", "&&", "||", "->", "*=", "/=", "%=", "+=", "-=", "&=", "^=", "|=", "##",
+		"<:", ":>", "<%", "%>", "%:"}
+
+	for _, o := range twoChars {
+		if strings.HasPrefix(text, o) {
+			return true
+
+		}
+	}
+
+	return false
+}
+
+func isOneCharPunctuation(text string) bool {
+	oneChar := [...]string{"~", "*", "/", "%", "+", "-", "<", ">",
+		"&", "|", "^", ",", "=", "[", "]", "(", ")", "{",
+		"}", ".", "!", "?", ":", ";", "#"}
+
+	for _, o := range oneChar {
+		if strings.HasPrefix(text, o) {
+			return true
+
+		}
+	}
+
+	return false
+}
+
 func main() {
 
 	const path = "test.c"
@@ -281,8 +331,27 @@ func main() {
 			token.Content = parseChar(text)
 			text, _ = strings.CutPrefix(text, token.Content)
 			tokens = append(tokens, token)
+		} else if isFourCharsPunctuation(text) {
+			token.Type = Punctuation
+			token.Content = text[:4]
+			text = text[4:]
+			tokens = append(tokens, token)
+		} else if isThreeCharsPunctuation(text) {
+			token.Type = Punctuation
+			token.Content = text[:3]
+			text = text[3:]
+			tokens = append(tokens, token)
+		} else if isTwoCharsPunctuation(text) {
+			token.Type = Punctuation
+			token.Content = text[:2]
+			text = text[2:]
+			tokens = append(tokens, token)
+		} else if isOneCharPunctuation(text) {
+			token.Type = Punctuation
+			token.Content = text[:1]
+			text = text[1:]
+			tokens = append(tokens, token)
 		} else {
-
 			content, isFloat := tryParseFloat(text)
 
 			if isFloat {
@@ -293,6 +362,7 @@ func main() {
 			} else if isNonzeroDigit(r) {
 				//TODO: handle octal and hex
 				token.Type = Integer
+				//TODO: handle 0
 				token.Content = parseDecimal(text)
 				text, _ = strings.CutPrefix(text, token.Content)
 				tokens = append(tokens, token)
@@ -316,6 +386,8 @@ func main() {
 			fmt.Println(i, " ", "Integer", " ", token.Content)
 		} else if token.Type == Float {
 			fmt.Println(i, " ", "Float", " ", token.Content)
+		} else if token.Type == Punctuation {
+			fmt.Println(i, " ", "Punctuation", " ", token.Content)
 		}
 	}
 

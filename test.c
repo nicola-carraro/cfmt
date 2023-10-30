@@ -11,5 +11,10 @@ int main(void)
     double d = .4;
 
     int num = 123;
+
+    if (d <= 1)
+    {
+        return -1;
+    }
     return 0;
 }
