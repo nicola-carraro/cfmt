@@ -1,3 +1,5 @@
+#include "stdio.h"
+
 int main(void)
 {
     char *name = "Niki";
@@ -10,7 +12,7 @@ int main(void)
 
     double d = .4;
 
-    int num = 123;
+    int num = 007;
 
     if (d <= 1)
     {

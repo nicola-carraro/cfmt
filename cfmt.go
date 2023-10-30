@@ -359,10 +359,9 @@ func main() {
 				token.Content = content
 				text, _ = strings.CutPrefix(text, token.Content)
 				tokens = append(tokens, token)
-			} else if isNonzeroDigit(r) {
+			} else if isDigit(r) {
 				//TODO: handle octal and hex
 				token.Type = Integer
-				//TODO: handle 0
 				token.Content = parseDecimal(text)
 				text, _ = strings.CutPrefix(text, token.Content)
 				tokens = append(tokens, token)
