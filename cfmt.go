@@ -310,9 +310,16 @@ func main() {
 	tokens := make([]Token, 0, 100)
 
 	for len(text) > 0 {
-		r, size := peakRune(text)
+		r, _ := peakRune(text)
 		token := Token{}
-		if isSpace(r) {
+
+		content, isFloat := tryParseFloat(text)
+		if isFloat {
+			token.Type = Float
+			token.Content = content
+			text, _ = strings.CutPrefix(text, token.Content)
+			tokens = append(tokens, token)
+		} else if isSpace(r) {
 			token.Type = Space
 			token.Content = parseSpace(text)
 			text, _ = strings.CutPrefix(text, token.Content)
@@ -352,23 +359,20 @@ func main() {
 			token.Content = text[:1]
 			text = text[1:]
 			tokens = append(tokens, token)
-		} else {
-			content, isFloat := tryParseFloat(text)
+		} else if isDigit(r) {
+			//TODO: handle octal and hex
+			token.Type = Integer
+			token.Content = parseDecimal(text)
+			text, _ = strings.CutPrefix(text, token.Content)
+			tokens = append(tokens, token)
 
-			if isFloat {
-				token.Type = Float
-				token.Content = content
-				text, _ = strings.CutPrefix(text, token.Content)
-				tokens = append(tokens, token)
-			} else if isDigit(r) {
-				//TODO: handle octal and hex
-				token.Type = Integer
-				token.Content = parseDecimal(text)
-				text, _ = strings.CutPrefix(text, token.Content)
-				tokens = append(tokens, token)
-			} else {
-				text = text[size:]
+		} else {
+			max := 10
+			start := text
+			if len(start) > max {
+				start = start[:max]
 			}
+			log.Fatalf("Unrecognised token, starts with %s", start)
 		}
 
 	}
