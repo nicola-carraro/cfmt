@@ -295,17 +295,7 @@ func isOneCharPunctuation(text string) bool {
 	return false
 }
 
-func main() {
-
-	const path = "test.c"
-
-	data, error := os.ReadFile(path)
-
-	if error != nil {
-		log.Fatal("Error reading ", path)
-	}
-
-	text := fmt.Sprintf("%s", data)
+func tokenize(text string) []Token {
 
 	tokens := make([]Token, 0, 100)
 
@@ -318,54 +308,43 @@ func main() {
 			token.Type = Float
 			token.Content = content
 			text, _ = strings.CutPrefix(text, token.Content)
-			tokens = append(tokens, token)
 		} else if isSpace(r) {
 			token.Type = Space
 			token.Content = parseSpace(text)
 			text, _ = strings.CutPrefix(text, token.Content)
-			tokens = append(tokens, token)
 		} else if isIdentifierStart(r) {
 			token.Type = Identifier
 			token.Content = parseIdentifier(text)
 			text, _ = strings.CutPrefix(text, token.Content)
-			tokens = append(tokens, token)
 		} else if isDoubleQuote(r) {
 			token.Type = String
 			token.Content = parseString(text)
 			text, _ = strings.CutPrefix(text, token.Content)
-			tokens = append(tokens, token)
 		} else if isSingleQuote(r) {
 			token.Type = Char
 			token.Content = parseChar(text)
 			text, _ = strings.CutPrefix(text, token.Content)
-			tokens = append(tokens, token)
 		} else if isFourCharsPunctuation(text) {
 			token.Type = Punctuation
 			token.Content = text[:4]
 			text = text[4:]
-			tokens = append(tokens, token)
 		} else if isThreeCharsPunctuation(text) {
 			token.Type = Punctuation
 			token.Content = text[:3]
 			text = text[3:]
-			tokens = append(tokens, token)
 		} else if isTwoCharsPunctuation(text) {
 			token.Type = Punctuation
 			token.Content = text[:2]
 			text = text[2:]
-			tokens = append(tokens, token)
 		} else if isOneCharPunctuation(text) {
 			token.Type = Punctuation
 			token.Content = text[:1]
 			text = text[1:]
-			tokens = append(tokens, token)
 		} else if isDigit(r) {
 			//TODO: handle octal and hex
 			token.Type = Integer
 			token.Content = parseDecimal(text)
 			text, _ = strings.CutPrefix(text, token.Content)
-			tokens = append(tokens, token)
-
 		} else {
 			max := 10
 			start := text
@@ -375,7 +354,25 @@ func main() {
 			log.Fatalf("Unrecognised token, starts with %s", start)
 		}
 
+		tokens = append(tokens, token)
 	}
+
+	return tokens
+}
+
+func main() {
+
+	const path = "test.c"
+
+	data, error := os.ReadFile(path)
+
+	if error != nil {
+		log.Fatal("Error reading ", path)
+	}
+
+	text := fmt.Sprintf("%s", data)
+
+	tokens := tokenize(text)
 
 	for i, token := range tokens {
 		if token.Type == Space {
