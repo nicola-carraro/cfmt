@@ -25,6 +25,7 @@ func _testTokenizeSingleToken(t *testing.T, text string, tType TokenType, typeNa
 
 func TestTokenizeString(t *testing.T) {
 	_testTokenizeSingleToken(t, "\"toto\"", String, "String")
+	_testTokenizeSingleToken(t, "\"to\\\"o\"", String, "String")
 }
 
 func TestTokenizeFloat(t *testing.T) {
