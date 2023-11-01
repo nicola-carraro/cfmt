@@ -389,20 +389,7 @@ func tokenize(text string) []Token {
 	return tokens
 }
 
-func main() {
-
-	const path = "test.c"
-
-	data, error := os.ReadFile(path)
-
-	if error != nil {
-		log.Fatal("Error reading ", path)
-	}
-
-	text := fmt.Sprintf("%s", data)
-
-	tokens := tokenize(text)
-
+func printTokens(tokens []Token) {
 	for i, token := range tokens {
 		if token.Type == Space {
 			fmt.Println(i, " ", "Space", " ", len(token.Content))
@@ -420,5 +407,20 @@ func main() {
 			fmt.Println(i, " ", "Punctuation", " ", token.Content)
 		}
 	}
+}
 
+func main() {
+	const path = "test.c"
+
+	data, error := os.ReadFile(path)
+
+	if error != nil {
+		log.Fatal("Error reading ", path)
+	}
+
+	text := fmt.Sprintf("%s", data)
+
+	tokens := tokenize(text)
+
+	printTokens(tokens)
 }
