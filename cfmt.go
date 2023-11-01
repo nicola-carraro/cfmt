@@ -11,7 +11,7 @@ import (
 type TokenType uint32
 
 const (
-	None TokenType = iota
+	NoTokenType TokenType = iota
 	Space
 	Identifier
 	Integer
@@ -20,6 +20,30 @@ const (
 	String
 	Punctuation
 )
+
+type Token struct {
+	Type       TokenType
+	Content    string
+	HasNewLine bool
+}
+
+type NodeType uint32
+
+const (
+	NoNodeType NodeType = iota
+	Root
+	Braces
+	Parenthesis
+	Statement
+	Preprocessor
+)
+
+type Node struct {
+	Type     NodeType
+	Content  []Token
+	Parent   *Node
+	Children []Node
+}
 
 var keywords = [...]string{
 	"auto",
@@ -69,11 +93,6 @@ func isNonzeroDigit(r rune) bool {
 	return r >= '1' && r <= '9'
 }
 
-type Token struct {
-	Type    TokenType
-	Content string
-}
-
 func isSpace(r rune) bool {
 	return r == ' ' || r == '\t' || r == '\r' || r == '\n' || r == '\v' || r == '\f'
 }
@@ -88,7 +107,7 @@ func isSingleQuote(r rune) bool {
 
 func (t TokenType) String() string {
 	switch t {
-	case None:
+	case NoTokenType:
 		return "None"
 	case Space:
 		return "Space"
@@ -112,7 +131,7 @@ func (t TokenType) String() string {
 func (t Token) String() string {
 	if t.Type == Space {
 		return fmt.Sprintf("Token{Type: %s, len: %d}", t.Type, len(t.Content))
-	} else if t.Type == None {
+	} else if t.Type == NoTokenType {
 		return fmt.Sprintf("Token{Type: %s}", t.Type)
 	} else {
 		return fmt.Sprintf("Token{Type: %s, Content: \"%s\"}", t.Type, t.Content)
@@ -420,6 +439,38 @@ func tokenize(text string) []Token {
 	}
 
 	return tokens
+}
+
+func skipSpace(tokens []Token, index int) int {
+
+	for i := 0; i < len(tokens); i++ {
+		if tokens[i].Type != Space {
+			return i
+		}
+	}
+
+	return len(tokens)
+}
+
+func isHashtag(t Token) bool {
+	return t.Type == Punctuation && t.Content == "#"
+}
+
+func containsNewLine(t Token) bool {
+	return t.Type == Punctuation && t.Content == "#"
+}
+
+func parse(tokens []Token) Node {
+	root := Node{Type: Root, Content: tokens}
+	cur := skipSpace(tokens, 0)
+
+	token := tokens[cur]
+
+	if isHashtag(token) {
+
+	}
+
+	return root
 }
 
 func main() {
