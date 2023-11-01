@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func _testTokenizeSingleToken(t *testing.T, text string, tType TokenType, typeName string) {
+func _testTokenizeSingleToken(t *testing.T, text string, tType TokenType) {
 
 	tokens := tokenize(text)
 
@@ -15,21 +15,21 @@ func _testTokenizeSingleToken(t *testing.T, text string, tType TokenType, typeNa
 	token := tokens[0]
 
 	if token.Type != tType {
-		t.Errorf("Token should be %s", typeName)
+		t.Errorf("Token should be %s, found %s", tType, token.Type)
 	}
 
 	if token.Content != text {
-		t.Errorf("Token content should be %s", text)
+		t.Errorf("Token content should be %s, found %s", text, token.Content)
 	}
 }
 
 func TestTokenizeString(t *testing.T) {
-	_testTokenizeSingleToken(t, "\"toto\"", String, "String")
-	_testTokenizeSingleToken(t, "\"to\\\"o\"", String, "String")
+	_testTokenizeSingleToken(t, "\"toto\"", String)
+	_testTokenizeSingleToken(t, "\"to\\\"o\"", String)
 }
 
 func TestTokenizeFloat(t *testing.T) {
-	_testTokenizeSingleToken(t, "55.0f", Float, "Float")
-	_testTokenizeSingleToken(t, "123.456e-67", Float, "Float")
-	_testTokenizeSingleToken(t, "123e+86", Float, "Float")
+	_testTokenizeSingleToken(t, "55.0f", Float)
+	_testTokenizeSingleToken(t, "123.456e-67", Float)
+	_testTokenizeSingleToken(t, "123e+86", Float)
 }

@@ -86,6 +86,39 @@ func isSingleQuote(r rune) bool {
 	return r == '\''
 }
 
+func (t TokenType) String() string {
+	switch t {
+	case None:
+		return "None"
+	case Space:
+		return "Space"
+	case Identifier:
+		return "Identifier"
+	case Integer:
+		return "Integer"
+	case Float:
+		return "Float"
+	case Char:
+		return "Char"
+	case String:
+		return "String"
+	case Punctuation:
+		return "Punctuation"
+	default:
+		panic("Invalid TokenType")
+	}
+}
+
+func (t Token) String() string {
+	if t.Type == Space {
+		return fmt.Sprintf("Token{Type: %s, len: %d}", t.Type, len(t.Content))
+	} else if t.Type == None {
+		return fmt.Sprintf("Token{Type: %s}", t.Type)
+	} else {
+		return fmt.Sprintf("Token{Type: %s, Content: \"%s\"}", t.Type, t.Content)
+	}
+}
+
 func peakRune(text string) (rune, int) {
 	r, size := utf8.DecodeRuneInString(text)
 
@@ -389,26 +422,6 @@ func tokenize(text string) []Token {
 	return tokens
 }
 
-func printTokens(tokens []Token) {
-	for i, token := range tokens {
-		if token.Type == Space {
-			fmt.Println(i, " ", "Space", " ", len(token.Content))
-		} else if token.Type == Identifier {
-			fmt.Println(i, " ", "Identifier", " ", token.Content)
-		} else if token.Type == String {
-			fmt.Println(i, " ", "String", " ", token.Content)
-		} else if token.Type == Char {
-			fmt.Println(i, " ", "Char", " ", token.Content)
-		} else if token.Type == Integer {
-			fmt.Println(i, " ", "Integer", " ", token.Content)
-		} else if token.Type == Float {
-			fmt.Println(i, " ", "Float", " ", token.Content)
-		} else if token.Type == Punctuation {
-			fmt.Println(i, " ", "Punctuation", " ", token.Content)
-		}
-	}
-}
-
 func main() {
 	const path = "test.c"
 
@@ -422,5 +435,7 @@ func main() {
 
 	tokens := tokenize(text)
 
-	printTokens(tokens)
+	for _, token := range tokens {
+		fmt.Println(token)
+	}
 }
