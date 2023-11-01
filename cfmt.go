@@ -211,7 +211,6 @@ func isSignStart(r rune) bool {
 	return r == '+' || r == '-'
 }
 
-// Todo: handle floats of the form 123e+1
 func tryParseFloat(text string) (string, bool) {
 
 	tokenSize := 0
@@ -229,13 +228,14 @@ func tryParseFloat(text string) (string, bool) {
 		r, size = peakRune(next)
 	}
 
-	if r != '.' {
-		return "", false
-	}
+	hasDot := false
 
-	tokenSize += size
-	next = next[size:]
-	r, size = peakRune(next)
+	if r == '.' {
+		tokenSize += size
+		next = next[size:]
+		r, size = peakRune(next)
+		hasDot = true
+	}
 
 	for isDigit(r) {
 
@@ -243,6 +243,8 @@ func tryParseFloat(text string) (string, bool) {
 		next = next[size:]
 		r, size = peakRune(next)
 	}
+
+	hasExponent := false
 
 	if isExponentStart(r) {
 		tokenSize += size
@@ -256,10 +258,15 @@ func tryParseFloat(text string) (string, bool) {
 		}
 
 		for isDigit(r) {
+			hasExponent = true
 			tokenSize += size
 			next = next[size:]
 			r, size = peakRune(next)
 		}
+	}
+
+	if !hasExponent && !hasDot {
+		return "", false
 	}
 
 	if isFloatSuffix(r) {

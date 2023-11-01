@@ -16,6 +16,8 @@ int main(void)
 
     float e = 123.456e-67;
 
+    float e1 = 123e+86;
+
     printf("%d\n", num);
 
     if (d <= 1)
