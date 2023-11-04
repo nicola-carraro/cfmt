@@ -41,7 +41,7 @@ const (
 
 type Node struct {
 	Type     NodeType
-	Content  []Token
+	Tokens   []Token
 	Parent   *Node
 	Children []Node
 }
@@ -449,7 +449,7 @@ func skipSpace(tokens []Token, index int) int {
 	return len(tokens)
 }
 
-func isHashtag(t Token) bool {
+func isHash(t Token) bool {
 	return t.Type == Punctuation && t.Content == "#"
 }
 
@@ -457,14 +457,43 @@ func containsNewLine(t Token) bool {
 	return t.Type == Punctuation && t.Content == "#"
 }
 
+func hasNewline(t Token) bool {
+	return t.Type == Space && t.NewLines > 0
+}
+
+func parsePreprocessor(tokens []Token) Node {
+
+	len := 0
+
+	for _, t := range tokens {
+		len++
+		if hasNewline(t) {
+			break
+		}
+
+	}
+
+	node := Node{Type: Preprocessor, Tokens: tokens[:len]}
+
+	return node
+}
+
 func parse(tokens []Token) Node {
-	root := Node{Type: Root, Content: tokens}
+	root := Node{Type: Root, Tokens: tokens, Children: make([]Node, 0)}
 	cur := skipSpace(tokens, 0)
 
 	token := tokens[cur]
 
-	if isHashtag(token) {
-
+	for len(tokens) > 0 {
+		if isHash(token) {
+			//fmt.Println(token)
+			node := parsePreprocessor(tokens)
+			root.Children = append(root.Children, node)
+			tokens = tokens[len(node.Tokens):]
+			token = tokens[0]
+		} else {
+			tokens = tokens[1:]
+		}
 	}
 
 	return root
@@ -485,5 +514,11 @@ func main() {
 
 	for _, token := range tokens {
 		fmt.Println(token)
+	}
+
+	root := parse(tokens)
+
+	for _, node := range root.Children {
+		fmt.Println(node.Tokens)
 	}
 }
