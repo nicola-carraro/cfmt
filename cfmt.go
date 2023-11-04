@@ -139,6 +139,45 @@ func (t Token) String() string {
 	}
 }
 
+func (n NodeType) String() string {
+
+	switch n {
+	case NoNodeType:
+		return "None"
+	case Root:
+		return "Root"
+	case Braces:
+		return "Braces"
+	case Parenthesis:
+		return "Parenthesis"
+	case Statement:
+		return "Statement"
+	case Preprocessor:
+		return "Preprocessor"
+	default:
+		panic("Unknown NodeType")
+	}
+}
+
+func (n Node) String() string {
+
+	b := strings.Builder{}
+	for _, t := range n.Tokens {
+		s := fmt.Sprintf("%s, ", t.Type)
+		_, _ = b.WriteString(s)
+	}
+	tokens := b.String()
+
+	b = strings.Builder{}
+	for _, c := range n.Children {
+		s := fmt.Sprintf("%s, ", c.Type)
+		_, _ = b.WriteString(s)
+	}
+	children := b.String()
+
+	return fmt.Sprintf("Node{Type: %s, Tokens: [%s], Children: [%s]}", n.Type, tokens, children)
+}
+
 func peakRune(text string) (rune, int) {
 	r, size := utf8.DecodeRuneInString(text)
 
@@ -518,7 +557,10 @@ func main() {
 
 	root := parse(tokens)
 
-	for _, node := range root.Children {
-		fmt.Println(node.Tokens)
+	fmt.Println(root)
+
+	for _, c := range root.Children {
+		fmt.Println(c)
 	}
+
 }
