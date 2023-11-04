@@ -263,7 +263,7 @@ func isSignStart(r rune) bool {
 	return r == '+' || r == '-'
 }
 
-func tryParseFloat(text string) (string, bool) {
+func tryParseFloat(text string) (Token, bool) {
 
 	tokenSize := 0
 	next := text
@@ -271,7 +271,7 @@ func tryParseFloat(text string) (string, bool) {
 	r, size := peakRune(next)
 
 	if !isDigit(r) && r != '.' {
-		return "", false
+		return Token{}, false
 	}
 
 	for isDigit(r) {
@@ -318,14 +318,16 @@ func tryParseFloat(text string) (string, bool) {
 	}
 
 	if !hasExponent && !hasDot {
-		return "", false
+		return Token{}, false
 	}
 
 	if isFloatSuffix(r) {
 		tokenSize += size
 	}
 
-	return text[:tokenSize], true
+ token := Token{Type: Float, Content: text[:tokenSize]}
+
+	return token, true
 
 }
 
@@ -382,50 +384,38 @@ func tokenize(text string) []Token {
 
 	for len(text) > 0 {
 		r, _ := peakRune(text)
-		token := Token{}
 
-		content, isFloat := tryParseFloat(text)
-		if isFloat {
-			token.Type = Float
-			token.Content = content
-			text, _ = strings.CutPrefix(text, token.Content)
-		} else if isSpace(r) {
+		token, isFloat := tryParseFloat(text)
+		if !isFloat {
+			if isSpace(r) {
 			token.Type = Space
 			token.Content = parseSpace(text)
-			text, _ = strings.CutPrefix(text, token.Content)
+			
 		} else if isIdentifierStart(r) {
 			token.Type = Identifier
 			token.Content = parseIdentifier(text)
-			text, _ = strings.CutPrefix(text, token.Content)
 		} else if isDoubleQuote(r) {
 			token.Type = String
 			token.Content = parseString(text)
-			text, _ = strings.CutPrefix(text, token.Content)
 		} else if isSingleQuote(r) {
 			token.Type = Char
 			token.Content = parseChar(text)
-			text, _ = strings.CutPrefix(text, token.Content)
 		} else if isFourCharsPunctuation(text) {
 			token.Type = Punctuation
 			token.Content = text[:4]
-			text = text[4:]
 		} else if isThreeCharsPunctuation(text) {
 			token.Type = Punctuation
 			token.Content = text[:3]
-			text = text[3:]
 		} else if isTwoCharsPunctuation(text) {
 			token.Type = Punctuation
 			token.Content = text[:2]
-			text = text[2:]
 		} else if isOneCharPunctuation(text) {
 			token.Type = Punctuation
 			token.Content = text[:1]
-			text = text[1:]
 		} else if isDigit(r) {
 			//TODO: handle octal and hex
 			token.Type = Integer
 			token.Content = parseDecimal(text)
-			text, _ = strings.CutPrefix(text, token.Content)
 		} else {
 			max := 10
 			start := text
@@ -434,7 +424,8 @@ func tokenize(text string) []Token {
 			}
 			log.Fatalf("Unrecognised token, starts with %s", start)
 		}
-
+	}
+text, _ = strings.CutPrefix(text, token.Content)
 		tokens = append(tokens, token)
 	}
 
