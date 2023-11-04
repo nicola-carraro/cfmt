@@ -25,6 +25,7 @@ type Token struct {
 	Type       TokenType
 	Content    string
 	HasNewLine bool
+	NewLines   int
 }
 
 type NodeType uint32
@@ -130,7 +131,7 @@ func (t TokenType) String() string {
 
 func (t Token) String() string {
 	if t.Type == Space {
-		return fmt.Sprintf("Token{Type: %s, len: %d}", t.Type, len(t.Content))
+		return fmt.Sprintf("Token{Type: %s, len: %d, NewLines: %d}", t.Type, len(t.Content), t.NewLines)
 	} else if t.Type == NoTokenType {
 		return fmt.Sprintf("Token{Type: %s}", t.Type)
 	} else {
@@ -161,13 +162,19 @@ func parseSpace(text string) Token {
 
 	r, size := peakRune(next)
 
+	newLines := 0
+
 	for isSpace(r) {
+		if r == '\n' {
+			newLines++
+		}
+
 		tokenSize += size
 		next = next[size:]
 		r, size = peakRune(next)
 	}
 
-	token := Token{Type: Space, Content: text[:tokenSize]}
+	token := Token{Type: Space, Content: text[:tokenSize], NewLines: newLines}
 	return token
 }
 
