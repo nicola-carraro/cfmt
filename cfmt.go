@@ -477,15 +477,15 @@ func tokenize(text string) []Token {
 	return tokens
 }
 
-func skipSpace(tokens []Token, index int) int {
+func skipSpace(tokens []Token, index int) Token {
 
-	for i := 0; i < len(tokens); i++ {
-		if tokens[i].Type != Space {
-			return i
+	for _, t := range tokens {
+		if t.Type != Space {
+			return t
 		}
 	}
 
-	return len(tokens)
+	return Token{}
 }
 
 func isHash(t Token) bool {
@@ -519,11 +519,9 @@ func parsePreprocessor(tokens []Token) Node {
 
 func parse(tokens []Token) Node {
 	root := Node{Type: Root, Tokens: tokens, Children: make([]Node, 0)}
-	cur := skipSpace(tokens, 0)
-
-	token := tokens[cur]
 
 	for len(tokens) > 0 {
+		token := skipSpace(tokens, 0)
 		if isHash(token) {
 			//fmt.Println(token)
 			node := parsePreprocessor(tokens)
