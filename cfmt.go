@@ -153,7 +153,7 @@ func _consumeBytes(data *[]byte, size int) {
 	*data = (*data)[size:]
 }
 
-func parseSpace(text string) string {
+func parseSpace(text string) Token {
 
 	tokenSize := 0
 
@@ -167,10 +167,11 @@ func parseSpace(text string) string {
 		r, size = peakRune(next)
 	}
 
-	return text[:tokenSize]
+	token := Token{Type: Space, Content: text[:tokenSize]}
+	return token
 }
 
-func parseIdentifier(text string) string {
+func parseIdentifier(text string) Token {
 
 	tokenSize := 0
 	next := text
@@ -183,11 +184,12 @@ func parseIdentifier(text string) string {
 		r, size = peakRune(next)
 	}
 
-	return text[:tokenSize]
+	token := Token{Type: Identifier, Content: text[:tokenSize]}
+	return token
 }
 
 // TODO: handle wide strings
-func parseString(text string) string {
+func parseString(text string) Token {
 	tokenSize := 1
 	next := text[1:]
 
@@ -196,7 +198,8 @@ func parseString(text string) string {
 		tokenSize += size
 		next = next[size:]
 		if r == '"' {
-			return text[:tokenSize]
+			token := Token{Type: String, Content: text[:tokenSize]}
+			return token
 		} else if r == '\\' {
 			_, size := peakRune(next)
 			tokenSize += size
@@ -210,7 +213,7 @@ func parseString(text string) string {
 }
 
 // TODO: handle wide chars
-func parseChar(text string) string {
+func parseChar(text string) Token {
 	tokenSize := 1
 	next := text[1:]
 
@@ -219,7 +222,8 @@ func parseChar(text string) string {
 		tokenSize += size
 		next = next[size:]
 		if r == '\'' {
-			return text[:tokenSize]
+			token := Token{Type: Char, Content: text[:tokenSize]}
+			return token
 		} else if r == '\\' {
 			_, size := peakRune(next)
 			next = next[size:]
@@ -233,7 +237,7 @@ func parseChar(text string) string {
 	panic("unreachable")
 }
 
-func parseDecimal(text string) string {
+func parseDecimal(text string) Token {
 	tokenSize := 0
 
 	next := text
@@ -247,7 +251,8 @@ func parseDecimal(text string) string {
 	}
 	//TODO: handle suffixes
 
-	return text[:tokenSize]
+	token := Token{Type: Integer, Content: text[:tokenSize]}
+	return token
 
 }
 
@@ -325,7 +330,7 @@ func tryParseFloat(text string) (Token, bool) {
 		tokenSize += size
 	}
 
- token := Token{Type: Float, Content: text[:tokenSize]}
+	token := Token{Type: Float, Content: text[:tokenSize]}
 
 	return token, true
 
@@ -388,44 +393,38 @@ func tokenize(text string) []Token {
 		token, isFloat := tryParseFloat(text)
 		if !isFloat {
 			if isSpace(r) {
-			token.Type = Space
-			token.Content = parseSpace(text)
-			
-		} else if isIdentifierStart(r) {
-			token.Type = Identifier
-			token.Content = parseIdentifier(text)
-		} else if isDoubleQuote(r) {
-			token.Type = String
-			token.Content = parseString(text)
-		} else if isSingleQuote(r) {
-			token.Type = Char
-			token.Content = parseChar(text)
-		} else if isFourCharsPunctuation(text) {
-			token.Type = Punctuation
-			token.Content = text[:4]
-		} else if isThreeCharsPunctuation(text) {
-			token.Type = Punctuation
-			token.Content = text[:3]
-		} else if isTwoCharsPunctuation(text) {
-			token.Type = Punctuation
-			token.Content = text[:2]
-		} else if isOneCharPunctuation(text) {
-			token.Type = Punctuation
-			token.Content = text[:1]
-		} else if isDigit(r) {
-			//TODO: handle octal and hex
-			token.Type = Integer
-			token.Content = parseDecimal(text)
-		} else {
-			max := 10
-			start := text
-			if len(start) > max {
-				start = start[:max]
+				token = parseSpace(text)
+			} else if isIdentifierStart(r) {
+				token = parseIdentifier(text)
+			} else if isDoubleQuote(r) {
+				token = parseString(text)
+			} else if isSingleQuote(r) {
+				token = parseChar(text)
+			} else if isFourCharsPunctuation(text) {
+				token.Type = Punctuation
+				token.Content = text[:4]
+			} else if isThreeCharsPunctuation(text) {
+				token.Type = Punctuation
+				token.Content = text[:3]
+			} else if isTwoCharsPunctuation(text) {
+				token.Type = Punctuation
+				token.Content = text[:2]
+			} else if isOneCharPunctuation(text) {
+				token.Type = Punctuation
+				token.Content = text[:1]
+			} else if isDigit(r) {
+				//TODO: handle octal and hex
+				token = parseDecimal(text)
+			} else {
+				max := 10
+				start := text
+				if len(start) > max {
+					start = start[:max]
+				}
+				log.Fatalf("Unrecognised token, starts with %s", start)
 			}
-			log.Fatalf("Unrecognised token, starts with %s", start)
 		}
-	}
-text, _ = strings.CutPrefix(text, token.Content)
+		text = text[len(token.Content):]
 		tokens = append(tokens, token)
 	}
 
