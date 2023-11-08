@@ -37,6 +37,7 @@ const (
 	Parenthesis
 	Statement
 	Preprocessor
+	FuncSpecifier
 )
 
 type Node struct {
@@ -154,6 +155,8 @@ func (n NodeType) String() string {
 		return "Statement"
 	case Preprocessor:
 		return "Preprocessor"
+	case FuncSpecifier:
+		return "FuncSpecifier"
 	default:
 		panic("Unknown NodeType")
 	}
@@ -500,6 +503,23 @@ func hasNewline(t Token) bool {
 	return t.Type == Space && t.NewLines > 0
 }
 
+func parseParenthesis(tokens []Token) Node {
+
+	len := 0
+
+	for _, t := range tokens {
+		len++
+		if isRightParenthesis(t) {
+			break
+		}
+
+	}
+
+	node := Node{Type: Preprocessor, Tokens: tokens[:len]}
+
+	return node
+}
+
 func parsePreprocessor(tokens []Token) Node {
 
 	len := 0
@@ -512,9 +532,17 @@ func parsePreprocessor(tokens []Token) Node {
 
 	}
 
-	node := Node{Type: Preprocessor, Tokens: tokens[:len]}
+	node := Node{Type: Parenthesis, Tokens: tokens[:len]}
 
 	return node
+}
+
+func isLeftParenthesis(token Token) bool {
+	return token.Type == Punctuation && token.Content == "("
+}
+
+func isRightParenthesis(token Token) bool {
+	return token.Type == Punctuation && token.Content == ")"
 }
 
 func parse(tokens []Token) Node {
@@ -525,6 +553,12 @@ func parse(tokens []Token) Node {
 		if isHash(token) {
 			//fmt.Println(token)
 			node := parsePreprocessor(tokens)
+			root.Children = append(root.Children, node)
+			tokens = tokens[len(node.Tokens):]
+			token = tokens[0]
+		} else if isLeftParenthesis(token) {
+
+			node := parseParenthesis(tokens)
 			root.Children = append(root.Children, node)
 			tokens = tokens[len(node.Tokens):]
 			token = tokens[0]
