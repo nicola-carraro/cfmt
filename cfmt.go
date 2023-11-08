@@ -515,7 +515,24 @@ func parseParenthesis(tokens []Token) Node {
 
 	}
 
-	node := Node{Type: Preprocessor, Tokens: tokens[:len]}
+	node := Node{Type: Parenthesis, Tokens: tokens[:len]}
+
+	return node
+}
+
+func parseBraces(tokens []Token) Node {
+
+	len := 0
+
+	for _, t := range tokens {
+		len++
+		if isRightBrace(t) {
+			break
+		}
+
+	}
+
+	node := Node{Type: Braces, Tokens: tokens[:len]}
 
 	return node
 }
@@ -532,7 +549,7 @@ func parsePreprocessor(tokens []Token) Node {
 
 	}
 
-	node := Node{Type: Parenthesis, Tokens: tokens[:len]}
+	node := Node{Type: Preprocessor, Tokens: tokens[:len]}
 
 	return node
 }
@@ -543,6 +560,14 @@ func isLeftParenthesis(token Token) bool {
 
 func isRightParenthesis(token Token) bool {
 	return token.Type == Punctuation && token.Content == ")"
+}
+
+func isLeftBrace(token Token) bool {
+	return token.Type == Punctuation && token.Content == "{"
+}
+
+func isRightBrace(token Token) bool {
+	return token.Type == Punctuation && token.Content == "}"
 }
 
 func parse(tokens []Token) Node {
@@ -559,6 +584,12 @@ func parse(tokens []Token) Node {
 		} else if isLeftParenthesis(token) {
 
 			node := parseParenthesis(tokens)
+			root.Children = append(root.Children, node)
+			tokens = tokens[len(node.Tokens):]
+			token = tokens[0]
+		} else if isLeftBrace(token) {
+
+			node := parseBraces(tokens)
 			root.Children = append(root.Children, node)
 			tokens = tokens[len(node.Tokens):]
 			token = tokens[0]
