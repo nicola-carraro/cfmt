@@ -166,12 +166,18 @@ func (n Node) String() string {
 
 	b := strings.Builder{}
 	for _, t := range n.Tokens {
-		s := fmt.Sprintf("%s, ", t.Type)
+		var s string
+		if t.Type == Punctuation {
+			s = fmt.Sprintf("%s, ", t.Content)
+		} else {
+			s = fmt.Sprintf("%s, ", t.Type)
+
+		}
 		_, _ = b.WriteString(s)
 	}
 	tokens := b.String()
 
-	b = strings.Builder{}
+	b.Reset()
 	for _, c := range n.Children {
 		s := fmt.Sprintf("%s, ", c.Type)
 		_, _ = b.WriteString(s)
@@ -524,15 +530,30 @@ func parseBraces(tokens []Token) Node {
 
 	len := 0
 
+	node := Node{Type: Braces, Tokens: tokens[:len], Children: make([]Node, 0)}
+
+	openBraces := 1
+
 	for _, t := range tokens {
 		len++
+
+		if isLeftBrace(t) {
+			child := parseBraces(tokens[len:])
+			node.Children = append(node.Children, child)
+			openBraces++
+		}
 		if isRightBrace(t) {
+			openBraces--
+
+		}
+
+		if openBraces == 0 {
 			break
 		}
 
 	}
 
-	node := Node{Type: Braces, Tokens: tokens[:len]}
+	node.Tokens = tokens[:len]
 
 	return node
 }
@@ -570,32 +591,56 @@ func isRightBrace(token Token) bool {
 	return token.Type == Punctuation && token.Content == "}"
 }
 
+func isSemicolon(token Token) bool {
+	return token.Type == Punctuation && token.Content == ";"
+}
+
+func parseStatementOrFuncSpecifier(tokens []Token) Node {
+	length := 0
+	var node Node
+
+	for _, t := range tokens {
+
+		if isLeftBrace(t) {
+			node = Node{Type: FuncSpecifier, Tokens: tokens[:length]}
+			return node
+		}
+
+		length++
+
+		if isSemicolon(t) {
+			node = Node{Type: Statement, Tokens: tokens[:length]}
+			return node
+		}
+
+	}
+
+	log.Fatalf("Unexpected end of file: expected } or ;, found %s\n", tokens[len(tokens)-1])
+
+	panic("Unreacheable")
+}
+
 func parse(tokens []Token) Node {
 	root := Node{Type: Root, Tokens: tokens, Children: make([]Node, 0)}
 
 	for len(tokens) > 0 {
 		token := skipSpace(tokens, 0)
+		var node Node
 		if isHash(token) {
 			//fmt.Println(token)
-			node := parsePreprocessor(tokens)
-			root.Children = append(root.Children, node)
-			tokens = tokens[len(node.Tokens):]
-			token = tokens[0]
+			node = parsePreprocessor(tokens)
 		} else if isLeftParenthesis(token) {
-
-			node := parseParenthesis(tokens)
-			root.Children = append(root.Children, node)
-			tokens = tokens[len(node.Tokens):]
-			token = tokens[0]
+			node = parseParenthesis(tokens)
 		} else if isLeftBrace(token) {
-
-			node := parseBraces(tokens)
-			root.Children = append(root.Children, node)
-			tokens = tokens[len(node.Tokens):]
-			token = tokens[0]
+			node = parseBraces(tokens)
 		} else {
-			tokens = tokens[1:]
+			node = parseStatementOrFuncSpecifier(tokens)
+
 		}
+		fmt.Println("Node", " ", node)
+
+		root.Children = append(root.Children, node)
+		tokens = tokens[len(node.Tokens):]
 	}
 
 	return root
