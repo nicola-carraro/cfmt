@@ -32,7 +32,6 @@ type NodeType uint32
 
 const (
 	NoNodeType NodeType = iota
-	Root
 	Braces
 	Parenthesis
 	Statement
@@ -145,8 +144,6 @@ func (n NodeType) String() string {
 	switch n {
 	case NoNodeType:
 		return "None"
-	case Root:
-		return "Root"
 	case Braces:
 		return "Braces"
 	case Parenthesis:
@@ -620,8 +617,8 @@ func parseStatementOrFuncSpecifier(tokens []Token) Node {
 	panic("Unreacheable")
 }
 
-func parse(tokens []Token) Node {
-	root := Node{Type: Root, Tokens: tokens, Children: make([]Node, 0)}
+func parse(tokens []Token) []Node {
+	nodes:=make([]Node, 0)
 
 	for len(tokens) > 0 {
 		token := skipSpace(tokens, 0)
@@ -639,11 +636,11 @@ func parse(tokens []Token) Node {
 		}
 		fmt.Println("Node", " ", node)
 
-		root.Children = append(root.Children, node)
+		nodes = append(nodes, node)
 		tokens = tokens[len(node.Tokens):]
 	}
 
-	return root
+	return nodes
 }
 
 func main() {
@@ -663,12 +660,9 @@ func main() {
 		fmt.Println(token)
 	}
 
-	root := parse(tokens)
-
-	fmt.Println(root)
-
-	for _, c := range root.Children {
-		fmt.Println(c)
+	nodes := parse(tokens)
+	for _, n := range nodes {
+		fmt.Println(n)
 	}
 
 }
