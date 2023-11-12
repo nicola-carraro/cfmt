@@ -708,7 +708,7 @@ func main() {
 				for indentLevel := 0; indentLevel < indent; indentLevel++ {
 					b.WriteString("  ")
 				}
-			} else {
+			} else if !isSemicolon(nextT) && !isLeftParenthesis(t) && !isRightParenthesis(nextT) {
 				b.WriteString(" ")
 			}
 
