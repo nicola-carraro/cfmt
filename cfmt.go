@@ -19,6 +19,7 @@ const (
 	Char
 	String
 	Punctuation
+	PreprocessorDirective
 )
 
 type Token struct {
@@ -157,6 +158,29 @@ func (n NodeType) String() string {
 	default:
 		panic("Unknown NodeType")
 	}
+}
+
+func tryParsePreprocessorDirective(s string) (Token, bool) {
+	directives := [...]string{
+		"#define",
+		"#elif",
+		"#else",
+		"#endif",
+		"#error",
+		"#if",
+		"#ifdef",
+		"#ifndef",
+		"#import",
+		"#include",
+		"#line"}
+
+	for _, directive := range directives {
+		if strings.HasPrefix(s, directive) {
+			return Token{Type: PreprocessorDirective, Content: directive}, true
+		}
+	}
+
+	return Token{}, false
 }
 
 func (n Node) String() string {
@@ -435,47 +459,78 @@ func isOneCharPunctuation(text string) bool {
 	return false
 }
 
+func parseToken(text string) Token {
+	r, _ := peakRune(text)
+
+	token, isFloat := tryParseFloat(text)
+	if isFloat {
+		return token
+	}
+
+	token, isDirective := tryParsePreprocessorDirective(text)
+	if isDirective {
+		return token
+	}
+	if isSpace(r) {
+		return parseSpace(text)
+	}
+
+	if isIdentifierStart(r) {
+		return parseIdentifier(text)
+	}
+
+	if isDoubleQuote(r) {
+		return parseString(text)
+	}
+
+	if isSingleQuote(r) {
+		return parseChar(text)
+	}
+
+	if isFourCharsPunctuation(text) {
+		token.Type = Punctuation
+		token.Content = text[:4]
+		return token
+	}
+
+	if isThreeCharsPunctuation(text) {
+		token.Type = Punctuation
+		token.Content = text[:3]
+	} else if isTwoCharsPunctuation(text) {
+		token.Type = Punctuation
+		token.Content = text[:2]
+
+		return token
+	}
+
+	if isOneCharPunctuation(text) {
+		token.Type = Punctuation
+		token.Content = text[:1]
+
+		return token
+	}
+
+	if isDigit(r) {
+		//TODO: handle octal and hex
+		return parseDecimal(text)
+	}
+
+	max := 10
+	start := text
+	if len(start) > max {
+		start = start[:max]
+	}
+	log.Fatalf("Unrecognised token, starts with %s", start)
+
+	panic("Unreachable")
+}
+
 func tokenize(text string) []Token {
 
 	tokens := make([]Token, 0, 100)
 
 	for len(text) > 0 {
-		r, _ := peakRune(text)
-
-		token, isFloat := tryParseFloat(text)
-		if !isFloat {
-			if isSpace(r) {
-				token = parseSpace(text)
-			} else if isIdentifierStart(r) {
-				token = parseIdentifier(text)
-			} else if isDoubleQuote(r) {
-				token = parseString(text)
-			} else if isSingleQuote(r) {
-				token = parseChar(text)
-			} else if isFourCharsPunctuation(text) {
-				token.Type = Punctuation
-				token.Content = text[:4]
-			} else if isThreeCharsPunctuation(text) {
-				token.Type = Punctuation
-				token.Content = text[:3]
-			} else if isTwoCharsPunctuation(text) {
-				token.Type = Punctuation
-				token.Content = text[:2]
-			} else if isOneCharPunctuation(text) {
-				token.Type = Punctuation
-				token.Content = text[:1]
-			} else if isDigit(r) {
-				//TODO: handle octal and hex
-				token = parseDecimal(text)
-			} else {
-				max := 10
-				start := text
-				if len(start) > max {
-					start = start[:max]
-				}
-				log.Fatalf("Unrecognised token, starts with %s", start)
-			}
-		}
+		token := parseToken(text)
 		text = text[len(token.Content):]
 		tokens = append(tokens, token)
 	}
