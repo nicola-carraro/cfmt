@@ -710,19 +710,7 @@ func isPreprocessorDirective(token Token) bool {
 	return token.Type == PreprocessorDirective
 }
 
-func main() {
-	const path = "test.c"
-
-	data, error := os.ReadFile(path)
-
-	if error != nil {
-		log.Fatal("Error reading ", path)
-	}
-
-	text := fmt.Sprintf("%s", data)
-
-	tokens := tokenize(text)
-
+func format(tokens []Token) string {
 	newLinesBefore := 0
 
 	newLinesAfter := 0
@@ -798,7 +786,25 @@ func main() {
 
 	}
 
-	fmt.Println(b.String())
+	return b.String()
+}
+
+func main() {
+	const path = "test.c"
+
+	data, error := os.ReadFile(path)
+
+	if error != nil {
+		log.Fatal("Error reading ", path)
+	}
+
+	text := fmt.Sprintf("%s", data)
+
+	tokens := tokenize(text)
+
+	formattedText := format(tokens)
+
+	fmt.Println(formattedText)
 
 	//nodes := parse(tokens)
 	// for _, n := range nodes {
