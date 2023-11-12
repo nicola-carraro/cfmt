@@ -29,24 +29,6 @@ type Token struct {
 	NewLines   int
 }
 
-type NodeType uint32
-
-const (
-	NoNodeType NodeType = iota
-	Braces
-	Parenthesis
-	Statement
-	Preprocessor
-	FuncSpecifier
-)
-
-type Node struct {
-	Type     NodeType
-	Tokens   []Token
-	Parent   *Node
-	Children []Node
-}
-
 var keywords = [...]string{
 	"auto",
 	"break",
@@ -140,25 +122,6 @@ func (t Token) String() string {
 	}
 }
 
-func (n NodeType) String() string {
-
-	switch n {
-	case NoNodeType:
-		return "None"
-	case Braces:
-		return "Braces"
-	case Parenthesis:
-		return "Parenthesis"
-	case Statement:
-		return "Statement"
-	case Preprocessor:
-		return "Preprocessor"
-	case FuncSpecifier:
-		return "FuncSpecifier"
-	default:
-		panic("Unknown NodeType")
-	}
-}
 
 func tryParsePreprocessorDirective(s string) (Token, bool) {
 	directives := [...]string{
@@ -183,31 +146,6 @@ func tryParsePreprocessorDirective(s string) (Token, bool) {
 	return Token{}, false
 }
 
-func (n Node) String() string {
-
-	b := strings.Builder{}
-	for _, t := range n.Tokens {
-		var s string
-		if t.Type == Punctuation {
-			s = fmt.Sprintf("%s, ", t.Content)
-		} else {
-			s = fmt.Sprintf("%s, ", t.Type)
-
-		}
-		_, _ = b.WriteString(s)
-	}
-	tokens := b.String()
-
-	b.Reset()
-	for _, c := range n.Children {
-		s := fmt.Sprintf("%s, ", c.Type)
-		_, _ = b.WriteString(s)
-	}
-	children := b.String()
-
-	return fmt.Sprintf("Node{Type: %s, Tokens: [%s], Children: [%s]}", n.Type, tokens, children)
-}
-
 func peakRune(text string) (rune, int) {
 	r, size := utf8.DecodeRuneInString(text)
 
@@ -216,11 +154,6 @@ func peakRune(text string) (rune, int) {
 	}
 
 	return r, size
-}
-
-func _consumeBytes(data *[]byte, size int) {
-
-	*data = (*data)[size:]
 }
 
 func parseSpace(text string) Token {
@@ -564,73 +497,6 @@ func hasNewline(t Token) bool {
 	return t.Type == Space && t.NewLines > 0
 }
 
-func parseParenthesis(tokens []Token) Node {
-
-	len := 0
-
-	for _, t := range tokens {
-		len++
-		if isRightParenthesis(t) {
-			break
-		}
-
-	}
-
-	node := Node{Type: Parenthesis, Tokens: tokens[:len]}
-
-	return node
-}
-
-func parseBraces(tokens []Token) Node {
-
-	length := 1
-
-	node := Node{Type: Braces, Tokens: tokens, Children: make([]Node, 0)}
-
-	//log.Printf("tokens %s\n", tokens)
-
-	content := tokens[1:]
-
-	for len(content) > 0 {
-		t, _ := skipSpaceAndCountNewLines(content)
-		//log.Printf("content %s\n", content)
-
-		if isRightBrace(t) {
-			length++
-			break
-		}
-
-		child := parseNode(content)
-
-		log.Println("child ", child)
-		node.Children = append(node.Children, child)
-		content = content[len(child.Tokens):]
-		length += len(node.Tokens)
-
-	}
-
-	node.Tokens = node.Tokens[:length]
-
-	return node
-}
-
-func parsePreprocessor(tokens []Token) Node {
-
-	len := 0
-
-	for _, t := range tokens {
-		len++
-		if hasNewline(t) {
-			break
-		}
-
-	}
-
-	node := Node{Type: Preprocessor, Tokens: tokens[:len]}
-
-	return node
-}
-
 func isLeftParenthesis(token Token) bool {
 	return token.Type == Punctuation && token.Content == "("
 }
@@ -649,61 +515,6 @@ func isRightBrace(token Token) bool {
 
 func isSemicolon(token Token) bool {
 	return token.Type == Punctuation && token.Content == ";"
-}
-
-func parseStatementOrFuncSpecifier(tokens []Token) Node {
-	length := 0
-	var node Node
-
-	for _, t := range tokens {
-
-		if isLeftBrace(t) {
-			node = Node{Type: FuncSpecifier, Tokens: tokens[:length]}
-			return node
-		}
-
-		length++
-
-		if isSemicolon(t) {
-			node = Node{Type: Statement, Tokens: tokens[:length]}
-			return node
-		}
-
-	}
-
-	log.Fatalf("Unexpected end of file: expected } or ;, found %s\n", tokens[len(tokens)-1])
-
-	panic("Unreacheable")
-}
-
-func parseNode(tokens []Token) Node {
-	token, _ := skipSpaceAndCountNewLines(tokens)
-	var node Node
-	if isHash(token) {
-		//fmt.Println(token)
-		node = parsePreprocessor(tokens)
-	} else if isLeftParenthesis(token) {
-		node = parseParenthesis(tokens)
-	} else if isLeftBrace(token) {
-		node = parseBraces(tokens)
-	} else {
-		node = parseStatementOrFuncSpecifier(tokens)
-
-	}
-
-	return node
-}
-
-func parse(tokens []Token) []Node {
-	nodes := make([]Node, 0)
-
-	for len(tokens) > 0 {
-		node := parseNode(tokens)
-		nodes = append(nodes, node)
-		tokens = tokens[len(node.Tokens):]
-	}
-
-	return nodes
 }
 
 func isPreprocessorDirective(token Token) bool {
@@ -821,10 +632,4 @@ func main() {
 	formattedText := format(tokens)
 
 	fmt.Println(formattedText)
-
-	//nodes := parse(tokens)
-	// for _, n := range nodes {
-	// 	fmt.Println(n)
-	// }
-
 }
