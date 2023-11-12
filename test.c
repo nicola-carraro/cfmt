@@ -1,6 +1,5 @@
 #define CRT_SECURE_NO_WARNINGS
 
-
 #include "stdio.h"
 
 int main(void)
@@ -23,9 +22,15 @@ int main(void)
 
     printf("%d\n", num);
 
+    for (int i = 0; i < 3; i++)
+    {
+        printf("%d\n", i);
+    }
+
     if (d <= 1)
     {
         return -1;
     }
-    return 0;
+
+     return 0;
 }

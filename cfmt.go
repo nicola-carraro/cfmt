@@ -688,7 +688,7 @@ func main() {
 				indent++
 			}
 
-			if isRightBrace(t) {
+			if isRightBrace(nextT) {
 				indent--
 			}
 
@@ -700,12 +700,14 @@ func main() {
 				isParenthesis = false
 			}
 
-			_ = indent
-
 			isEndOfStatement := isSemicolon(t) && !isParenthesis
 
 			if isLeftBrace(t) || isRightBrace(t) || isRightBrace(nextT) || isEndOfStatement {
 				b.WriteString("\r\n")
+
+				for indentLevel := 0; indentLevel < indent; indentLevel++ {
+					b.WriteString("  ")
+				}
 			} else {
 				b.WriteString(" ")
 			}
