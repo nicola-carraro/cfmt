@@ -762,14 +762,30 @@ func format(tokens []Token) string {
 
 			const newLine = "\r\n"
 
+			const maxNewLines = 2
+
 			endOfDirective := isDirective && newLinesAfter > 0
 
-			if isLeftBrace(t) || isRightBrace(t) || isRightBrace(nextT) || endOfDirective || isPreprocessorDirective(nextT) || isEndOfStatement {
+			if isLeftBrace(t) || isRightBrace(nextT) {
 				b.WriteString(newLine)
-
 				for indentLevel := 0; indentLevel < indent; indentLevel++ {
 					b.WriteString("  ")
 				}
+
+			} else if isRightBrace(t) ||
+				endOfDirective ||
+				isPreprocessorDirective(nextT) ||
+				isEndOfStatement {
+				b.WriteString(newLine)
+
+				if newLinesAfter > 1 {
+					b.WriteString(newLine)
+
+				}
+				for indentLevel := 0; indentLevel < indent; indentLevel++ {
+					b.WriteString("  ")
+				}
+
 			} else if !isSemicolon(nextT) && !isLeftParenthesis(t) && !isRightParenthesis(nextT) {
 				b.WriteString(" ")
 			}

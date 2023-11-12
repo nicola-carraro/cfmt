@@ -22,7 +22,7 @@ int main(void)
 
     printf("%d\n", num);
 
-    for (int i = 0; i < 3; i++)
+    for (int i=0;i<3;i++)
     {
         printf("%d\n", i);
     }
@@ -32,5 +32,5 @@ int main(void)
         return -1;
     }
 
-     return 0;
+    return 0;
 }
