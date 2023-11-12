@@ -19,7 +19,7 @@ const (
 	Char
 	String
 	Punctuation
-	PreprocessorDirective
+	Directive
 )
 
 type Token struct {
@@ -93,8 +93,6 @@ func (t TokenType) String() string {
 	switch t {
 	case NoTokenType:
 		return "None"
-	case Space:
-		return "Space"
 	case Identifier:
 		return "Identifier"
 	case Integer:
@@ -107,6 +105,8 @@ func (t TokenType) String() string {
 		return "String"
 	case Punctuation:
 		return "Punctuation"
+	case Directive:
+		return "Directive"
 	default:
 		panic("Invalid TokenType")
 	}
@@ -122,8 +122,7 @@ func (t Token) String() string {
 	}
 }
 
-
-func tryParsePreprocessorDirective(s string) (Token, bool) {
+func tryParseDirective(s string) (Token, bool) {
 	directives := [...]string{
 		"#define",
 		"#elif",
@@ -139,7 +138,7 @@ func tryParsePreprocessorDirective(s string) (Token, bool) {
 
 	for _, directive := range directives {
 		if strings.HasPrefix(s, directive) {
-			return Token{Type: PreprocessorDirective, Content: directive}, true
+			return Token{Type: Directive, Content: directive}, true
 		}
 	}
 
@@ -393,6 +392,11 @@ func isOneCharPunctuation(text string) bool {
 }
 
 func parseToken(text string) Token {
+
+	if len(text) == 0 {
+		return Token{}
+	}
+
 	r, _ := peakRune(text)
 
 	token, isFloat := tryParseFloat(text)
@@ -400,8 +404,8 @@ func parseToken(text string) Token {
 		return token
 	}
 
-	token, isDirective := tryParsePreprocessorDirective(text)
-	if isDirective {
+	token, directive := tryParseDirective(text)
+	if directive {
 		return token
 	}
 	if isSpace(r) {
@@ -458,31 +462,17 @@ func parseToken(text string) Token {
 	panic("Unreachable")
 }
 
-func tokenize(text string) []Token {
-
-	tokens := make([]Token, 0, 100)
-
-	for len(text) > 0 {
-		token := parseToken(text)
-		text = text[len(token.Content):]
-		tokens = append(tokens, token)
-	}
-
-	return tokens
-}
-
-func skipSpaceAndCountNewLines(tokens []Token) (Token, int) {
-
+func skipSpaceAndCountNewLines(text string) (string, int) {
 	newLines := 0
-	for _, t := range tokens {
-		if t.Type != Space {
-			return t, newLines
-		} else {
-			newLines = t.NewLines
+
+	for r, size := peakRune(text); isSpace(r); r, size = peakRune(text) {
+		if r == '\n' {
+			newLines++
 		}
+		text = text[size:]
 	}
 
-	return Token{}, newLines
+	return text, newLines
 }
 
 func isHash(t Token) bool {
@@ -517,99 +507,98 @@ func isSemicolon(token Token) bool {
 	return token.Type == Punctuation && token.Content == ";"
 }
 
-func isPreprocessorDirective(token Token) bool {
-	return token.Type == PreprocessorDirective
+func isDirective(token Token) bool {
+	return token.Type == Directive
 }
 
-func format(tokens []Token) string {
-	newLinesBefore := 0
+func format(text string) string {
 
 	newLinesAfter := 0
-
-	prevT := Token{}
-	nextT := Token{}
-
 	indent := 0
 
 	isParenthesis := false
 
 	b := strings.Builder{}
 
-	isDirective := false
-	for i, t := range tokens {
+	directive := false
 
-		if i < len(tokens) {
-			nextT, newLinesAfter = skipSpaceAndCountNewLines(tokens[i+1:])
-			_ = newLinesAfter
+	text, _ = skipSpaceAndCountNewLines(text)
+
+	prevT := Token{}
+	t := parseToken(text)
+	text = text[len(t.Content):]
+
+	for t.Type != NoTokenType {
+
+		text, newLinesAfter = skipSpaceAndCountNewLines(text)
+
+		nextT := parseToken(text)
+
+		b.WriteString(t.Content)
+
+		if isLeftBrace(t) {
+			indent++
 		}
 
-		if t.Type == Space {
-			newLinesBefore = t.NewLines
-			_ = newLinesBefore
-		} else {
-			b.WriteString(t.Content)
-
-			if isLeftBrace(t) {
-				indent++
-			}
-
-			if isLeftParenthesis(t) {
-				isParenthesis = true
-			}
-
-			if isRightParenthesis(t) {
-				isParenthesis = false
-			}
-
-			if isRightBrace(nextT) {
-				indent--
-			}
-
-			if isPreprocessorDirective(t) {
-				isDirective = true
-			}
-
-			isEndOfStatement := isSemicolon(t) && !isParenthesis
-
-			const newLine = "\r\n"
-
-			const maxNewLines = 2
-
-			endOfDirective := isDirective && newLinesAfter > 0
-
-			if isLeftBrace(t) || isRightBrace(nextT) {
-				b.WriteString(newLine)
-				for indentLevel := 0; indentLevel < indent; indentLevel++ {
-					b.WriteString("  ")
-				}
-
-			} else if isRightBrace(t) ||
-				endOfDirective ||
-				isPreprocessorDirective(nextT) ||
-				isEndOfStatement {
-				b.WriteString(newLine)
-
-				if newLinesAfter > 1 {
-					b.WriteString(newLine)
-
-				}
-				for indentLevel := 0; indentLevel < indent; indentLevel++ {
-					b.WriteString("  ")
-				}
-
-			} else if !isSemicolon(nextT) && !isLeftParenthesis(t) && !isRightParenthesis(nextT) {
-				b.WriteString(" ")
-			}
-
-			prevT = t
-
-			_ = prevT
-
-			if newLinesAfter > 0 {
-				isDirective = false
-			}
-
+		if isLeftParenthesis(t) {
+			isParenthesis = true
 		}
+
+		if isRightParenthesis(t) {
+			isParenthesis = false
+		}
+
+		if isRightBrace(nextT) {
+			indent--
+		}
+
+		if isDirective(t) {
+			directive = true
+		}
+
+		isEndOfStatement := isSemicolon(t) && !isParenthesis
+
+		const newLine = "\r\n"
+
+		const maxNewLines = 2
+
+		endOfDirective := directive && newLinesAfter > 0
+
+		if isLeftBrace(t) || isRightBrace(nextT) {
+			b.WriteString(newLine)
+			for indentLevel := 0; indentLevel < indent; indentLevel++ {
+				b.WriteString("  ")
+			}
+
+		} else if isRightBrace(t) ||
+			endOfDirective ||
+			isDirective(nextT) ||
+			isEndOfStatement {
+			b.WriteString(newLine)
+
+			if newLinesAfter > 1 {
+				b.WriteString(newLine)
+
+			}
+			for indentLevel := 0; indentLevel < indent; indentLevel++ {
+				b.WriteString("  ")
+			}
+
+		} else if !isSemicolon(nextT) && !isLeftParenthesis(t) && !isRightParenthesis(nextT) {
+			b.WriteString(" ")
+		}
+
+		if newLinesAfter > 0 {
+			directive = false
+		}
+
+		text = text[len(nextT.Content):]
+
+		prevT = t
+
+		t = nextT
+
+		_ = prevT
 
 	}
 
@@ -627,9 +616,7 @@ func main() {
 
 	text := fmt.Sprintf("%s", data)
 
-	tokens := tokenize(text)
-
-	formattedText := format(tokens)
+	formattedText := format(text)
 
 	fmt.Println(formattedText)
 }
