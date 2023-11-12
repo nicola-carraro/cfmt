@@ -483,7 +483,7 @@ func tokenize(text string) []Token {
 	return tokens
 }
 
-func skipSpace(tokens []Token, index int) Token {
+func skipSpace(tokens []Token) Token {
 
 	for _, t := range tokens {
 		if t.Type != Space {
@@ -534,7 +534,7 @@ func parseBraces(tokens []Token) Node {
 	content := tokens[1:]
 
 	for len(content) > 0 {
-		t := skipSpace(content, 0)
+		t := skipSpace(content)
 		//log.Printf("content %s\n", content)
 
 		if isRightBrace(t) {
@@ -619,7 +619,7 @@ func parseStatementOrFuncSpecifier(tokens []Token) Node {
 }
 
 func parseNode(tokens []Token) Node {
-	token := skipSpace(tokens, 0)
+	token := skipSpace(tokens)
 	var node Node
 	if isHash(token) {
 		//fmt.Println(token)
@@ -663,16 +663,32 @@ func main() {
 
 	newLinesBefore := 0
 
+	prevT := Token{}
+	nextT := Token{}
+
 	b := strings.Builder{}
-	for _, t := range tokens {
-		fmt.Println(t)
+	for i, t := range tokens {
+
+		if i < len(tokens) {
+			nextT = skipSpace(tokens[i+1:])
+
+		}
 
 		if t.Type == Space {
 			newLinesBefore = t.NewLines
-			fmt.Println(newLinesBefore)
+			_ = newLinesBefore
 		} else {
 			b.WriteString(t.Content)
-			b.WriteString(" ")
+
+			if isLeftBrace(t) || isRightBrace(t) || isRightBrace(nextT) {
+				b.WriteString("\r\n")
+			} else {
+				b.WriteString(" ")
+			}
+
+			prevT = t
+
+			_ = prevT
 		}
 
 	}
