@@ -13,6 +13,7 @@ type TokenType uint32
 const (
 	NoTokenType TokenType = iota
 	Space
+	Keyword
 	Identifier
 	Integer
 	Float
@@ -28,38 +29,6 @@ type Token struct {
 	HasNewLine bool
 	NewLines   int
 }
-
-var keywords = [...]string{
-	"auto",
-	"break",
-	"case",
-	"char",
-	"const",
-	"continue",
-	"default",
-	"do",
-	"enum",
-	"extern",
-	"float",
-	"for",
-	"goto",
-	"if",
-	"int",
-	"long",
-	"register",
-	"return",
-	"short",
-	"signed",
-	"sizeof",
-	"static",
-	"struct",
-	"switch",
-	"typedef",
-	"union",
-	"unsigned",
-	"void",
-	"volatile",
-	"while"}
 
 func isIdentifierStart(r rune) bool {
 	return (r >= 'A' && r <= 'Z') || (r >= 'a' && r <= 'z') || (r == '_')
@@ -95,6 +64,8 @@ func (t TokenType) String() string {
 		return "None"
 	case Identifier:
 		return "Identifier"
+	case Keyword:
+		return "Keyword"
 	case Integer:
 		return "Integer"
 	case Float:
@@ -120,6 +91,48 @@ func (t Token) String() string {
 	} else {
 		return fmt.Sprintf("Token{Type: %s, Content: \"%s\"}", t.Type, t.Content)
 	}
+}
+
+func tryParseKeyword(s string) (Token, bool) {
+	keywords := [...]string{
+		"auto",
+		"break",
+		"case",
+		"char",
+		"const",
+		"continue",
+		"default",
+		"do",
+		"enum",
+		"extern",
+		"float",
+		"for",
+		"goto",
+		"if",
+		"int",
+		"long",
+		"register",
+		"return",
+		"short",
+		"signed",
+		"sizeof",
+		"static",
+		"struct",
+		"switch",
+		"typedef",
+		"union",
+		"unsigned",
+		"void",
+		"volatile",
+		"while"}
+
+	for _, keyword := range keywords {
+		if strings.HasPrefix(s, keyword) {
+			return Token{Type: Keyword, Content: keyword}, true
+		}
+	}
+
+	return Token{}, false
 }
 
 func tryParseDirective(s string) (Token, bool) {
@@ -408,6 +421,12 @@ func parseToken(text string) Token {
 	if directive {
 		return token
 	}
+
+	token, keyword := tryParseKeyword(text)
+	if keyword {
+		return token
+	}
+
 	if isSpace(r) {
 		return parseSpace(text)
 	}
@@ -564,6 +583,8 @@ func format(text string) string {
 
 		endOfDirective := directive && newLinesAfter > 0
 
+		isFunctionName := t.Type == Identifier && isLeftParenthesis(nextT)
+
 		if isLeftBrace(t) || isRightBrace(nextT) {
 			b.WriteString(newLine)
 			for indentLevel := 0; indentLevel < indent; indentLevel++ {
@@ -584,7 +605,7 @@ func format(text string) string {
 				b.WriteString("  ")
 			}
 
-		} else if !isSemicolon(nextT) && !isLeftParenthesis(t) && !isRightParenthesis(nextT) {
+		} else if !isSemicolon(nextT) && !isLeftParenthesis(t) && !isRightParenthesis(nextT) && !isFunctionName {
 			b.WriteString(" ")
 		}
 
