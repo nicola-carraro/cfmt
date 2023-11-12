@@ -538,15 +538,18 @@ func tokenize(text string) []Token {
 	return tokens
 }
 
-func skipSpace(tokens []Token) Token {
+func skipSpaceAndCountNewLines(tokens []Token) (Token, int) {
 
+	newLines := 0
 	for _, t := range tokens {
 		if t.Type != Space {
-			return t
+			return t, newLines
+		} else {
+			newLines = t.NewLines
 		}
 	}
 
-	return Token{}
+	return Token{}, newLines
 }
 
 func isHash(t Token) bool {
@@ -589,7 +592,7 @@ func parseBraces(tokens []Token) Node {
 	content := tokens[1:]
 
 	for len(content) > 0 {
-		t := skipSpace(content)
+		t, _ := skipSpaceAndCountNewLines(content)
 		//log.Printf("content %s\n", content)
 
 		if isRightBrace(t) {
@@ -674,7 +677,7 @@ func parseStatementOrFuncSpecifier(tokens []Token) Node {
 }
 
 func parseNode(tokens []Token) Node {
-	token := skipSpace(tokens)
+	token, _ := skipSpaceAndCountNewLines(tokens)
 	var node Node
 	if isHash(token) {
 		//fmt.Println(token)
@@ -703,6 +706,10 @@ func parse(tokens []Token) []Node {
 	return nodes
 }
 
+func isPreprocessorDirective(token Token) bool {
+	return token.Type == PreprocessorDirective
+}
+
 func main() {
 	const path = "test.c"
 
@@ -718,6 +725,8 @@ func main() {
 
 	newLinesBefore := 0
 
+	newLinesAfter := 0
+
 	prevT := Token{}
 	nextT := Token{}
 
@@ -729,8 +738,8 @@ func main() {
 	for i, t := range tokens {
 
 		if i < len(tokens) {
-			nextT = skipSpace(tokens[i+1:])
-
+			nextT, newLinesAfter = skipSpaceAndCountNewLines(tokens[i+1:])
+			_ = newLinesAfter
 		}
 
 		if t.Type == Space {
@@ -757,7 +766,7 @@ func main() {
 
 			isEndOfStatement := isSemicolon(t) && !isParenthesis
 
-			if isLeftBrace(t) || isRightBrace(t) || isRightBrace(nextT) || isEndOfStatement {
+			if isLeftBrace(t) || isRightBrace(t) || isRightBrace(nextT) || isPreprocessorDirective(nextT) || isEndOfStatement {
 				b.WriteString("\r\n")
 
 				for indentLevel := 0; indentLevel < indent; indentLevel++ {
