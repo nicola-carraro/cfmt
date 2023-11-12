@@ -735,6 +735,8 @@ func main() {
 	isParenthesis := false
 
 	b := strings.Builder{}
+
+	isDirective := false
 	for i, t := range tokens {
 
 		if i < len(tokens) {
@@ -752,10 +754,6 @@ func main() {
 				indent++
 			}
 
-			if isRightBrace(nextT) {
-				indent--
-			}
-
 			if isLeftParenthesis(t) {
 				isParenthesis = true
 			}
@@ -764,10 +762,22 @@ func main() {
 				isParenthesis = false
 			}
 
+			if isRightBrace(nextT) {
+				indent--
+			}
+
+			if isPreprocessorDirective(t) {
+				isDirective = true
+			}
+
 			isEndOfStatement := isSemicolon(t) && !isParenthesis
 
-			if isLeftBrace(t) || isRightBrace(t) || isRightBrace(nextT) || isPreprocessorDirective(nextT) || isEndOfStatement {
-				b.WriteString("\r\n")
+			const newLine = "\r\n"
+
+			endOfDirective := isDirective && newLinesAfter > 0
+
+			if isLeftBrace(t) || isRightBrace(t) || isRightBrace(nextT) || endOfDirective || isPreprocessorDirective(nextT) || isEndOfStatement {
+				b.WriteString(newLine)
 
 				for indentLevel := 0; indentLevel < indent; indentLevel++ {
 					b.WriteString("  ")
@@ -779,6 +789,11 @@ func main() {
 			prevT = t
 
 			_ = prevT
+
+			if newLinesAfter > 0 {
+				isDirective = false
+			}
+
 		}
 
 	}
