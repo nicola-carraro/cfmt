@@ -666,6 +666,10 @@ func main() {
 	prevT := Token{}
 	nextT := Token{}
 
+	indent := 0
+
+	isParenthesis := false
+
 	b := strings.Builder{}
 	for i, t := range tokens {
 
@@ -680,7 +684,27 @@ func main() {
 		} else {
 			b.WriteString(t.Content)
 
-			if isLeftBrace(t) || isRightBrace(t) || isRightBrace(nextT) {
+			if isLeftBrace(t) {
+				indent++
+			}
+
+			if isRightBrace(t) {
+				indent--
+			}
+
+			if isLeftParenthesis(t) {
+				isParenthesis = true
+			}
+
+			if isRightParenthesis(t) {
+				isParenthesis = false
+			}
+
+			_ = indent
+
+			isEndOfStatement := isSemicolon(t) && !isParenthesis
+
+			if isLeftBrace(t) || isRightBrace(t) || isRightBrace(nextT) || isEndOfStatement {
 				b.WriteString("\r\n")
 			} else {
 				b.WriteString(" ")
