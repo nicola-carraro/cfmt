@@ -525,32 +525,33 @@ func parseParenthesis(tokens []Token) Node {
 
 func parseBraces(tokens []Token) Node {
 
-	len := 0
+	length := 1
 
-	node := Node{Type: Braces, Tokens: tokens[:len], Children: make([]Node, 0)}
+	node := Node{Type: Braces, Tokens: tokens, Children: make([]Node, 0)}
 
-	openBraces := 1
+	//log.Printf("tokens %s\n", tokens)
 
-	for _, t := range tokens {
-		len++
+	content := tokens[1:]
 
-		if isLeftBrace(t) {
-			child := parseBraces(tokens[len:])
-			node.Children = append(node.Children, child)
-			openBraces++
-		}
+	for len(content) > 0 {
+		t := skipSpace(content, 0)
+		//log.Printf("content %s\n", content)
+
 		if isRightBrace(t) {
-			openBraces--
-
-		}
-
-		if openBraces == 0 {
+			length++
 			break
 		}
 
+		child := parseNode(content)
+
+		log.Println("child ", child)
+		node.Children = append(node.Children, child)
+		content = content[len(child.Tokens):]
+		length += len(node.Tokens)
+
 	}
 
-	node.Tokens = tokens[:len]
+	node.Tokens = node.Tokens[:length]
 
 	return node
 }
@@ -617,25 +618,29 @@ func parseStatementOrFuncSpecifier(tokens []Token) Node {
 	panic("Unreacheable")
 }
 
+func parseNode(tokens []Token) Node {
+	token := skipSpace(tokens, 0)
+	var node Node
+	if isHash(token) {
+		//fmt.Println(token)
+		node = parsePreprocessor(tokens)
+	} else if isLeftParenthesis(token) {
+		node = parseParenthesis(tokens)
+	} else if isLeftBrace(token) {
+		node = parseBraces(tokens)
+	} else {
+		node = parseStatementOrFuncSpecifier(tokens)
+
+	}
+
+	return node
+}
+
 func parse(tokens []Token) []Node {
-	nodes:=make([]Node, 0)
+	nodes := make([]Node, 0)
 
 	for len(tokens) > 0 {
-		token := skipSpace(tokens, 0)
-		var node Node
-		if isHash(token) {
-			//fmt.Println(token)
-			node = parsePreprocessor(tokens)
-		} else if isLeftParenthesis(token) {
-			node = parseParenthesis(tokens)
-		} else if isLeftBrace(token) {
-			node = parseBraces(tokens)
-		} else {
-			node = parseStatementOrFuncSpecifier(tokens)
-
-		}
-		fmt.Println("Node", " ", node)
-
+		node := parseNode(tokens)
 		nodes = append(nodes, node)
 		tokens = tokens[len(node.Tokens):]
 	}
@@ -656,13 +661,27 @@ func main() {
 
 	tokens := tokenize(text)
 
-	for _, token := range tokens {
-		fmt.Println(token)
+	newLinesBefore := 0
+
+	b := strings.Builder{}
+	for _, t := range tokens {
+		fmt.Println(t)
+
+		if t.Type == Space {
+			newLinesBefore = t.NewLines
+			fmt.Println(newLinesBefore)
+		} else {
+			b.WriteString(t.Content)
+			b.WriteString(" ")
+		}
+
 	}
 
-	nodes := parse(tokens)
-	for _, n := range nodes {
-		fmt.Println(n)
-	}
+	fmt.Println(b.String())
+
+	//nodes := parse(tokens)
+	// for _, n := range nodes {
+	// 	fmt.Println(n)
+	// }
 
 }
