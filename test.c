@@ -12,6 +12,10 @@ int main(void)
 
     float f = 55.0f;
 
+    int a = 1*4;
+
+    int b = 3&4;
+
     double d = .4;
 
     int num = 007;

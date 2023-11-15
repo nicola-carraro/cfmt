@@ -102,6 +102,7 @@ func tryParseKeyword(s string) (Token, bool) {
 		"const",
 		"continue",
 		"default",
+		"double",
 		"do",
 		"enum",
 		"extern",
@@ -530,6 +531,18 @@ func isDirective(token Token) bool {
 	return token.Type == Directive
 }
 
+func isOperand(token Token) bool {
+	return token.Type ==Identifier || 
+	token.Type == String || 
+	token.Type == Integer || 
+	token.Type ==Float|| 
+	token.Type == Char;
+}
+
+func isPointerOperator(token Token)bool{
+	return token.Type == Punctuation && (token.Content == "&" || token.Content == "*")
+}
+
 func format(text string) string {
 
 	newLinesAfter := 0
@@ -585,6 +598,8 @@ func format(text string) string {
 
 		isFunctionName := t.Type == Identifier && isLeftParenthesis(nextT)
 
+		pointerOperator := isPointerOperator(t) && !isOperand(prevT) 
+
 		if isLeftBrace(t) || isRightBrace(nextT) {
 			b.WriteString(newLine)
 			for indentLevel := 0; indentLevel < indent; indentLevel++ {
@@ -605,7 +620,11 @@ func format(text string) string {
 				b.WriteString("  ")
 			}
 
-		} else if !isSemicolon(nextT) && !isLeftParenthesis(t) && !isRightParenthesis(nextT) && !isFunctionName {
+		} else if !isSemicolon(nextT) &&
+		 !isLeftParenthesis(t) && 
+		 !isRightParenthesis(nextT) &&
+		  !pointerOperator && 
+		  !isFunctionName {
 			b.WriteString(" ")
 		}
 
