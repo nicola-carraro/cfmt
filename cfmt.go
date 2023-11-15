@@ -531,16 +531,25 @@ func isDirective(token Token) bool {
 	return token.Type == Directive
 }
 
-func isOperand(token Token) bool {
-	return token.Type ==Identifier || 
-	token.Type == String || 
-	token.Type == Integer || 
-	token.Type ==Float|| 
-	token.Type == Char;
+func isIdentifier(token Token) bool {
+	return token.Type == Identifier
 }
 
-func isPointerOperator(token Token)bool{
+func canBeLeftOperand(token Token) bool {
+	return token.Type == Identifier ||
+		token.Type == String ||
+		token.Type == Integer ||
+		token.Type == Float ||
+		token.Type == Char ||
+		(token.Type == Punctuation && token.Content == ")")
+}
+
+func canBePointerOperator(token Token) bool {
 	return token.Type == Punctuation && (token.Content == "&" || token.Content == "*")
+}
+
+func isIncrDecrOperator(token Token) bool {
+	return token.Type == Punctuation && (token.Content == "++" || token.Content == "--")
 }
 
 func format(text string) string {
@@ -598,7 +607,9 @@ func format(text string) string {
 
 		isFunctionName := t.Type == Identifier && isLeftParenthesis(nextT)
 
-		pointerOperator := isPointerOperator(t) && !isOperand(prevT) 
+		isPointerOperator := canBePointerOperator(t) && !canBeLeftOperand(prevT)
+
+		hasPostfixIncrDecr := isIncrDecrOperator(nextT) && (isIdentifier(t) || isIncrDecrOperator(t))
 
 		if isLeftBrace(t) || isRightBrace(nextT) {
 			b.WriteString(newLine)
@@ -621,10 +632,11 @@ func format(text string) string {
 			}
 
 		} else if !isSemicolon(nextT) &&
-		 !isLeftParenthesis(t) && 
-		 !isRightParenthesis(nextT) &&
-		  !pointerOperator && 
-		  !isFunctionName {
+			!isLeftParenthesis(t) &&
+			!isRightParenthesis(nextT) &&
+			!isPointerOperator &&
+			!isFunctionName &&
+			!hasPostfixIncrDecr {
 			b.WriteString(" ")
 		}
 
@@ -637,9 +649,6 @@ func format(text string) string {
 		prevT = t
 
 		t = nextT
-
-		_ = prevT
-
 	}
 
 	return b.String()
