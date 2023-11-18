@@ -18,7 +18,9 @@ int main(void)
 
     double d = .4;
 
-    int e = b++--;
+    int i = b++;
+
+    int h = ++b;
 
     int num = 007;
 

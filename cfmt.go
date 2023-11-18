@@ -609,7 +609,7 @@ func format(text string) string {
 
 		isPointerOperator := canBePointerOperator(t) && !canBeLeftOperand(prevT)
 
-		hasPostfixIncrDecr := isIncrDecrOperator(nextT) && (isIdentifier(t) || isIncrDecrOperator(t))
+		hasPostfixIncrDecr := isIncrDecrOperator(nextT) && (isIdentifier(t))
 
 		if isLeftBrace(t) || isRightBrace(nextT) {
 			b.WriteString(newLine)
