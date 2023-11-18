@@ -18,6 +18,10 @@ int main(void)
 
     z.bar = 3;
 
+    Foo *aa = &z;
+
+    aa->bar =3;
+
     buzz();
     char *name = "Niki";
 

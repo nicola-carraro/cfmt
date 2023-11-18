@@ -564,6 +564,14 @@ func isDotOperator(toke Token) bool {
 	return toke.Type == Punctuation && (toke.Content == ".")
 }
 
+func isArrowOperator(toke Token) bool {
+	return toke.Type == Punctuation && (toke.Content == "->")
+}
+
+func isKeyword(toke Token) bool {
+	return toke.Type == Keyword
+}
+
 func format(text string) string {
 
 	newLinesAfter := 0
@@ -631,7 +639,8 @@ func format(text string) string {
 				b.WriteString("  ")
 			}
 
-		} else if isRightBrace(t); endOfDirective ||
+		} else if isRightBrace(t) ||
+			endOfDirective ||
 			isDirective(nextT) ||
 			isEndOfStatement {
 			b.WriteString(newLine)
@@ -652,7 +661,9 @@ func format(text string) string {
 			!hasPostfixIncrDecr &&
 			!isIncrDecrOperator(t) &&
 			!isDotOperator(t) &&
-			!isDotOperator(nextT) {
+			!isDotOperator(nextT) &&
+			!isArrowOperator(t) &&
+			!isArrowOperator(nextT) {
 			b.WriteString(" ")
 		}
 
