@@ -2,8 +2,23 @@
 
 #include "stdio.h"
 
+typedef struct {
+    int bar;     char *baz;}Foo;
+
+  int buzz(){return -1;}  
+
 int main(void)
 {
+
+    struct {
+    int bar;     char *baz;};
+
+
+    Foo z = {0};
+
+    z.bar = 3;
+
+    buzz();
     char *name = "Niki";
 
     char letter = 'a';

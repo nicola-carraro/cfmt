@@ -295,6 +295,8 @@ func tryParseFloat(text string) (Token, bool) {
 	tokenSize := 0
 	next := text
 
+	hasDigit := false
+
 	r, size := peakRune(next)
 
 	if !isDigit(r) && r != '.' {
@@ -305,6 +307,7 @@ func tryParseFloat(text string) (Token, bool) {
 		tokenSize += size
 		next = next[size:]
 		r, size = peakRune(next)
+		hasDigit = true
 	}
 
 	hasDot := false
@@ -321,6 +324,7 @@ func tryParseFloat(text string) (Token, bool) {
 		tokenSize += size
 		next = next[size:]
 		r, size = peakRune(next)
+		hasDigit = true
 	}
 
 	hasExponent := false
@@ -342,6 +346,10 @@ func tryParseFloat(text string) (Token, bool) {
 			next = next[size:]
 			r, size = peakRune(next)
 		}
+	}
+
+	if !hasDigit {
+		return Token{}, false
 	}
 
 	if !hasExponent && !hasDot {
@@ -552,6 +560,10 @@ func isIncrDecrOperator(token Token) bool {
 	return token.Type == Punctuation && (token.Content == "++" || token.Content == "--")
 }
 
+func isDotOperator(toke Token) bool {
+	return toke.Type == Punctuation && (toke.Content == ".")
+}
+
 func format(text string) string {
 
 	newLinesAfter := 0
@@ -570,6 +582,8 @@ func format(text string) string {
 	text = text[len(t.Content):]
 
 	for t.Type != NoTokenType {
+
+		fmt.Println(t)
 
 		text, newLinesAfter = skipSpaceAndCountNewLines(text)
 
@@ -617,8 +631,7 @@ func format(text string) string {
 				b.WriteString("  ")
 			}
 
-		} else if isRightBrace(t) ||
-			endOfDirective ||
+		} else if isRightBrace(t); endOfDirective ||
 			isDirective(nextT) ||
 			isEndOfStatement {
 			b.WriteString(newLine)
@@ -637,7 +650,9 @@ func format(text string) string {
 			!isPointerOperator &&
 			!isFunctionName &&
 			!hasPostfixIncrDecr &&
-			!isIncrDecrOperator(t){
+			!isIncrDecrOperator(t) &&
+			!isDotOperator(t) &&
+			!isDotOperator(nextT) {
 			b.WriteString(" ")
 		}
 
