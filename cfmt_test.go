@@ -6,13 +6,7 @@ import (
 
 func _testTokenizeSingleToken(t *testing.T, text string, tType TokenType) {
 
-	tokens := tokenize(text)
-
-	if len(tokens) != 1 {
-		t.Error("Tokens should have length 1")
-	}
-
-	token := tokens[0]
+	token := parseToken(text)
 
 	if token.Type != tType {
 		t.Errorf("Token should be %s, found %s", tType, token.Type)
