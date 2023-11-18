@@ -30,7 +30,7 @@ type Token struct {
 	NewLines   int
 }
 
-type StructUnionEnum struct{
+type StructUnionEnum struct {
 	indent int
 }
 
@@ -576,8 +576,8 @@ func isKeyword(token Token) bool {
 	return token.Type == Keyword
 }
 
-func isStructUnionEnumKeyword(token Token) bool{
-		return token.Type == Keyword && (token.Content == "struct" || token.Content == "union" ||token.Content == "enum")
+func isStructUnionEnumKeyword(token Token) bool {
+	return token.Type == Keyword && (token.Content == "struct" || token.Content == "union" || token.Content == "enum")
 
 }
 
@@ -604,11 +604,9 @@ func format(text string) string {
 
 		fmt.Println(t)
 
-		if(isStructUnionEnumKeyword(t)){
+		if isStructUnionEnumKeyword(t) {
 			structUnionEnums = append(structUnionEnums, StructUnionEnum{indent})
 		}
-
-
 
 		text, newLinesAfter = skipSpaceAndCountNewLines(text)
 
@@ -633,9 +631,9 @@ func format(text string) string {
 		}
 
 		endOfStructUnionEnumBody := false
-	
-		if(isRightBrace(t) && len(structUnionEnums) >  0 && (structUnionEnums[len(structUnionEnums) - 1]).indent == indent){
-		  	structUnionEnums = structUnionEnums[:len(structUnionEnums) - 1]
+
+		if isRightBrace(t) && len(structUnionEnums) > 0 && (structUnionEnums[len(structUnionEnums)-1]).indent == indent {
+			structUnionEnums = structUnionEnums[:len(structUnionEnums)-1]
 			endOfStructUnionEnumBody = true
 		}
 
@@ -663,7 +661,7 @@ func format(text string) string {
 				b.WriteString("  ")
 			}
 
-		} else if (isRightBrace(t) && !endOfStructUnionEnumBody)||
+		} else if (isRightBrace(t) && !endOfStructUnionEnumBody) ||
 			endOfDirective ||
 			isDirective(nextT) ||
 			isEndOfStatement {
@@ -706,7 +704,8 @@ func format(text string) string {
 }
 
 func main() {
-	const path = "test.c"
+	//const path = "test.c"
+	const path = "scratch.c"
 
 	data, error := os.ReadFile(path)
 
