@@ -20,6 +20,8 @@ int main(void)
 
     int i = b++;
 
+    i = --b;
+
     int h = ++b;
 
     int num = 007;

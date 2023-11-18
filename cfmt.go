@@ -636,7 +636,8 @@ func format(text string) string {
 			!isRightParenthesis(nextT) &&
 			!isPointerOperator &&
 			!isFunctionName &&
-			!hasPostfixIncrDecr {
+			!hasPostfixIncrDecr &&
+			!isIncrDecrOperator(t){
 			b.WriteString(" ")
 		}
 
