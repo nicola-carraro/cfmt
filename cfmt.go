@@ -30,6 +30,10 @@ type Token struct {
 	NewLines   int
 }
 
+type StructUnionEnum struct{
+	indent int
+}
+
 func isIdentifierStart(r rune) bool {
 	return (r >= 'A' && r <= 'Z') || (r >= 'a' && r <= 'z') || (r == '_')
 }
@@ -560,16 +564,21 @@ func isIncrDecrOperator(token Token) bool {
 	return token.Type == Punctuation && (token.Content == "++" || token.Content == "--")
 }
 
-func isDotOperator(toke Token) bool {
-	return toke.Type == Punctuation && (toke.Content == ".")
+func isDotOperator(token Token) bool {
+	return token.Type == Punctuation && (token.Content == ".")
 }
 
-func isArrowOperator(toke Token) bool {
-	return toke.Type == Punctuation && (toke.Content == "->")
+func isArrowOperator(token Token) bool {
+	return token.Type == Punctuation && (token.Content == "->")
 }
 
-func isKeyword(toke Token) bool {
-	return toke.Type == Keyword
+func isKeyword(token Token) bool {
+	return token.Type == Keyword
+}
+
+func isStructUnionEnumKeyword(token Token) bool{
+		return token.Type == Keyword && (token.Content == "struct" || token.Content == "union" ||token.Content == "enum")
+
 }
 
 func format(text string) string {
@@ -583,6 +592,8 @@ func format(text string) string {
 
 	directive := false
 
+	structUnionEnums := make([]StructUnionEnum, 0)
+
 	text, _ = skipSpaceAndCountNewLines(text)
 
 	prevT := Token{}
@@ -592,6 +603,12 @@ func format(text string) string {
 	for t.Type != NoTokenType {
 
 		fmt.Println(t)
+
+		if(isStructUnionEnumKeyword(t)){
+			structUnionEnums = append(structUnionEnums, StructUnionEnum{indent})
+		}
+
+
 
 		text, newLinesAfter = skipSpaceAndCountNewLines(text)
 
@@ -613,6 +630,13 @@ func format(text string) string {
 
 		if isRightBrace(nextT) {
 			indent--
+		}
+
+		endOfStructUnionEnumBody := false
+	
+		if(isRightBrace(t) && len(structUnionEnums) >  0 && (structUnionEnums[len(structUnionEnums) - 1]).indent == indent){
+		  	structUnionEnums = structUnionEnums[:len(structUnionEnums) - 1]
+			endOfStructUnionEnumBody = true
 		}
 
 		if isDirective(t) {
@@ -639,7 +663,7 @@ func format(text string) string {
 				b.WriteString("  ")
 			}
 
-		} else if isRightBrace(t) ||
+		} else if (isRightBrace(t) && !endOfStructUnionEnumBody)||
 			endOfDirective ||
 			isDirective(nextT) ||
 			isEndOfStatement {
