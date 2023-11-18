@@ -55,3 +55,17 @@ func TestFormatStructDecl(t *testing.T) {
 
 	_testFormat(t, input, expected)
 }
+
+func TestFormatOperators(t *testing.T) {
+	input := "int a=b*c;"
+
+	expected := "int a = b * c;\r\n"
+
+	_testFormat(t, input, expected)
+
+	input = "aa   -> bar =3;"
+
+	expected = "aa->bar = 3;\r\n"
+
+	_testFormat(t, input, expected)
+}

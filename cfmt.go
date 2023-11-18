@@ -602,7 +602,7 @@ func format(text string) string {
 
 	for t.Type != NoTokenType {
 
-		fmt.Println(t)
+		//fmt.Println(t)
 
 		if isStructUnionEnumKeyword(t) {
 			structUnionEnums = append(structUnionEnums, StructUnionEnum{indent})
@@ -704,8 +704,8 @@ func format(text string) string {
 }
 
 func main() {
-	//const path = "test.c"
-	const path = "scratch.c"
+	const path = "test.c"
+	//const path = "scratch.c"
 
 	data, error := os.ReadFile(path)
 
