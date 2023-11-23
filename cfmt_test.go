@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -22,7 +23,7 @@ func _testFormat(t *testing.T, input string, expected string) {
 
 	for i, r := range []byte(expected) {
 		if r != output[i] {
-			t.Errorf("Index %d, expected %d, output %d", i, r, output[i])
+			t.Errorf("Index %d, expected %c, output %c", i, r, output[i])
 		}
 	}
 
@@ -49,8 +50,8 @@ func TestFormatStructDecl(t *testing.T) {
 
 	expected :=
 		"typedef struct {\r\n" +
-			"  int bar;\r\n" +
-			"  char *baz;\r\n" +
+			"    int bar;\r\n" +
+			"    char *baz;\r\n" +
 			"} Foo;\r\n"
 
 	_testFormat(t, input, expected)

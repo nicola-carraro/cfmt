@@ -655,10 +655,12 @@ func format(text string) string {
 
 		hasPostfixIncrDecr := isIncrDecrOperator(nextT) && (isIdentifier(t))
 
+		indentation := "    "
+
 		if isLeftBrace(t) || isRightBrace(nextT) {
 			b.WriteString(newLine)
 			for indentLevel := 0; indentLevel < indent; indentLevel++ {
-				b.WriteString("  ")
+				b.WriteString(indentation)
 			}
 
 		} else if (isRightBrace(t) && !endOfStructUnionEnumBody) ||
@@ -672,7 +674,7 @@ func format(text string) string {
 
 			}
 			for indentLevel := 0; indentLevel < indent; indentLevel++ {
-				b.WriteString("  ")
+				b.WriteString(indentation)
 			}
 
 		} else if !isSemicolon(nextT) &&
