@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -23,12 +22,12 @@ func _testFormat(t *testing.T, input string, expected string) {
 
 	for i, r := range []byte(expected) {
 		if r != output[i] {
-			t.Errorf("Index %d, expected %c, output %c", i, r, output[i])
+			t.Errorf("Index %d, expected %d (%c), output %d (%c)", i, r, r, output[i], output[i])
 		}
 	}
 
 	if output != expected {
-		t.Errorf("Output should be:\n%s\n, found:\n%s\n", expected, output)
+		t.Errorf("Output should be:\n%s\nfound:\n%s\n", expected, output)
 	}
 }
 
@@ -53,6 +52,33 @@ func TestFormatStructDecl(t *testing.T) {
 			"    int bar;\r\n" +
 			"    char *baz;\r\n" +
 			"} Foo;\r\n"
+
+	_testFormat(t, input, expected)
+
+	input =
+		"struct  Foo{\r\n" +
+			"    int bar;     char *baz;\r\n\r\n\r\n" +
+			"}\r\n\r\n\r\n" +
+			";"
+
+	expected =
+		"struct Foo {\r\n" +
+			"    int bar;\r\n" +
+			"    char *baz;\r\n" +
+			"};\r\n"
+
+	_testFormat(t, input, expected)
+
+}
+
+func TestFormatInitalizerList(t *testing.T) {
+	input :=
+		"Foo foo = {\r\n" +
+			"0    }" +
+			";"
+
+	expected :=
+		"Foo foo = {0};\r\n"
 
 	_testFormat(t, input, expected)
 }

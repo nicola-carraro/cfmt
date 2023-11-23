@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"slices"
 	"strings"
 	"unicode/utf8"
 )
@@ -581,6 +582,12 @@ func isStructUnionEnumKeyword(token Token) bool {
 
 }
 
+func isAssignement(token Token) bool {
+	assignmentOps := []string{"=", "*=", "/=", "%=", "+=", "-=", "<<=", ">>=", "&=", "^=", "|="}
+
+	return token.Type == Punctuation && slices.Contains(assignmentOps, token.Content)
+}
+
 func format(text string) string {
 
 	newLinesAfter := 0
@@ -655,18 +662,20 @@ func format(text string) string {
 
 		hasPostfixIncrDecr := isIncrDecrOperator(nextT) && (isIdentifier(t))
 
+		isBlockStart := isLeftBrace(t) && !isAssignement(prevT)
+
 		indentation := "    "
 
-		if isLeftBrace(t) || isRightBrace(nextT) {
+		if isBlockStart || (isSemicolon(t) && isRightBrace(nextT)) {
 			b.WriteString(newLine)
 			for indentLevel := 0; indentLevel < indent; indentLevel++ {
 				b.WriteString(indentation)
 			}
 
-		} else if (isRightBrace(t) && !endOfStructUnionEnumBody) ||
+		} else if (isRightBrace(t) && (!endOfStructUnionEnumBody && !isSemicolon(nextT))) ||
 			endOfDirective ||
 			isDirective(nextT) ||
-			isEndOfStatement {
+			isEndOfStatement || isSemicolon(t) {
 			b.WriteString(newLine)
 
 			if newLinesAfter > 1 {
@@ -678,6 +687,7 @@ func format(text string) string {
 			}
 
 		} else if !isSemicolon(nextT) &&
+			!isRightBrace(nextT) &&
 			!isLeftParenthesis(t) &&
 			!isRightParenthesis(nextT) &&
 			!isPointerOperator &&
@@ -687,7 +697,8 @@ func format(text string) string {
 			!isDotOperator(t) &&
 			!isDotOperator(nextT) &&
 			!isArrowOperator(t) &&
-			!isArrowOperator(nextT) {
+			!isArrowOperator(nextT) &&
+			!isLeftBrace(t) {
 			b.WriteString(" ")
 		}
 
