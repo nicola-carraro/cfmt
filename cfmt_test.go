@@ -74,11 +74,29 @@ func TestFormatStructDecl(t *testing.T) {
 func TestFormatInitalizerList(t *testing.T) {
 	input :=
 		"Foo foo = {\r\n" +
-			"0    }" +
+			"0    }\r\n" +
 			";"
 
 	expected :=
 		"Foo foo = {0};\r\n"
+
+	_testFormat(t, input, expected)
+}
+
+func TestFormatForLoop(t *testing.T) {
+	input := " for (int i=0;i<3;i++) {printf(\"%d\\n\", i);}"
+
+	expected := "for (int i = 0; i < 3; i++) {\r\n" +
+		"    printf(\"%d\\n\" , i);\r\n" +
+		"}\r\n"
+
+	_testFormat(t, input, expected)
+
+	input = " for (int i=0;\r\ni<3;\r\ni++\r\n) {printf(\"%d\\n\", i);}"
+
+	expected = "for (int i = 0; i < 3; i++) {\r\n" +
+		"    printf(\"%d\\n\" , i);\r\n" +
+		"}\r\n"
 
 	_testFormat(t, input, expected)
 }

@@ -675,7 +675,8 @@ func format(text string) string {
 		} else if (isRightBrace(t) && (!endOfStructUnionEnumBody && !isSemicolon(nextT))) ||
 			endOfDirective ||
 			isDirective(nextT) ||
-			isEndOfStatement || isSemicolon(t) {
+			isEndOfStatement ||
+			(isSemicolon(t) && !isParenthesis) {
 			b.WriteString(newLine)
 
 			if newLinesAfter > 1 {
