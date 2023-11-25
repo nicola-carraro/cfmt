@@ -25,14 +25,27 @@ const (
 )
 
 type Token struct {
-	Type       TokenType
-	Content    string
-	HasNewLine bool
-	NewLines   int
+	Type    TokenType
+	Content string
 }
 
 type StructUnionEnum struct {
-	indent int
+	Indent int
+}
+
+type Parser struct {
+	PreviousToken Token
+	Token         Token
+	NextToken     Token
+	Indent        int
+	InputLine     int
+	InputColumn   int
+	OutputLine    int
+	OutputColumn  int
+	Input         string
+	Output        strings.Builder
+	NewLinesAfter int
+	IsParenthesis bool
 }
 
 func isIdentifierStart(r rune) bool {
@@ -90,7 +103,7 @@ func (t TokenType) String() string {
 
 func (t Token) String() string {
 	if t.Type == Space {
-		return fmt.Sprintf("Token{Type: %s, len: %d, NewLines: %d}", t.Type, len(t.Content), t.NewLines)
+		return fmt.Sprintf("Token{Type: %s, len: %d}", t.Type, len(t.Content))
 	} else if t.Type == NoTokenType {
 		return fmt.Sprintf("Token{Type: %s}", t.Type)
 	} else {
@@ -172,30 +185,6 @@ func peakRune(text string) (rune, int) {
 	}
 
 	return r, size
-}
-
-func parseSpace(text string) Token {
-
-	tokenSize := 0
-
-	next := text
-
-	r, size := peakRune(next)
-
-	newLines := 0
-
-	for isSpace(r) {
-		if r == '\n' {
-			newLines++
-		}
-
-		tokenSize += size
-		next = next[size:]
-		r, size = peakRune(next)
-	}
-
-	token := Token{Type: Space, Content: text[:tokenSize], NewLines: newLines}
-	return token
 }
 
 func parseIdentifier(text string) Token {
@@ -418,75 +407,110 @@ func isOneCharPunctuation(text string) bool {
 	return false
 }
 
-func parseToken(text string) Token {
+func (parser *Parser) parseToken() bool {
 
-	if len(text) == 0 {
+	skipSpaceAndCountNewLines(parser)
+
+	if isAbsent(parser.Token) {
+		parser.Token = parseToken(parser.Input)
+		parser.Input = parser.Input[len(parser.Token.Content):]
+		skipSpaceAndCountNewLines(parser)
+	} else {
+		parser.PreviousToken = parser.Token
+		parser.Token = parser.NextToken
+	}
+
+	parser.NextToken = parseToken(parser.Input)
+	parser.Input = parser.Input[len(parser.NextToken.Content):]
+
+	//fmt.Printf("updateParser, PreviousToken:%s, Token:%s, NextToken:%s\n", parser.PreviousToken, parser.Token, parser.NextToken)
+
+	if isLeftBrace(parser.Token) {
+		parser.Indent++
+	}
+
+	if isLeftParenthesis(parser.Token) {
+		parser.IsParenthesis = true
+	}
+
+	if isRightParenthesis(parser.Token) {
+		parser.IsParenthesis = false
+	}
+
+	if isRightBrace(parser.NextToken) {
+		parser.Indent--
+	}
+
+	return !isAbsent(parser.Token)
+}
+
+func parseToken(input string) Token {
+
+	//fmt.Printf("parseToken, current token %s\n", parser.Token)
+
+	if len(input) == 0 {
 		return Token{}
 	}
 
-	r, _ := peakRune(text)
+	r, _ := peakRune(input)
 
-	token, isFloat := tryParseFloat(text)
+	token, isFloat := tryParseFloat(input)
 	if isFloat {
 		return token
 	}
 
-	token, directive := tryParseDirective(text)
+	token, directive := tryParseDirective(input)
 	if directive {
 		return token
 	}
 
-	token, keyword := tryParseKeyword(text)
+	token, keyword := tryParseKeyword(input)
 	if keyword {
 		return token
 	}
 
-	if isSpace(r) {
-		return parseSpace(text)
-	}
-
 	if isIdentifierStart(r) {
-		return parseIdentifier(text)
+		return parseIdentifier(input)
 	}
 
 	if isDoubleQuote(r) {
-		return parseString(text)
+		return parseString(input)
 	}
 
 	if isSingleQuote(r) {
-		return parseChar(text)
+		return parseChar(input)
 	}
 
-	if isFourCharsPunctuation(text) {
+	if isFourCharsPunctuation(input) {
 		token.Type = Punctuation
-		token.Content = text[:4]
+		token.Content = input[:4]
 		return token
 	}
 
-	if isThreeCharsPunctuation(text) {
+	if isThreeCharsPunctuation(input) {
 		token.Type = Punctuation
-		token.Content = text[:3]
-	} else if isTwoCharsPunctuation(text) {
+		token.Content = input[:3]
+	} else if isTwoCharsPunctuation(input) {
 		token.Type = Punctuation
-		token.Content = text[:2]
+		token.Content = input[:2]
 
 		return token
 	}
 
-	if isOneCharPunctuation(text) {
+	if isOneCharPunctuation(input) {
 		token.Type = Punctuation
-		token.Content = text[:1]
+		token.Content = input[:1]
 
 		return token
 	}
 
 	if isDigit(r) {
 		//TODO: handle octal and hex
-		return parseDecimal(text)
+		return parseDecimal(input)
 	}
 
 	max := 10
-	start := text
+	start := input
 	if len(start) > max {
 		start = start[:max]
 	}
@@ -495,17 +519,17 @@ func parseToken(text string) Token {
 	panic("Unreachable")
 }
 
-func skipSpaceAndCountNewLines(text string) (string, int) {
-	newLines := 0
+func skipSpaceAndCountNewLines(parser *Parser) {
 
-	for r, size := peakRune(text); isSpace(r); r, size = peakRune(text) {
+	parser.NewLinesAfter = 0
+
+	for r, size := peakRune(parser.Input); isSpace(r); r, size = peakRune(parser.Input) {
 		if r == '\n' {
-			newLines++
+			parser.NewLinesAfter++
 		}
-		text = text[size:]
+		parser.Input = parser.Input[size:]
 	}
 
-	return text, newLines
 }
 
 func isHash(t Token) bool {
@@ -514,10 +538,6 @@ func isHash(t Token) bool {
 
 func containsNewLine(t Token) bool {
 	return t.Type == Punctuation && t.Content == "#"
-}
-
-func hasNewline(t Token) bool {
-	return t.Type == Space && t.NewLines > 0
 }
 
 func isLeftParenthesis(token Token) bool {
@@ -593,136 +613,110 @@ func isComma(token Token) bool {
 	return token.Type == Punctuation && token.Content == ","
 }
 
-func format(text string) string {
+func newParser(input string) *Parser {
+	parser := Parser{Input: input, Output: strings.Builder{}}
 
-	newLinesAfter := 0
-	indent := 0
+	return &parser
+}
 
-	isParenthesis := false
+func isAbsent(token Token) bool {
+	return token.Type == NoTokenType
+}
 
-	b := strings.Builder{}
+func format(input string) string {
+
+	parser := newParser(input)
 
 	directive := false
 
 	structUnionEnums := make([]StructUnionEnum, 0)
 
-	text, _ = skipSpaceAndCountNewLines(text)
-
-	prevT := Token{}
-	t := parseToken(text)
-	text = text[len(t.Content):]
-
-	for t.Type != NoTokenType {
+	for parser.parseToken() {
 
 		//fmt.Println(t)
 
-		if isStructUnionEnumKeyword(t) {
-			structUnionEnums = append(structUnionEnums, StructUnionEnum{indent})
+		if isStructUnionEnumKeyword(parser.Token) {
+			structUnionEnums = append(structUnionEnums, StructUnionEnum{parser.Indent})
 		}
 
-		text, newLinesAfter = skipSpaceAndCountNewLines(text)
-
-		nextT := parseToken(text)
-
-		b.WriteString(t.Content)
-
-		if isLeftBrace(t) {
-			indent++
-		}
-
-		if isLeftParenthesis(t) {
-			isParenthesis = true
-		}
-
-		if isRightParenthesis(t) {
-			isParenthesis = false
-		}
-
-		if isRightBrace(nextT) {
-			indent--
-		}
+		parser.Output.WriteString(parser.Token.Content)
 
 		endOfStructUnionEnumBody := false
 
-		if isRightBrace(t) && len(structUnionEnums) > 0 && (structUnionEnums[len(structUnionEnums)-1]).indent == indent {
+		if isRightBrace(parser.Token) && len(structUnionEnums) > 0 && (structUnionEnums[len(structUnionEnums)-1]).Indent == parser.Indent {
 			structUnionEnums = structUnionEnums[:len(structUnionEnums)-1]
 			endOfStructUnionEnumBody = true
 		}
 
 		structUnionEnum := len(structUnionEnums) > 0
 
-		if isDirective(t) {
+		if isDirective(parser.Token) {
 			directive = true
 		}
 
-		isEndOfStatement := isSemicolon(t) && !isParenthesis
+		isEndOfStatement := isSemicolon(parser.Token) && !parser.IsParenthesis
 
 		const newLine = "\r\n"
 
 		const maxNewLines = 2
 
-		endOfDirective := directive && newLinesAfter > 0
+		endOfDirective := directive && parser.NewLinesAfter > 0
 
-		isFunctionName := t.Type == Identifier && isLeftParenthesis(nextT)
+		isFunctionName := parser.Token.Type == Identifier && isLeftParenthesis(parser.NextToken)
 
-		isPointerOperator := canBePointerOperator(t) && !canBeLeftOperand(prevT)
+		isPointerOperator := canBePointerOperator(parser.Token) && !canBeLeftOperand(parser.PreviousToken)
 
-		hasPostfixIncrDecr := isIncrDecrOperator(nextT) && (isIdentifier(t))
+		hasPostfixIncrDecr := isIncrDecrOperator(parser.NextToken) && (isIdentifier(parser.Token))
 
-		isBlockStart := isLeftBrace(t) && !isAssignement(prevT)
+		isBlockStart := isLeftBrace(parser.Token) && !isAssignement(parser.PreviousToken)
 
 		indentation := "    "
 
-		if isBlockStart || (isSemicolon(t) && (isRightBrace(nextT) || structUnionEnum)) {
-			b.WriteString(newLine)
-			for indentLevel := 0; indentLevel < indent; indentLevel++ {
-				b.WriteString(indentation)
+		if isBlockStart || (isSemicolon(parser.Token) && (isRightBrace(parser.NextToken) || structUnionEnum)) {
+			parser.Output.WriteString(newLine)
+			for indentLevel := 0; indentLevel < parser.Indent; indentLevel++ {
+				parser.Output.WriteString(indentation)
 			}
 
-		} else if (isRightBrace(t) && (!endOfStructUnionEnumBody && !isSemicolon(nextT))) ||
+		} else if (isRightBrace(parser.Token) && (!endOfStructUnionEnumBody && !isSemicolon(parser.NextToken))) ||
 			endOfDirective ||
-			isDirective(nextT) ||
+			isDirective(parser.NextToken) ||
 			isEndOfStatement ||
-			(isSemicolon(t) && !isParenthesis) {
-			b.WriteString(newLine)
+			(isSemicolon(parser.Token) && !parser.IsParenthesis) {
+			parser.Output.WriteString(newLine)
 
-			if newLinesAfter > 1 {
-				b.WriteString(newLine)
+			if parser.NewLinesAfter > 1 {
+				parser.Output.WriteString(newLine)
 
 			}
-			for indentLevel := 0; indentLevel < indent; indentLevel++ {
-				b.WriteString(indentation)
+			for indentLevel := 0; indentLevel < parser.Indent; indentLevel++ {
+				parser.Output.WriteString(indentation)
 			}
 
-		} else if !isSemicolon(nextT) &&
-			!isRightBrace(nextT) &&
-			!isLeftParenthesis(t) &&
-			!isRightParenthesis(nextT) &&
+		} else if !isSemicolon(parser.NextToken) &&
+			!isRightBrace(parser.NextToken) &&
+			!isLeftParenthesis(parser.Token) &&
+			!isRightParenthesis(parser.NextToken) &&
 			!isPointerOperator &&
 			!isFunctionName &&
 			!hasPostfixIncrDecr &&
-			!isIncrDecrOperator(t) &&
-			!isDotOperator(t) &&
-			!isDotOperator(nextT) &&
-			!isArrowOperator(t) &&
-			!isArrowOperator(nextT) &&
-			!isLeftBrace(t) &&
-			!isComma(nextT) {
-			b.WriteString(" ")
+			!isIncrDecrOperator(parser.Token) &&
+			!isDotOperator(parser.Token) &&
+			!isDotOperator(parser.NextToken) &&
+			!isArrowOperator(parser.Token) &&
+			!isArrowOperator(parser.NextToken) &&
+			!isLeftBrace(parser.Token) &&
+			!isComma(parser.NextToken) {
+			parser.Output.WriteString(" ")
 		}
 
-		if newLinesAfter > 0 {
+		if parser.NewLinesAfter > 0 {
 			directive = false
 		}
 
-		text = text[len(nextT.Content):]
-
-		prevT = t
-
-		t = nextT
 	}
 
-	return b.String()
+	return parser.Output.String()
 }
 
 func main() {

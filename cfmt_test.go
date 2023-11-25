@@ -2,6 +2,7 @@ package main
 
 import (
 	"testing"
+	//"fmt"
 )
 
 func _testTokenizeSingleToken(t *testing.T, text string, tType TokenType) {

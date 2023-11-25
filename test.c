@@ -1,4 +1,4 @@
-#define CRT_SECURE_NO_WARNINGS
+     #define CRT_SECURE_NO_WARNINGS
 
 #include "stdio.h"
 
