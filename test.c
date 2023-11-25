@@ -5,6 +5,13 @@
 typedef struct {
     int bar;     char *baz;}Foo;
 
+
+    typedef struct {
+    int bar;
+    
+    
+         char *baz;}Bar;
+
   int buzz(){return -1;}  
 
 int main(void)

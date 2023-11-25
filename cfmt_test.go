@@ -69,6 +69,12 @@ func TestFormatStructDecl(t *testing.T) {
 
 	_testFormat(t, input, expected)
 
+	input = "struct Foo{\r\n\r\n    int bar;\r\n\r\n    char *baz;\r\n\r\n};\r\n"
+
+	expected = "struct Foo {\r\n    int bar;\r\n    char *baz;\r\n};\r\n"
+
+	_testFormat(t, input, expected)
+
 }
 
 func TestFormatInitalizerList(t *testing.T) {

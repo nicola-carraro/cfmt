@@ -644,6 +644,8 @@ func format(text string) string {
 			endOfStructUnionEnumBody = true
 		}
 
+		structUnionEnum := len(structUnionEnums) > 0
+
 		if isDirective(t) {
 			directive = true
 		}
@@ -666,7 +668,7 @@ func format(text string) string {
 
 		indentation := "    "
 
-		if isBlockStart || (isSemicolon(t) && isRightBrace(nextT)) {
+		if isBlockStart || (isSemicolon(t) && (isRightBrace(nextT) || structUnionEnum)) {
 			b.WriteString(newLine)
 			for indentLevel := 0; indentLevel < indent; indentLevel++ {
 				b.WriteString(indentation)
