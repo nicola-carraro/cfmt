@@ -588,6 +588,11 @@ func isAssignement(token Token) bool {
 	return token.Type == Punctuation && slices.Contains(assignmentOps, token.Content)
 }
 
+func isComma(token Token) bool {
+
+	return token.Type == Punctuation && token.Content == ","
+}
+
 func format(text string) string {
 
 	newLinesAfter := 0
@@ -701,7 +706,8 @@ func format(text string) string {
 			!isDotOperator(nextT) &&
 			!isArrowOperator(t) &&
 			!isArrowOperator(nextT) &&
-			!isLeftBrace(t) {
+			!isLeftBrace(t) &&
+			!isComma(nextT) {
 			b.WriteString(" ")
 		}
 

@@ -93,7 +93,7 @@ func TestFormatForLoop(t *testing.T) {
 	input := " for (int i=0;i<3;i++) {printf(\"%d\\n\", i);}"
 
 	expected := "for (int i = 0; i < 3; i++) {\r\n" +
-		"    printf(\"%d\\n\" , i);\r\n" +
+		"    printf(\"%d\\n\", i);\r\n" +
 		"}\r\n"
 
 	_testFormat(t, input, expected)
@@ -101,10 +101,19 @@ func TestFormatForLoop(t *testing.T) {
 	input = " for (int i=0;\r\ni<3;\r\ni++\r\n) {printf(\"%d\\n\", i);}"
 
 	expected = "for (int i = 0; i < 3; i++) {\r\n" +
-		"    printf(\"%d\\n\" , i);\r\n" +
+		"    printf(\"%d\\n\", i);\r\n" +
 		"}\r\n"
 
 	_testFormat(t, input, expected)
+
+	input = "Foo zz = {123, \"123\"  };"
+	expected = "Foo zz = {123, \"123\"};\r\n"
+	_testFormat(t, input, expected)
+
+	input = "Foo zz = {\r\n123,\r\n\"123\"\r\n};"
+	expected = "Foo zz = {123, \"123\"};\r\n"
+	_testFormat(t, input, expected)
+
 }
 
 func TestFormatOperators(t *testing.T) {

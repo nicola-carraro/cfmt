@@ -23,6 +23,13 @@ int main(void)
 
     Foo z = {0};
 
+    Foo zz = {123, "123"  ,  };
+
+    Foo zzz = {
+        123,
+         "123"
+    };
+
     z.bar = 3;
 
     Foo *aa = &z;
