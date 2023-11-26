@@ -429,20 +429,12 @@ func (parser *Parser) parseToken() bool {
 
 	//fmt.Printf("updateParser, PreviousToken:%s, Token:%s, NextToken:%s\n", parser.PreviousToken, parser.Token, parser.NextToken)
 
-	if isLeftBrace(parser.Token) {
-		parser.Indent++
-	}
-
 	if isLeftParenthesis(parser.Token) {
 		parser.IsParenthesis = true
 	}
 
 	if isRightParenthesis(parser.Token) {
 		parser.IsParenthesis = false
-	}
-
-	if isRightBrace(parser.NextToken) {
-		parser.Indent--
 	}
 
 	return !isAbsent(parser.Token)
@@ -687,13 +679,54 @@ func hasPostfixIncrDecr(parser *Parser) bool {
 	return isIncrDecrOperator(parser.NextToken) && (isIdentifier(parser.Token))
 }
 
+func formatDeclarationBody(parser *Parser) {
+
+	//fmt.Println(parser.Input)
+	parser.Indent++
+
+	writeNewLine(parser)
+
+	indent(parser)
+
+	for parser.parseToken() {
+
+		parser.Output.WriteString(parser.Token.Content)
+
+		if isRightBrace(parser.NextToken) {
+			parser.Indent--
+		} else if isLeftBrace(parser.Token) {
+			formatDeclarationBody(parser)
+		}
+		if isSemicolon(parser.Token) {
+			writeNewLine(parser)
+			indent(parser)
+		} else if !isPointerOperator(parser) &&
+			!hasPostfixIncrDecr(parser) &&
+			!isIncrDecrOperator(parser.Token) &&
+			!isDotOperator(parser.Token) &&
+			!isDotOperator(parser.NextToken) &&
+			!isArrowOperator(parser.Token) &&
+			!isArrowOperator(parser.NextToken) &&
+			!isSemicolon(parser.NextToken) &&
+			!isComma(parser.NextToken) {
+			parser.Output.WriteString(" ")
+		}
+
+		if isRightBrace(parser.Token) {
+			return
+		}
+	}
+
+	log.Fatal("Unclosed declaration braces")
+}
+
 func format(input string) string {
 
 	parser := newParser(input)
 
 	directive := false
 
-	structUnionEnums := make([]StructUnionEnum, 0)
+	structUnionOrEnum := false
 
 	for parser.parseToken() {
 
@@ -705,21 +738,24 @@ func format(input string) string {
 			if isAssignement(parser.PreviousToken) {
 				formatInitialiserList(parser)
 				continue
+			} else if structUnionOrEnum {
+				formatDeclarationBody(parser)
+				structUnionOrEnum = false
+				continue
+			} else {
+				parser.Indent++
+
 			}
+
+		}
+
+		if isRightBrace(parser.NextToken) {
+			parser.Indent--
 		}
 
 		if isStructUnionEnumKeyword(parser.Token) {
-			structUnionEnums = append(structUnionEnums, StructUnionEnum{parser.Indent})
+			structUnionOrEnum = true
 		}
-
-		endOfStructUnionEnumBody := false
-
-		if isRightBrace(parser.Token) && len(structUnionEnums) > 0 && (structUnionEnums[len(structUnionEnums)-1]).Indent == parser.Indent {
-			structUnionEnums = structUnionEnums[:len(structUnionEnums)-1]
-			endOfStructUnionEnumBody = true
-		}
-
-		structUnionEnum := len(structUnionEnums) > 0
 
 		if isDirective(parser.Token) {
 			directive = true
@@ -735,13 +771,13 @@ func format(input string) string {
 
 		isBlockStart := isLeftBrace(parser.Token) && !isAssignement(parser.PreviousToken)
 
-		if isBlockStart || (isSemicolon(parser.Token) && (isRightBrace(parser.NextToken) || structUnionEnum)) {
+		if isBlockStart {
 			parser.Output.WriteString(newLine)
 			for indentLevel := 0; indentLevel < parser.Indent; indentLevel++ {
 				parser.Output.WriteString(indentation)
 			}
 
-		} else if (isRightBrace(parser.Token) && (!endOfStructUnionEnumBody && !isSemicolon(parser.NextToken))) ||
+		} else if (isRightBrace(parser.Token) && !isSemicolon(parser.NextToken)) ||
 			endOfDirective ||
 			isDirective(parser.NextToken) ||
 			isEndOfStatement ||
