@@ -48,8 +48,6 @@ type Parser struct {
 	IsParenthesis bool
 }
 
-const newLine = "\r\n"
-
 const indentation = "    "
 
 func isIdentifierStart(r rune) bool {
@@ -619,15 +617,20 @@ func isAbsent(token Token) bool {
 	return token.Type == NoTokenType
 }
 
-func writeNewLine(parser *Parser) {
-	parser.Output.WriteString(newLine)
+func (parser *Parser) writeNewLines(lines int) {
+	const newLine = "\r\n"
 
-}
+	for line := 0; line < lines; line++ {
+		parser.Output.WriteString(newLine)
+	}
 
-func indent(parser *Parser) {
 	for indentLevel := 0; indentLevel < parser.Indent; indentLevel++ {
 		parser.Output.WriteString(indentation)
 	}
+}
+
+func indent(parser *Parser) {
+
 }
 
 func formatInitialiserList(parser *Parser) {
@@ -684,9 +687,7 @@ func formatDeclarationBody(parser *Parser) {
 	//fmt.Println(parser.Input)
 	parser.Indent++
 
-	writeNewLine(parser)
-
-	indent(parser)
+	parser.writeNewLines(1)
 
 	for parser.parseToken() {
 
@@ -698,8 +699,7 @@ func formatDeclarationBody(parser *Parser) {
 			formatDeclarationBody(parser)
 		}
 		if isSemicolon(parser.Token) {
-			writeNewLine(parser)
-			indent(parser)
+			parser.writeNewLines(1)
 		} else if !isPointerOperator(parser) &&
 			!hasPostfixIncrDecr(parser) &&
 			!isIncrDecrOperator(parser.Token) &&
@@ -772,24 +772,18 @@ func format(input string) string {
 		isBlockStart := isLeftBrace(parser.Token) && !isAssignement(parser.PreviousToken)
 
 		if isBlockStart {
-			parser.Output.WriteString(newLine)
-			for indentLevel := 0; indentLevel < parser.Indent; indentLevel++ {
-				parser.Output.WriteString(indentation)
-			}
-
+			parser.writeNewLines(1)
 		} else if (isRightBrace(parser.Token) && !isSemicolon(parser.NextToken)) ||
 			endOfDirective ||
 			isDirective(parser.NextToken) ||
 			isEndOfStatement ||
 			(isSemicolon(parser.Token) && !parser.IsParenthesis) {
-			parser.Output.WriteString(newLine)
 
 			if parser.NewLinesAfter > 1 {
-				parser.Output.WriteString(newLine)
+				parser.writeNewLines(2)
 
-			}
-			for indentLevel := 0; indentLevel < parser.Indent; indentLevel++ {
-				parser.Output.WriteString(indentation)
+			} else {
+				parser.writeNewLines(1)
 			}
 
 		} else if !isSemicolon(parser.NextToken) &&
