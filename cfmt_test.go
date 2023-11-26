@@ -22,6 +22,11 @@ func _testFormat(t *testing.T, input string, expected string) {
 	output := format(input)
 
 	for i, r := range []byte(expected) {
+		if i >= len(output) {
+			t.Errorf("Index %d, expected %d, found end of string", i, r)
+			break
+		}
+
 		if r != output[i] {
 			t.Errorf("Index %d, expected %d (%c), output %d (%c)", i, r, r, output[i], output[i])
 		}
@@ -78,16 +83,33 @@ func TestFormatStructDecl(t *testing.T) {
 
 }
 
-func TestFormatInitalizerList(t *testing.T) {
-	input :=
-		"Foo foo = {\r\n" +
-			"0    }\r\n" +
-			";"
+func TestFormatInitializerList(t *testing.T) {
+	input := "Foo foo = {\r\n" +
+		"0    }\r\n" +
+		";"
 
-	expected :=
-		"Foo foo = {0};\r\n"
+	expected := "Foo foo = {0};\r\n"
 
 	_testFormat(t, input, expected)
+
+	input = " p = {.x,.y};\r\n"
+
+	expected = "p = {.x, .y};\r\n"
+
+	_testFormat(t, input, expected)
+
+	input = " p = {. x, . y};\r\n"
+
+	expected = "p = {.x, .y};\r\n"
+
+	_testFormat(t, input, expected)
+
+	input = " p = { .x, .y};\r\n"
+
+	expected = "p = {.x, .y};\r\n"
+
+	_testFormat(t, input, expected)
+
 }
 
 func TestFormatForLoop(t *testing.T) {
@@ -129,4 +151,17 @@ func TestFormatOperators(t *testing.T) {
 	expected = "aa->bar = 3;\r\n"
 
 	_testFormat(t, input, expected)
+
+	input = "a . b = c . d;"
+
+	expected = "a.b = c.d;\r\n"
+
+	_testFormat(t, input, expected)
+
+	input = "a\r\n.b = c\r\n.d;"
+
+	expected = "a.b = c.d;\r\n"
+
+	_testFormat(t, input, expected)
+
 }

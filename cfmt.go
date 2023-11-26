@@ -48,6 +48,10 @@ type Parser struct {
 	IsParenthesis bool
 }
 
+const newLine = "\r\n"
+
+const indentation = "    "
+
 func isIdentifierStart(r rune) bool {
 	return (r >= 'A' && r <= 'Z') || (r >= 'a' && r <= 'z') || (r == '_')
 }
@@ -623,6 +627,66 @@ func isAbsent(token Token) bool {
 	return token.Type == NoTokenType
 }
 
+func writeNewLine(parser *Parser) {
+	parser.Output.WriteString(newLine)
+
+}
+
+func indent(parser *Parser) {
+	for indentLevel := 0; indentLevel < parser.Indent; indentLevel++ {
+		parser.Output.WriteString(indentation)
+	}
+}
+
+func formatInitialiserList(parser *Parser) {
+	openBraces := 1
+
+	//fmt.Println(parser.Input)
+
+	for parser.parseToken() {
+
+		parser.Output.WriteString(parser.Token.Content)
+
+		if isRightBrace(parser.Token) {
+			openBraces--
+		}
+
+		if isLeftBrace(parser.Token) {
+
+			formatInitialiserList(parser)
+			continue
+		}
+
+		if !isRightBrace(parser.NextToken) &&
+			!isRightBrace(parser.Token) &&
+			!isLeftParenthesis(parser.Token) &&
+			!isRightParenthesis(parser.NextToken) &&
+			!isPointerOperator(parser) &&
+			!hasPostfixIncrDecr(parser) &&
+			!isIncrDecrOperator(parser.Token) &&
+			!isDotOperator(parser.Token) &&
+			!isArrowOperator(parser.Token) &&
+			!isArrowOperator(parser.NextToken) &&
+			!isComma(parser.NextToken) {
+			parser.Output.WriteString(" ")
+		}
+
+		if openBraces == 0 {
+			return
+		}
+	}
+
+	log.Fatal("Unclosed initialiser list")
+}
+
+func isPointerOperator(parser *Parser) bool {
+	return canBePointerOperator(parser.Token) && !canBeLeftOperand(parser.PreviousToken)
+}
+
+func hasPostfixIncrDecr(parser *Parser) bool {
+	return isIncrDecrOperator(parser.NextToken) && (isIdentifier(parser.Token))
+}
+
 func format(input string) string {
 
 	parser := newParser(input)
@@ -635,11 +699,18 @@ func format(input string) string {
 
 		//fmt.Println(t)
 
+		parser.Output.WriteString(parser.Token.Content)
+
+		if isLeftBrace(parser.Token) {
+			if isAssignement(parser.PreviousToken) {
+				formatInitialiserList(parser)
+				continue
+			}
+		}
+
 		if isStructUnionEnumKeyword(parser.Token) {
 			structUnionEnums = append(structUnionEnums, StructUnionEnum{parser.Indent})
 		}
-
-		parser.Output.WriteString(parser.Token.Content)
 
 		endOfStructUnionEnumBody := false
 
@@ -656,21 +727,13 @@ func format(input string) string {
 
 		isEndOfStatement := isSemicolon(parser.Token) && !parser.IsParenthesis
 
-		const newLine = "\r\n"
-
 		const maxNewLines = 2
 
 		endOfDirective := directive && parser.NewLinesAfter > 0
 
 		isFunctionName := parser.Token.Type == Identifier && isLeftParenthesis(parser.NextToken)
 
-		isPointerOperator := canBePointerOperator(parser.Token) && !canBeLeftOperand(parser.PreviousToken)
-
-		hasPostfixIncrDecr := isIncrDecrOperator(parser.NextToken) && (isIdentifier(parser.Token))
-
 		isBlockStart := isLeftBrace(parser.Token) && !isAssignement(parser.PreviousToken)
-
-		indentation := "    "
 
 		if isBlockStart || (isSemicolon(parser.Token) && (isRightBrace(parser.NextToken) || structUnionEnum)) {
 			parser.Output.WriteString(newLine)
@@ -697,9 +760,9 @@ func format(input string) string {
 			!isRightBrace(parser.NextToken) &&
 			!isLeftParenthesis(parser.Token) &&
 			!isRightParenthesis(parser.NextToken) &&
-			!isPointerOperator &&
+			!isPointerOperator(parser) &&
 			!isFunctionName &&
-			!hasPostfixIncrDecr &&
+			!hasPostfixIncrDecr(parser) &&
 			!isIncrDecrOperator(parser.Token) &&
 			!isDotOperator(parser.Token) &&
 			!isDotOperator(parser.NextToken) &&
