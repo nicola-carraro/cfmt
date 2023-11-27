@@ -652,17 +652,9 @@ func formatInitialiserList(parser *Parser) {
 			continue
 		}
 
-		if !isRightBrace(parser.NextToken) &&
-			!isRightBrace(parser.Token) &&
-			!isLeftParenthesis(parser.Token) &&
-			!isRightParenthesis(parser.NextToken) &&
-			!isPointerOperator(parser) &&
-			!hasPostfixIncrDecr(parser) &&
-			!isIncrDecrOperator(parser.Token) &&
-			!isDotOperator(parser.Token) &&
-			!isArrowOperator(parser.Token) &&
-			!isArrowOperator(parser.NextToken) &&
-			!isComma(parser.NextToken) {
+		if !neverWhiteSpace(parser) &&
+			!isRightBrace(parser.NextToken) &&
+			!isRightBrace(parser.Token) {
 			parser.Output.WriteString(" ")
 		}
 
@@ -732,18 +724,8 @@ func formatBlockBody(parser *Parser) {
 				parser.writeNewLines(1)
 			}
 			return
-		} else if !isPointerOperator(parser) &&
-			!hasPostfixIncrDecr(parser) &&
-			!isIncrDecrOperator(parser.Token) &&
-			!isDotOperator(parser.Token) &&
-			!isDotOperator(parser.NextToken) &&
-			!isArrowOperator(parser.Token) &&
-			!isArrowOperator(parser.NextToken) &&
-			!isSemicolon(parser.NextToken) &&
-			!isComma(parser.NextToken) &&
-			!isLeftParenthesis(parser.Token) &&
-			!isRightParenthesis(parser.NextToken) &&
-			!isFunctionName(parser) {
+		} else if !neverWhiteSpace(parser) &&
+			!isDotOperator(parser.NextToken) {
 			parser.Output.WriteString(" ")
 		}
 	}
@@ -770,15 +752,9 @@ func formatDeclarationBody(parser *Parser) {
 			formatDeclarationBody(parser)
 		} else if isSemicolon(parser.Token) {
 			parser.writeNewLines(1)
-		} else if !isPointerOperator(parser) &&
-			!hasPostfixIncrDecr(parser) &&
-			!isIncrDecrOperator(parser.Token) &&
-			!isDotOperator(parser.Token) &&
+		} else if !neverWhiteSpace(parser) &&
 			!isDotOperator(parser.NextToken) &&
-			!isArrowOperator(parser.Token) &&
-			!isArrowOperator(parser.NextToken) &&
-			!isSemicolon(parser.NextToken) &&
-			!isComma(parser.NextToken) {
+			!isSemicolon(parser.NextToken) {
 			parser.Output.WriteString(" ")
 		}
 
@@ -792,6 +768,21 @@ func formatDeclarationBody(parser *Parser) {
 
 func isFunctionName(parser *Parser) bool {
 	return parser.Token.Type == Identifier && isLeftParenthesis(parser.NextToken)
+}
+
+func neverWhiteSpace(parser *Parser) bool {
+
+	return isSemicolon(parser.NextToken) ||
+		isLeftParenthesis(parser.Token) ||
+		isRightParenthesis(parser.NextToken) ||
+		isPointerOperator(parser) ||
+		isFunctionName(parser) ||
+		hasPostfixIncrDecr(parser) ||
+		isIncrDecrOperator(parser.Token) ||
+		isDotOperator(parser.Token) ||
+		isArrowOperator(parser.Token) ||
+		isArrowOperator(parser.NextToken) ||
+		isComma(parser.NextToken)
 }
 
 func format(input string) string {
@@ -850,20 +841,10 @@ func format(input string) string {
 				parser.writeNewLines(1)
 			}
 
-		} else if !isSemicolon(parser.NextToken) &&
+		} else if !neverWhiteSpace(parser) &&
 			!isRightBrace(parser.NextToken) &&
-			!isLeftParenthesis(parser.Token) &&
-			!isRightParenthesis(parser.NextToken) &&
-			!isPointerOperator(parser) &&
-			!isFunctionName(parser) &&
-			!hasPostfixIncrDecr(parser) &&
-			!isIncrDecrOperator(parser.Token) &&
-			!isDotOperator(parser.Token) &&
 			!isDotOperator(parser.NextToken) &&
-			!isArrowOperator(parser.Token) &&
-			!isArrowOperator(parser.NextToken) &&
-			!isLeftBrace(parser.Token) &&
-			!isComma(parser.NextToken) {
+			!isLeftBrace(parser.Token) {
 			parser.Output.WriteString(" ")
 		}
 
