@@ -674,6 +674,10 @@ func hasPostfixIncrDecr(parser *Parser) bool {
 	return isIncrDecrOperator(parser.NextToken) && (isIdentifier(parser.Token))
 }
 
+func isPrefixIncrDecr(parser *Parser) bool {
+	return isIncrDecrOperator(parser.Token) && (isIdentifier(parser.NextToken))
+}
+
 func formatBlockBody(parser *Parser) {
 
 	parser.Indent++
@@ -778,7 +782,7 @@ func neverWhiteSpace(parser *Parser) bool {
 		isPointerOperator(parser) ||
 		isFunctionName(parser) ||
 		hasPostfixIncrDecr(parser) ||
-		isIncrDecrOperator(parser.Token) ||
+		isPrefixIncrDecr(parser) ||
 		isDotOperator(parser.Token) ||
 		isArrowOperator(parser.Token) ||
 		isArrowOperator(parser.NextToken) ||

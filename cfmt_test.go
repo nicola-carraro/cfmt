@@ -141,27 +141,42 @@ func TestFormatForLoop(t *testing.T) {
 
 func TestFormatOperators(t *testing.T) {
 	input := "int a=b*c;"
-
 	expected := "int a = b * c;\r\n"
-
 	_testFormat(t, input, expected)
 
 	input = "aa   -> bar =3;"
-
 	expected = "aa->bar = 3;\r\n"
-
 	_testFormat(t, input, expected)
 
 	input = "a . b = c . d;"
-
 	expected = "a.b = c.d;\r\n"
-
 	_testFormat(t, input, expected)
 
 	input = "a\r\n.b = c\r\n.d;"
-
 	expected = "a.b = c.d;\r\n"
-
 	_testFormat(t, input, expected)
 
+	input = "i = i ++ == i --;\r\n"
+	expected = "i = i++ == i--;\r\n"
+	_testFormat(t, input, expected)
+
+	input = "i = i\r\n++ == i\r\n--;\r\n"
+	expected = "i = i++ == i--;\r\n"
+	_testFormat(t, input, expected)
+
+	input = "i = i++==i--;\r\n"
+	expected = "i = i++ == i--;\r\n"
+	_testFormat(t, input, expected)
+
+	input = "i = i -- == i ++;\r\n"
+	expected = "i = i-- == i++;\r\n"
+	_testFormat(t, input, expected)
+
+	input = "i = i\r\n-- == i\r\n++;\r\n"
+	expected = "i = i-- == i++;\r\n"
+	_testFormat(t, input, expected)
+
+	input = "i = i--==i++;\r\n"
+	expected = "i = i-- == i++;\r\n"
+	_testFormat(t, input, expected)
 }

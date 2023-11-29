@@ -55,6 +55,10 @@ int main(void)
 
     i = --b;
 
+    i = i++ == i--;
+
+    i = ++i == i--;
+
     int h = ++b;
 
     int num = 007;
