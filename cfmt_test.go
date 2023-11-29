@@ -179,4 +179,60 @@ func TestFormatOperators(t *testing.T) {
 	input = "i = i--==i++;\r\n"
 	expected = "i = i-- == i++;\r\n"
 	_testFormat(t, input, expected)
+
+	input = "i = (i) ++ == (i) --;\r\n"
+	expected = "i = (i)++ == (i)--;\r\n"
+	_testFormat(t, input, expected)
+
+	input = "i = (i)\r\n++ == (i)\r\n--;\r\n"
+	expected = "i = (i)++ == (i)--;\r\n"
+	_testFormat(t, input, expected)
+
+	input = "i = (i)++== (i)--;\r\n"
+	expected = "i = (i)++ == (i)--;\r\n"
+	_testFormat(t, input, expected)
+
+	input = "i = (i)++ == (i)-- ;\r\n"
+	expected = "i = (i)++ == (i)--;\r\n"
+	_testFormat(t, input, expected)
+
+	input = "i = ((i) ++)-- == ((i) ++)--;\r\n"
+	expected = "i = ((i)++)-- == ((i)++)--;\r\n"
+	_testFormat(t, input, expected)
+
+	input = "i = ((i) --)-- == ((i) --) --;\r\n"
+	expected = "i = ((i)--)-- == ((i)--)--;\r\n"
+	_testFormat(t, input, expected)
+
+	input = "i = (i)++<= (i)--;\r\n"
+	expected = "i = (i)++ <= (i)--;\r\n"
+	_testFormat(t, input, expected)
+
+	input = "i = (i)++ <= (i)-- ;\r\n"
+	expected = "i = (i)++ <= (i)--;\r\n"
+	_testFormat(t, input, expected)
+
+	input = "i = ((i) ++)-- <= ((i) ++)--;\r\n"
+	expected = "i = ((i)++)-- <= ((i)++)--;\r\n"
+	_testFormat(t, input, expected)
+
+	input = "i = ((i) --)-- <= ((i) --) --;\r\n"
+	expected = "i = ((i)--)-- <= ((i)--)--;\r\n"
+	_testFormat(t, input, expected)
+
+	input = "i = (i)++!= (i)--;\r\n"
+	expected = "i = (i)++ != (i)--;\r\n"
+	_testFormat(t, input, expected)
+
+	input = "i = (i)++ != (i)-- ;\r\n"
+	expected = "i = (i)++ != (i)--;\r\n"
+	_testFormat(t, input, expected)
+
+	input = "i = ((i) ++)-- != ((i) ++)--;\r\n"
+	expected = "i = ((i)++)-- != ((i)++)--;\r\n"
+	_testFormat(t, input, expected)
+
+	input = "i = ((i) --)-- != ((i) --) --;\r\n"
+	expected = "i = ((i)--)-- != ((i)--)--;\r\n"
+	_testFormat(t, input, expected)
 }

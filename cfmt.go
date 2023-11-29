@@ -671,11 +671,11 @@ func isPointerOperator(parser *Parser) bool {
 }
 
 func hasPostfixIncrDecr(parser *Parser) bool {
-	return isIncrDecrOperator(parser.NextToken) && (isIdentifier(parser.Token))
+	return isIncrDecrOperator(parser.NextToken) && (isIdentifier(parser.Token) || isRightParenthesis(parser.Token))
 }
 
 func isPrefixIncrDecr(parser *Parser) bool {
-	return isIncrDecrOperator(parser.Token) && (isIdentifier(parser.NextToken))
+	return isIncrDecrOperator(parser.Token) && (isIdentifier(parser.NextToken) || isLeftParenthesis(parser.NextToken))
 }
 
 func formatBlockBody(parser *Parser) {
