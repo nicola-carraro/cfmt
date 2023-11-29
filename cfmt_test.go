@@ -236,3 +236,40 @@ func TestFormatOperators(t *testing.T) {
 	expected = "i = ((i)--)-- != ((i)--)--;\r\n"
 	_testFormat(t, input, expected)
 }
+
+
+func TestFormatNewLines(t *testing.T){
+	input := "int foo() {\r\n    return 0;\r\n}\r\n\r\n\r\nint bar {\r\n    return 1;\r\n}\r\n"
+	expected := "int foo() {\r\n    return 0;\r\n}\r\n\r\n\r\nint bar {\r\n    return 1;\r\n}\r\n"
+	_testFormat(t, input, expected)
+
+	input = "int foo() {\r\n    return 0;\r\n}int bar {\r\n    return 1;\r\n}\r\n"
+	expected = "int foo() {\r\n    return 0;\r\n}\r\n\r\n\r\nint bar {\r\n    return 1;\r\n}\r\n"
+	_testFormat(t, input, expected)
+
+	input = "int foo() {\r\n    return 0;\r\n}\r\n\r\n\r\n\r\nint bar {\r\n    return 1;\r\n}\r\n"
+	expected = "int foo() {\r\n    return 0;\r\n}\r\n\r\n\r\nint bar {\r\n    return 1;\r\n}\r\n"
+	_testFormat(t, input, expected)
+
+	input = "int foo() {\r\n    return 0;\r\n}\r\n\r\n\r\nint bar {\r\n    return 1;\r\n}\r\n\r\n\r\n"
+	expected = "int foo() {\r\n    return 0;\r\n}\r\n\r\n\r\nint bar {\r\n    return 1;\r\n}\r\n"
+	_testFormat(t, input, expected)
+
+	input = "int foo() {\r\n    return 0;\r\n}\r\n\r\n\r\nint bar {\r\n    return 1;\r\n\r\n}\r\n"
+	expected = "int foo() {\r\n    return 0;\r\n}\r\n\r\n\r\nint bar {\r\n    return 1;\r\n}\r\n"
+	_testFormat(t, input, expected)
+
+
+	input = "int foo() {\r\n    int i = 3;\r\n\r\n    return i;\r\n}\r\n\r\n\r\nint bar {\r\n    return 1;\r\n}\r\n"
+	expected = "int foo() {\r\n    int i = 3;\r\n\r\n    return i;\r\n}\r\n\r\n\r\nint bar {\r\n    return 1;\r\n}\r\n"
+	_testFormat(t, input, expected)
+
+	input = "int foo() {\r\n    int i = 3;\r\n    return i;\r\n}\r\n\r\n\r\nint bar {\r\n    return 1;\r\n}\r\n"
+	expected = "int foo() {\r\n    int i = 3;\r\n    return i;\r\n}\r\n\r\n\r\nint bar {\r\n    return 1;\r\n}\r\n"
+	_testFormat(t, input, expected)
+
+
+		input = "int foo() {\r\n    int i = 3;return i;\r\n}\r\n\r\n\r\nint bar {\r\n    return 1;\r\n}\r\n"
+	expected = "int foo() {\r\n    int i = 3;\r\n    return i;\r\n}\r\n\r\n\r\nint bar {\r\n    return 1;\r\n}\r\n"
+	_testFormat(t, input, expected)
+}

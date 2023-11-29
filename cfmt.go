@@ -667,11 +667,19 @@ func formatInitialiserList(parser *Parser) {
 }
 
 func (parser *Parser) oneOrTwoLines() {
-	if parser.NewLinesAfter > 1 {
-		parser.writeNewLines(2)
+	if parser.NewLinesAfter <= 1 || isRightBrace(parser.NextToken) {
+		parser.writeNewLines(1)
 
 	} else {
+		parser.writeNewLines(2)
+	}
+}
+
+func (parser *Parser) threeLinesOrEof(){
+	if(isAbsent(parser.NextToken)){
 		parser.writeNewLines(1)
+	}else{
+		parser.writeNewLines(3)
 	}
 }
 
@@ -718,11 +726,11 @@ func formatBlockBody(parser *Parser) {
 				structUnionOrEnum = false
 			} else {
 				formatBlockBody(parser)
+				parser.oneOrTwoLines()
 			}
 		} else if isSemicolon(parser.Token) && !parser.IsParenthesis {
 			parser.oneOrTwoLines()
 		} else if isRightBrace(parser.Token) {
-			parser.oneOrTwoLines()
 			return
 		} else if !neverWhiteSpace(parser) &&
 			!isDotOperator(parser.NextToken) {
@@ -809,6 +817,7 @@ func format(input string) string {
 				continue
 			} else {
 				formatBlockBody(parser)
+				parser.threeLinesOrEof()
 				continue
 			}
 
@@ -833,7 +842,7 @@ func format(input string) string {
 		} else if endOfDirective ||
 			isDirective(parser.NextToken) ||
 			(isSemicolon(parser.Token) && !parser.IsParenthesis) {
-			parser.oneOrTwoLines()
+			parser.threeLinesOrEof()
 		} else if !neverWhiteSpace(parser) &&
 			!isRightBrace(parser.NextToken) &&
 			!isDotOperator(parser.NextToken) &&
