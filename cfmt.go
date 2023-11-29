@@ -666,6 +666,15 @@ func formatInitialiserList(parser *Parser) {
 	log.Fatal("Unclosed initialiser list")
 }
 
+func (parser *Parser) oneOrTwoLines() {
+	if parser.NewLinesAfter > 1 {
+		parser.writeNewLines(2)
+
+	} else {
+		parser.writeNewLines(1)
+	}
+}
+
 func isPointerOperator(parser *Parser) bool {
 	return canBePointerOperator(parser.Token) && !canBeLeftOperand(parser.PreviousToken)
 }
@@ -711,22 +720,9 @@ func formatBlockBody(parser *Parser) {
 				formatBlockBody(parser)
 			}
 		} else if isSemicolon(parser.Token) && !parser.IsParenthesis {
-
-			if parser.NewLinesAfter > 1 {
-				parser.writeNewLines(2)
-
-			} else {
-				parser.writeNewLines(1)
-			}
+			parser.oneOrTwoLines()
 		} else if isRightBrace(parser.Token) {
-
-			//fmt.Printf("end %s\n", parser.PreviousToken)
-			if parser.NewLinesAfter > 1 {
-				parser.writeNewLines(2)
-
-			} else {
-				parser.writeNewLines(1)
-			}
+			parser.oneOrTwoLines()
 			return
 		} else if !neverWhiteSpace(parser) &&
 			!isDotOperator(parser.NextToken) {
@@ -837,14 +833,7 @@ func format(input string) string {
 		} else if endOfDirective ||
 			isDirective(parser.NextToken) ||
 			(isSemicolon(parser.Token) && !parser.IsParenthesis) {
-
-			if parser.NewLinesAfter > 1 {
-				parser.writeNewLines(2)
-
-			} else {
-				parser.writeNewLines(1)
-			}
-
+			parser.oneOrTwoLines()
 		} else if !neverWhiteSpace(parser) &&
 			!isRightBrace(parser.NextToken) &&
 			!isDotOperator(parser.NextToken) &&
