@@ -2,13 +2,14 @@
 
 #include "stdio.h"
 
+// Some comment
 typedef struct {
     int bar;     char *baz;}Foo;
 
-
+// A comment before struct declaration
     typedef struct {
-    int bar;
-    
+    int bar;// A comment after a struct declaration
+       
     
          char *baz;}Bar;
 
@@ -25,12 +26,18 @@ int main(void)
 
     Foo zz = {123, "123"  ,  };
 
+    Foo yy = {123, "123"  , // Another comment in a weird place
+     };
+
     Foo zzz = {
         123,
          "123"
     };
 
     z.bar = 3;
+
+    int //For some reason we put a comment between type and identifier
+    goo;
 
     Foo *aa = &z;
 
@@ -59,7 +66,7 @@ int main(void)
 
     i = (i)++ == (i)--;
 
-    i = ((i)++)-- == ((i)++)--;
+    i = ((i)++) == ((i)++);
 
     i = ++i == i--;
 

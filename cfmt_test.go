@@ -237,8 +237,7 @@ func TestFormatOperators(t *testing.T) {
 	_testFormat(t, input, expected)
 }
 
-
-func TestFormatNewLines(t *testing.T){
+func TestFormatNewLines(t *testing.T) {
 	input := "int foo() {\r\n    return 0;\r\n}\r\n\r\n\r\nint bar {\r\n    return 1;\r\n}\r\n"
 	expected := "int foo() {\r\n    return 0;\r\n}\r\n\r\n\r\nint bar {\r\n    return 1;\r\n}\r\n"
 	_testFormat(t, input, expected)
@@ -259,7 +258,6 @@ func TestFormatNewLines(t *testing.T){
 	expected = "int foo() {\r\n    return 0;\r\n}\r\n\r\n\r\nint bar {\r\n    return 1;\r\n}\r\n"
 	_testFormat(t, input, expected)
 
-
 	input = "int foo() {\r\n    int i = 3;\r\n\r\n    return i;\r\n}\r\n\r\n\r\nint bar {\r\n    return 1;\r\n}\r\n"
 	expected = "int foo() {\r\n    int i = 3;\r\n\r\n    return i;\r\n}\r\n\r\n\r\nint bar {\r\n    return 1;\r\n}\r\n"
 	_testFormat(t, input, expected)
@@ -268,8 +266,32 @@ func TestFormatNewLines(t *testing.T){
 	expected = "int foo() {\r\n    int i = 3;\r\n    return i;\r\n}\r\n\r\n\r\nint bar {\r\n    return 1;\r\n}\r\n"
 	_testFormat(t, input, expected)
 
-
-		input = "int foo() {\r\n    int i = 3;return i;\r\n}\r\n\r\n\r\nint bar {\r\n    return 1;\r\n}\r\n"
+	input = "int foo() {\r\n    int i = 3;return i;\r\n}\r\n\r\n\r\nint bar {\r\n    return 1;\r\n}\r\n"
 	expected = "int foo() {\r\n    int i = 3;\r\n    return i;\r\n}\r\n\r\n\r\nint bar {\r\n    return 1;\r\n}\r\n"
+	_testFormat(t, input, expected)
+}
+
+func TestSingleLineComment(t *testing.T) {
+	input := "int i = 3;//comment\r\n"
+	expected := "int i = 3; //comment\r\n"
+	_testFormat(t, input, expected)
+
+	input = "int i = 3;\r\n//comment\r\n"
+	expected = "int i = 3;\r\n\r\n\r\n//comment\r\n"
+	_testFormat(t, input, expected)
+
+
+	input = "void foo() {\r\n    int i = 3;//comment\r\n}\r\n"
+	expected =  "void foo() {\r\n    int i = 3; //comment\r\n}\r\n"
+	_testFormat(t, input, expected)
+
+
+	input = "void foo() {\r\n    int i = 3;\r\n    //comment\r\n}\r\n"
+	expected =  "void foo() {\r\n    int i = 3;\r\n    //comment\r\n}\r\n"
+	_testFormat(t, input, expected)
+
+
+	input = "Foo foo = {\"123\", //A comment\r\n123};\r\n"
+	expected =  "Foo foo = {\"123\", //A comment\r\n123};\r\n"
 	_testFormat(t, input, expected)
 }

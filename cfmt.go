@@ -22,6 +22,8 @@ const (
 	String
 	Punctuation
 	Directive
+	SingleLineComment
+	MultilineComment
 )
 
 type Token struct {
@@ -98,6 +100,8 @@ func (t TokenType) String() string {
 		return "Punctuation"
 	case Directive:
 		return "Directive"
+	case SingleLineComment:
+		return "SingleLineComment"
 	default:
 		panic("Invalid TokenType")
 	}
@@ -187,6 +191,23 @@ func peakRune(text string) (rune, int) {
 	}
 
 	return r, size
+}
+
+func parseSingleLineComment(text string) Token {
+	tokenSize := 0
+	next := text
+
+	_, size := peakRune(next)
+
+	for len(next) > 0 && !startsWithNewLine(next) {
+		tokenSize += size
+		next = next[size:]
+		_, size = peakRune(next)
+	}
+
+	token := Token{Type: SingleLineComment, Content: text[:tokenSize]}
+	//fmt.Println(token)
+	return token
 }
 
 func parseIdentifier(text string) Token {
@@ -467,6 +488,10 @@ func parseToken(input string) Token {
 		return parseIdentifier(input)
 	}
 
+	if strings.HasPrefix(input, "//") {
+		return parseSingleLineComment(input)
+	}
+
 	if isDoubleQuote(r) {
 		return parseString(input)
 	}
@@ -513,6 +538,10 @@ func parseToken(input string) Token {
 	panic("Unreachable")
 }
 
+func startsWithNewLine(input string) bool {
+	return strings.HasPrefix(input, "\r\n")
+}
+
 func skipSpaceAndCountNewLines(parser *Parser) {
 
 	parser.NewLinesAfter = 0
@@ -544,6 +573,10 @@ func isRightParenthesis(token Token) bool {
 
 func isLeftBrace(token Token) bool {
 	return token.Type == Punctuation && token.Content == "{"
+}
+
+func isSingleLineComment(token Token) bool {
+	return token.Type == SingleLineComment
 }
 
 func isRightBrace(token Token) bool {
@@ -652,7 +685,9 @@ func formatInitialiserList(parser *Parser) {
 			continue
 		}
 
-		if !neverWhiteSpace(parser) &&
+		if isSingleLineComment(parser.Token) {
+			parser.writeNewLines(1)
+		} else if !neverWhiteSpace(parser) &&
 			!isRightBrace(parser.NextToken) &&
 			!isRightBrace(parser.Token) {
 			parser.Output.WriteString(" ")
@@ -675,10 +710,10 @@ func (parser *Parser) oneOrTwoLines() {
 	}
 }
 
-func (parser *Parser) threeLinesOrEof(){
-	if(isAbsent(parser.NextToken)){
+func (parser *Parser) threeLinesOrEof() {
+	if isAbsent(parser.NextToken) {
 		parser.writeNewLines(1)
-	}else{
+	} else {
 		parser.writeNewLines(3)
 	}
 }
@@ -693,6 +728,10 @@ func hasPostfixIncrDecr(parser *Parser) bool {
 
 func isPrefixIncrDecr(parser *Parser) bool {
 	return isIncrDecrOperator(parser.Token) && (isIdentifier(parser.NextToken) || isLeftParenthesis(parser.NextToken))
+}
+
+func (parser *Parser) hasTrailingComment() bool {
+	return isSingleLineComment(parser.NextToken) && parser.NewLinesAfter == 0
 }
 
 func formatBlockBody(parser *Parser) {
@@ -728,7 +767,9 @@ func formatBlockBody(parser *Parser) {
 				formatBlockBody(parser)
 				parser.oneOrTwoLines()
 			}
-		} else if isSemicolon(parser.Token) && !parser.IsParenthesis {
+		} else if isSingleLineComment(parser.Token) {
+			parser.writeNewLines(1)
+		} else if isSemicolon(parser.Token) && !parser.IsParenthesis && !parser.hasTrailingComment() {
 			parser.oneOrTwoLines()
 		} else if isRightBrace(parser.Token) {
 			return
@@ -758,7 +799,9 @@ func formatDeclarationBody(parser *Parser) {
 
 		if isLeftBrace(parser.Token) {
 			formatDeclarationBody(parser)
-		} else if isSemicolon(parser.Token) {
+		} else if isSingleLineComment(parser.Token) {
+			parser.writeNewLines(1)
+		} else if isSemicolon(parser.Token) && !parser.hasTrailingComment() {
 			parser.writeNewLines(1)
 		} else if !neverWhiteSpace(parser) &&
 			!isDotOperator(parser.NextToken) &&
@@ -837,11 +880,11 @@ func format(input string) string {
 
 		isBlockStart := isLeftBrace(parser.Token) && !isAssignement(parser.PreviousToken)
 
-		if isBlockStart {
+		if isBlockStart || isSingleLineComment(parser.Token) {
 			parser.writeNewLines(1)
 		} else if endOfDirective ||
 			isDirective(parser.NextToken) ||
-			(isSemicolon(parser.Token) && !parser.IsParenthesis) {
+			(isSemicolon(parser.Token) && !parser.IsParenthesis && !parser.hasTrailingComment()) {
 			parser.threeLinesOrEof()
 		} else if !neverWhiteSpace(parser) &&
 			!isRightBrace(parser.NextToken) &&
