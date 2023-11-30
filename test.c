@@ -1,5 +1,9 @@
      #define CRT_SECURE_NO_WARNINGS
 
+/*
+  A multiline comment bla bla
+  bla bla bla
+*/
 #include "stdio.h"
 
 // Some comment

@@ -102,6 +102,8 @@ func (t TokenType) String() string {
 		return "Directive"
 	case SingleLineComment:
 		return "SingleLineComment"
+	case MultilineComment:
+		return "MultilineComment"
 	default:
 		panic("Invalid TokenType")
 	}
@@ -191,6 +193,28 @@ func peakRune(text string) (rune, int) {
 	}
 
 	return r, size
+}
+
+func parseMultilineComment(text string) Token {
+	tokenSize := 0
+	next := text
+
+	_, size := peakRune(next)
+
+	for !strings.HasPrefix(next, "*/") {
+		if len(next) == 0 {
+			log.Fatalln("Unclosed comment")
+		}
+		tokenSize += size
+		next = next[size:]
+		_, size = peakRune(next)
+	}
+
+	tokenSize += 2
+
+	token := Token{Type: MultilineComment, Content: text[:tokenSize]}
+	fmt.Println(token)
+	return token
 }
 
 func parseSingleLineComment(text string) Token {
@@ -492,6 +516,10 @@ func parseToken(input string) Token {
 		return parseSingleLineComment(input)
 	}
 
+	if strings.HasPrefix(input, "/*") {
+		return parseMultilineComment(input)
+	}
+
 	if isDoubleQuote(r) {
 		return parseString(input)
 	}
@@ -577,6 +605,10 @@ func isLeftBrace(token Token) bool {
 
 func isSingleLineComment(token Token) bool {
 	return token.Type == SingleLineComment
+}
+
+func isMultilineComment(token Token) bool {
+	return token.Type == MultilineComment
 }
 
 func isRightBrace(token Token) bool {
@@ -880,7 +912,7 @@ func format(input string) string {
 
 		isBlockStart := isLeftBrace(parser.Token) && !isAssignement(parser.PreviousToken)
 
-		if isBlockStart || isSingleLineComment(parser.Token) {
+		if isBlockStart || isSingleLineComment(parser.Token) || isMultilineComment(parser.Token) {
 			parser.writeNewLines(1)
 		} else if endOfDirective ||
 			isDirective(parser.NextToken) ||
