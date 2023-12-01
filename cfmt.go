@@ -213,7 +213,6 @@ func parseMultilineComment(text string) Token {
 	tokenSize += 2
 
 	token := Token{Type: MultilineComment, Content: text[:tokenSize]}
-	fmt.Println(token)
 	return token
 }
 
@@ -694,10 +693,6 @@ func (parser *Parser) writeNewLines(lines int) {
 	}
 }
 
-func indent(parser *Parser) {
-
-}
-
 func formatInitialiserList(parser *Parser) {
 	openBraces := 1
 
@@ -705,7 +700,7 @@ func formatInitialiserList(parser *Parser) {
 
 	for parser.parseToken() {
 
-		parser.Output.WriteString(parser.Token.Content)
+		parser.formatToken()
 
 		if isRightBrace(parser.Token) {
 			openBraces--
@@ -782,7 +777,7 @@ func formatBlockBody(parser *Parser) {
 			structUnionOrEnum = true
 		}
 
-		parser.Output.WriteString(parser.Token.Content)
+		parser.formatToken()
 
 		if isRightBrace(parser.NextToken) {
 			parser.Indent--
@@ -799,7 +794,7 @@ func formatBlockBody(parser *Parser) {
 				formatBlockBody(parser)
 				parser.oneOrTwoLines()
 			}
-		} else if isSingleLineComment(parser.Token) {
+		} else if isSingleLineComment(parser.Token) || isMultilineComment(parser.Token) {
 			parser.writeNewLines(1)
 		} else if isSemicolon(parser.Token) && !parser.IsParenthesis && !parser.hasTrailingComment() {
 			parser.oneOrTwoLines()
@@ -814,6 +809,34 @@ func formatBlockBody(parser *Parser) {
 	log.Fatal("Unclosed block")
 }
 
+func (parser *Parser) formatMultilineComment() {
+	text := strings.TrimSpace(parser.Token.Content[2 : len(parser.Token.Content)-2])
+
+	lines := strings.Split(text, "\n")
+	parser.Output.WriteString("/*")
+
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+
+		parser.writeNewLines(1)
+		if len(trimmed) > 0 {
+			parser.Output.WriteString("  ")
+			parser.Output.WriteString(trimmed)
+		}
+	}
+	parser.writeNewLines(1)
+	parser.Output.WriteString("*/")
+}
+
+func (parser *Parser) formatToken() {
+
+	if isMultilineComment(parser.Token) {
+		parser.formatMultilineComment()
+	} else {
+		parser.Output.WriteString(parser.Token.Content)
+	}
+}
+
 func formatDeclarationBody(parser *Parser) {
 
 	//fmt.Printf("DECLARATION: %s\n", parser.Input)
@@ -823,7 +846,7 @@ func formatDeclarationBody(parser *Parser) {
 
 	for parser.parseToken() {
 
-		parser.Output.WriteString(parser.Token.Content)
+		parser.formatToken()
 
 		if isRightBrace(parser.NextToken) {
 			parser.Indent--
@@ -878,9 +901,7 @@ func format(input string) string {
 
 	for parser.parseToken() {
 
-		//fmt.Println(t)
-
-		parser.Output.WriteString(parser.Token.Content)
+		parser.formatToken()
 
 		if isLeftBrace(parser.Token) {
 			if isAssignement(parser.PreviousToken) {

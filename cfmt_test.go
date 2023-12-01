@@ -28,7 +28,7 @@ func _testFormat(t *testing.T, input string, expected string) {
 		}
 
 		if r != output[i] {
-			t.Errorf("Index %d, expected %d (%c), output %d (%c)", i, r, r, output[i], output[i])
+			t.Errorf("Index %d, expected %d (%x), output %d (%x)", i, r, r, output[i], output[i])
 		}
 	}
 
@@ -271,7 +271,7 @@ func TestFormatNewLines(t *testing.T) {
 	_testFormat(t, input, expected)
 }
 
-func TestSingleLineComment(t *testing.T) {
+func TestFormatSingleLineComment(t *testing.T) {
 	input := "int i = 3;//comment\r\n"
 	expected := "int i = 3; //comment\r\n"
 	_testFormat(t, input, expected)
@@ -291,4 +291,19 @@ func TestSingleLineComment(t *testing.T) {
 	input = "Foo foo = {\"123\", //A comment\r\n123};\r\n"
 	expected = "Foo foo = {\"123\", //A comment\r\n123};\r\n"
 	_testFormat(t, input, expected)
+}
+
+func TestFormatMultilineLineComment(t *testing.T) {
+	input := "/*comment*/"
+	expected := "/*\r\n  comment\r\n*/\r\n"
+	_testFormat(t, input, expected)
+
+	input = "/*\r\n\r\ncomment\r\n\r\n*/"
+	expected = "/*\r\n  comment\r\n*/\r\n"
+	_testFormat(t, input, expected)
+
+	input = "/*\r\n\r\ncomment\r\n\r\ncomment\r\n*/"
+	expected = "/*\r\n  comment\r\n\r\n  comment\r\n*/\r\n"
+	_testFormat(t, input, expected)
+
 }
