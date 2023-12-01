@@ -48,6 +48,8 @@ type Parser struct {
 	Output        strings.Builder
 	NewLinesAfter int
 	IsParenthesis bool
+	IsDirective bool
+	IsEndOfDirective bool
 }
 
 const indentation = "    "
@@ -468,8 +470,11 @@ func (parser *Parser) parseToken() bool {
 
 	parser.NextToken = parseToken(parser.Input)
 	parser.Input = parser.Input[len(parser.NextToken.Content):]
+	parser.IsEndOfDirective = false
 
 	//fmt.Printf("updateParser, PreviousToken:%s, Token:%s, NextToken:%s\n", parser.PreviousToken, parser.Token, parser.NextToken)
+
+
 
 	if isLeftParenthesis(parser.Token) {
 		parser.IsParenthesis = true
@@ -477,6 +482,18 @@ func (parser *Parser) parseToken() bool {
 
 	if isRightParenthesis(parser.Token) {
 		parser.IsParenthesis = false
+	}
+
+	if(isDirective(parser.Token)){
+		parser.IsDirective = true
+	}
+
+	if parser.NewLinesAfter > 0 && !isSlash(parser.Token){
+       if(parser.IsDirective){
+		parser.IsEndOfDirective = true
+	   }
+		
+	   parser.IsDirective = false
 	}
 
 	return !isAbsent(parser.Token)
@@ -685,6 +702,10 @@ func (parser *Parser) writeNewLines(lines int) {
 	const newLine = "\r\n"
 
 	for line := 0; line < lines; line++ {
+
+		if(parser.IsDirective){
+			parser.Output.WriteString("/")
+		}
 		parser.Output.WriteString(newLine)
 	}
 
@@ -876,6 +897,10 @@ func isFunctionName(parser *Parser) bool {
 	return parser.Token.Type == Identifier && isLeftParenthesis(parser.NextToken)
 }
 
+func isInclude(token Token) bool {
+	return token.Type == Directive && token.Content == "#include"
+}
+
 func neverWhiteSpace(parser *Parser) bool {
 
 	return isSemicolon(parser.NextToken) ||
@@ -891,11 +916,24 @@ func neverWhiteSpace(parser *Parser) bool {
 		isComma(parser.NextToken)
 }
 
+func isSlash(token Token) bool {
+	return token.Type == Punctuation && token.Content == "\\"
+}
+
+func (parser *Parser) isEndOfDirective() bool {
+	return parser.NewLinesAfter > 0 && !isSlash(parser.Token)
+}
+
+func (parser *Parser) writeLinesInDirective(lines int) {
+	for i := 0; i < lines; i++ {
+		parser.Output.WriteString("//")
+		parser.writeNewLines(1)
+	}
+}
+
 func format(input string) string {
 
 	parser := newParser(input)
-
-	directive := false
 
 	structUnionOrEnum := false
 
@@ -923,20 +961,14 @@ func format(input string) string {
 			structUnionOrEnum = true
 		}
 
-		if isDirective(parser.Token) {
-			directive = true
-		}
-
 		const maxNewLines = 2
-
-		endOfDirective := directive && parser.NewLinesAfter > 0
 
 		isBlockStart := isLeftBrace(parser.Token) && !isAssignement(parser.PreviousToken)
 
-		if isBlockStart || isSingleLineComment(parser.Token) || isMultilineComment(parser.Token) {
+		if isBlockStart || isSingleLineComment(parser.Token) || isMultilineComment(parser.Token) || isInclude(parser.NextToken) {
 			parser.writeNewLines(1)
-		} else if endOfDirective ||
-			isDirective(parser.NextToken) ||
+		} else if parser.IsEndOfDirective ||
+		 isDirective(parser.NextToken) ||
 			(isSemicolon(parser.Token) && !parser.IsParenthesis && !parser.hasTrailingComment()) {
 			parser.threeLinesOrEof()
 		} else if !neverWhiteSpace(parser) &&
@@ -945,11 +977,6 @@ func format(input string) string {
 			!isLeftBrace(parser.Token) {
 			parser.Output.WriteString(" ")
 		}
-
-		if parser.NewLinesAfter > 0 {
-			directive = false
-		}
-
 	}
 
 	return parser.Output.String()

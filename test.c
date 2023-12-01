@@ -1,5 +1,7 @@
      #define CRT_SECURE_NO_WARNINGS
 
+
+#define print(str, args)do{printf(str, args);}
 /*
               A multiline comment bla bla
 
@@ -7,6 +9,7 @@
 
   bla bla bla*/
 #include "stdio.h"
+#include "stdlib.h"
 
 // Some comment
 typedef struct {
