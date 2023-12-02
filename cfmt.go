@@ -934,21 +934,6 @@ func neverWhiteSpace(parser *Parser) bool {
 		isComma(parser.NextToken)
 }
 
-func isSlash(token Token) bool {
-	return token.Type == Punctuation && token.Content == "\\"
-}
-
-func (parser *Parser) isEndOfDirective() bool {
-	return parser.NewLinesAfter > 0 && !isSlash(parser.Token)
-}
-
-func (parser *Parser) writeLinesInDirective(lines int) {
-	for i := 0; i < lines; i++ {
-		parser.Output.WriteString("//")
-		parser.writeNewLines(1)
-	}
-}
-
 func format(input string) string {
 
 	parser := newParser(input)
