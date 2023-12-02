@@ -76,7 +76,6 @@ func isSpace(r rune) bool {
 
 func (parser *Parser) consumeSpace() bool {
 
-	parser.IsEndOfDirective = false
 	newLineInDirective := []string{"\\\r\n", "\\\n"}
 
 	if parser.IsDirective {
@@ -489,6 +488,7 @@ func isOneCharPunctuation(text string) bool {
 }
 
 func (parser *Parser) parseToken() bool {
+    parser.IsEndOfDirective = false
 
 	skipSpaceAndCountNewLines(parser)
 
@@ -503,7 +503,6 @@ func (parser *Parser) parseToken() bool {
 
 	parser.NextToken = parseToken(parser.Input)
 	parser.Input = parser.Input[len(parser.NextToken.Content):]
-	parser.IsEndOfDirective = false
 
 	//fmt.Printf("updateParser, PreviousToken:%s, Token:%s, NextToken:%s\n", parser.PreviousToken, parser.Token, parser.NextToken)
 
@@ -963,17 +962,14 @@ func format(input string) string {
 		if isLeftBrace(parser.Token) {
 			if isAssignement(parser.PreviousToken) {
 				formatInitialiserList(parser)
-				continue
 			} else if structUnionOrEnum {
 				formatDeclarationBody(parser)
 				structUnionOrEnum = false
-				continue
 			} else {
 				formatBlockBody(parser)
 				parser.threeLinesOrEof()
-				continue
 			}
-
+			continue
 		}
 
 		if isStructUnionEnumKeyword(parser.Token) {
