@@ -295,15 +295,15 @@ func TestFormatSingleLineComment(t *testing.T) {
 
 func TestFormatMultilineLineComment(t *testing.T) {
 	input := "/*comment*/"
-	expected := "/*\r\n  comment\r\n*/\r\n"
+	expected := "/*\r\n   comment\r\n*/\r\n"
 	_testFormat(t, input, expected)
 
 	input = "/*\r\n\r\ncomment\r\n\r\n*/"
-	expected = "/*\r\n  comment\r\n*/\r\n"
+	expected = "/*\r\n   comment\r\n*/\r\n"
 	_testFormat(t, input, expected)
 
 	input = "/*\r\n\r\ncomment\r\n\r\ncomment\r\n*/"
-	expected = "/*\r\n  comment\r\n\r\n  comment\r\n*/\r\n"
+	expected = "/*\r\n   comment\r\n\r\n   comment\r\n*/\r\n"
 	_testFormat(t, input, expected)
 
 }

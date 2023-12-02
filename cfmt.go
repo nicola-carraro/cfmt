@@ -36,19 +36,19 @@ type StructUnionEnum struct {
 }
 
 type Parser struct {
-	PreviousToken Token
-	Token         Token
-	NextToken     Token
-	Indent        int
-	InputLine     int
-	InputColumn   int
-	OutputLine    int
-	OutputColumn  int
-	Input         string
-	Output        strings.Builder
-	NewLinesAfter int
-	IsParenthesis bool
-	IsDirective bool
+	PreviousToken    Token
+	Token            Token
+	NextToken        Token
+	Indent           int
+	InputLine        int
+	InputColumn      int
+	OutputLine       int
+	OutputColumn     int
+	Input            string
+	Output           strings.Builder
+	NewLinesAfter    int
+	IsParenthesis    bool
+	IsDirective      bool
 	IsEndOfDirective bool
 }
 
@@ -474,8 +474,6 @@ func (parser *Parser) parseToken() bool {
 
 	//fmt.Printf("updateParser, PreviousToken:%s, Token:%s, NextToken:%s\n", parser.PreviousToken, parser.Token, parser.NextToken)
 
-
-
 	if isLeftParenthesis(parser.Token) {
 		parser.IsParenthesis = true
 	}
@@ -484,16 +482,16 @@ func (parser *Parser) parseToken() bool {
 		parser.IsParenthesis = false
 	}
 
-	if(isDirective(parser.Token)){
+	if isDirective(parser.Token) {
 		parser.IsDirective = true
 	}
 
-	if parser.NewLinesAfter > 0 && !isSlash(parser.Token){
-       if(parser.IsDirective){
-		parser.IsEndOfDirective = true
-	   }
-		
-	   parser.IsDirective = false
+	if parser.NewLinesAfter > 0 && !isSlash(parser.Token) {
+		if parser.IsDirective {
+			parser.IsEndOfDirective = true
+		}
+
+		parser.IsDirective = false
 	}
 
 	return !isAbsent(parser.Token)
@@ -703,7 +701,7 @@ func (parser *Parser) writeNewLines(lines int) {
 
 	for line := 0; line < lines; line++ {
 
-		if(parser.IsDirective){
+		if parser.IsDirective {
 			parser.Output.WriteString("/")
 		}
 		parser.Output.WriteString(newLine)
@@ -841,7 +839,7 @@ func (parser *Parser) formatMultilineComment() {
 
 		parser.writeNewLines(1)
 		if len(trimmed) > 0 {
-			parser.Output.WriteString("  ")
+			parser.Output.WriteString("   ")
 			parser.Output.WriteString(trimmed)
 		}
 	}
@@ -968,7 +966,7 @@ func format(input string) string {
 		if isBlockStart || isSingleLineComment(parser.Token) || isMultilineComment(parser.Token) || isInclude(parser.NextToken) {
 			parser.writeNewLines(1)
 		} else if parser.IsEndOfDirective ||
-		 isDirective(parser.NextToken) ||
+			isDirective(parser.NextToken) ||
 			(isSemicolon(parser.Token) && !parser.IsParenthesis && !parser.hasTrailingComment()) {
 			parser.threeLinesOrEof()
 		} else if !neverWhiteSpace(parser) &&
