@@ -101,6 +101,7 @@ typedef uint8_t u8;
 #define C8_LOG_ERROR(msg) c8_log_error(__FILE__, __LINE__, msg)
 
 #endif
+int i = 0;
 
 typedef struct
 {

@@ -317,3 +317,9 @@ func TestFormatMacro(t *testing.T) {
 	expected = "#define MACRO(num, str) {\\\r\n    printf(\"%d\", num);\\\r\n    printf(\" is\");\\\r\n    printf(\" %s number\", str);\\\r\n    printf(\"\\n\");\\\r\n}\r\n"
 	_testFormat(t, input, expected)
 }
+
+func TestFormatDirective(t *testing.T) {
+	input := "#endif\r\nint i = 1;"
+	expected := "#endif\r\n\r\n\r\nint i = 1;\r\n"
+	_testFormat(t, input, expected)
+}

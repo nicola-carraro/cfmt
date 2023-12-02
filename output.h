@@ -167,16 +167,16 @@ typedef uint8_t u8;
     }
 
 
-    #else\
-\
-\
+    #else
+
+
     #define C8_LOG_ERROR(msg) c8_log_error(__FILE__, __LINE__, msg)
 
 
-    #endif typedef struct
+    #endif
 
 
-    {
+    typedef struct {
         u8 r;
         u8 g;
         u8 b;

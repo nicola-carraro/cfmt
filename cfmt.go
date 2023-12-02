@@ -95,7 +95,6 @@ func (parser *Parser) consumeSpace() bool {
 		parser.Input = parser.Input[size:]
 		parser.NewLinesAfter++
 		if parser.IsDirective {
-			parser.IsEndOfDirective = true
 			parser.IsDirective = false
 
 		}
@@ -488,12 +487,24 @@ func isOneCharPunctuation(text string) bool {
 }
 
 func (parser *Parser) parseToken() bool {
-    parser.IsEndOfDirective = false
+
+	if isDirective(parser.NextToken) {
+		parser.IsDirective = true
+	}
+
+	wasDirective := parser.IsDirective
+
+	parser.IsEndOfDirective = false
 
 	skipSpaceAndCountNewLines(parser)
 
 	if isAbsent(parser.Token) {
 		parser.Token = parseToken(parser.Input)
+		if isDirective(parser.Token) {
+			parser.IsDirective = true
+		}
+
+		wasDirective = parser.IsDirective
 		parser.Input = parser.Input[len(parser.Token.Content):]
 		skipSpaceAndCountNewLines(parser)
 	} else {
@@ -504,6 +515,11 @@ func (parser *Parser) parseToken() bool {
 	parser.NextToken = parseToken(parser.Input)
 	parser.Input = parser.Input[len(parser.NextToken.Content):]
 
+	if wasDirective && !parser.IsDirective {
+		parser.IsEndOfDirective = true
+		//fmt.Printf("END OF DIRECTIVE %s\n", parser.Token)
+	}
+
 	//fmt.Printf("updateParser, PreviousToken:%s, Token:%s, NextToken:%s\n", parser.PreviousToken, parser.Token, parser.NextToken)
 
 	if isLeftParenthesis(parser.Token) {
@@ -512,10 +528,6 @@ func (parser *Parser) parseToken() bool {
 
 	if isRightParenthesis(parser.Token) {
 		parser.IsParenthesis = false
-	}
-
-	if isDirective(parser.Token) {
-		parser.IsDirective = true
 	}
 
 	return !isAbsent(parser.Token)
@@ -594,7 +606,7 @@ func parseToken(input string) Token {
 		return parseDecimal(input)
 	}
 
-	max := 10
+	max := 20
 	start := input
 	if len(start) > max {
 		start = start[:max]
