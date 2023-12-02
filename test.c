@@ -1,4 +1,7 @@
-     #define CRT_SECURE_NO_WARNINGS
+#ifndef __TEST_C
+#define __TEST_C
+
+#define CRT_SECURE_NO_WARNINGS
 
 
 #define MACRO(num, str) {\
@@ -117,3 +120,5 @@ int main(void)
 
     return 0;
 }
+
+#endif

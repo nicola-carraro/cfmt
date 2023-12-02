@@ -211,9 +211,9 @@ func tryParseDirective(s string) (Token, bool) {
 		"#else",
 		"#endif",
 		"#error",
-		"#if",
-		"#ifdef",
 		"#ifndef",
+		"#ifdef",
+		"#if",		
 		"#import",
 		"#include",
 		"#line"}
