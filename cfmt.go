@@ -980,7 +980,7 @@ func format(input string) string {
 
 		isBlockStart := isLeftBrace(parser.Token) && !isAssignement(parser.PreviousToken)
 
-		if isBlockStart || isSingleLineComment(parser.Token) || isMultilineComment(parser.Token) || isInclude(parser.NextToken) {
+		if isBlockStart || isSingleLineComment(parser.Token) || isMultilineComment(parser.Token) {
 			parser.writeNewLines(1)
 		} else if parser.IsEndOfDirective ||
 			isDirective(parser.NextToken) ||

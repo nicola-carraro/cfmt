@@ -29,7 +29,10 @@
 #pragma comment(lib, "ole32.lib")
 
 
-#pragma comment(lib, "Comdlg32.lib") void c8_render_text(C8_State * state) {
+#pragma comment(lib, "Comdlg32.lib")
+
+
+void c8_render_text(C8_State * state) {
     HRESULT hr = IDirect3DDevice9_SetFVF(state->d3d_dev, C8_TEX_FVF);
 
     if (FAILED(hr)) {
