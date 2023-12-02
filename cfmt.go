@@ -981,13 +981,15 @@ func format(input string) string {
 }
 
 func main() {
-	const path = "test.c"
-	//const path = "scratch.c"
+	if len(os.Args) < 2 {
+		log.Fatalf("Usage: %s <path>\n", os.Args[0])
+	}
 
-	data, error := os.ReadFile(path)
+	path := os.Args[1]
+	data, err := os.ReadFile(path)
 
-	if error != nil {
-		log.Fatal("Error reading ", path)
+	if err != nil {
+		log.Fatalf("Error reading %s: %s", path, err)
 	}
 
 	text := fmt.Sprintf("%s", data)
