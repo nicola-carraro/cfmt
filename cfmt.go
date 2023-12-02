@@ -206,17 +206,10 @@ func tryParseKeyword(s string) (Token, bool) {
 
 func tryParseDirective(s string) (Token, bool) {
 	directives := [...]string{
-		"#define",
-		"#elif",
-		"#else",
-		"#endif",
-		"#error",
-		"#ifndef",
-		"#ifdef",
-		"#if",		
-		"#import",
-		"#include",
-		"#line"}
+		"#define", "#elif", "#else", "#endif",
+		"#error", "#ifndef", "#ifdef", "#if",
+		"#import", "#include", "#line", "#pragma",
+		"#undef", "#using"}
 
 	for _, directive := range directives {
 		if strings.HasPrefix(s, directive) {
