@@ -74,6 +74,46 @@ func isSpace(r rune) bool {
 	return r == ' ' || r == '\t' || r == '\r' || r == '\n' || r == '\v' || r == '\f'
 }
 
+func (parser *Parser) consumeSpace() bool {
+
+	parser.IsEndOfDirective = false
+	newLineInDirective := []string{"\\\r\n", "\\\n"}
+
+	if parser.IsDirective {
+		for _, nl := range newLineInDirective {
+			if parser.IsDirective && strings.HasPrefix(parser.Input, nl) {
+				parser.Input = parser.Input[len(nl):]
+				parser.NewLinesAfter++
+				return true
+			}
+		}
+
+	}
+
+	r, size := peakRune(parser.Input)
+
+	if r == '\n' {
+		parser.Input = parser.Input[size:]
+		parser.NewLinesAfter++
+		if parser.IsDirective {
+			parser.IsEndOfDirective = true
+			parser.IsDirective = false
+
+		}
+		return true
+	}
+
+	otherSpaces := []rune{' ', '\t', '\r', '\v', '\f'}
+
+	if slices.Contains(otherSpaces, r) {
+		parser.Input = parser.Input[size:]
+		return true
+
+	}
+
+	return false
+}
+
 func isDoubleQuote(r rune) bool {
 	return r == '"'
 }
@@ -486,14 +526,6 @@ func (parser *Parser) parseToken() bool {
 		parser.IsDirective = true
 	}
 
-	if parser.NewLinesAfter > 0 && !isSlash(parser.Token) {
-		if parser.IsDirective {
-			parser.IsEndOfDirective = true
-		}
-
-		parser.IsDirective = false
-	}
-
 	return !isAbsent(parser.Token)
 }
 
@@ -588,11 +620,7 @@ func skipSpaceAndCountNewLines(parser *Parser) {
 
 	parser.NewLinesAfter = 0
 
-	for r, size := peakRune(parser.Input); isSpace(r); r, size = peakRune(parser.Input) {
-		if r == '\n' {
-			parser.NewLinesAfter++
-		}
-		parser.Input = parser.Input[size:]
+	for parser.consumeSpace() {
 	}
 
 }
@@ -702,7 +730,7 @@ func (parser *Parser) writeNewLines(lines int) {
 	for line := 0; line < lines; line++ {
 
 		if parser.IsDirective {
-			parser.Output.WriteString("/")
+			parser.Output.WriteString("\\")
 		}
 		parser.Output.WriteString(newLine)
 	}

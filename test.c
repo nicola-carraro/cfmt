@@ -1,7 +1,15 @@
      #define CRT_SECURE_NO_WARNINGS
 
 
-#define print(str, args)do{printf(str, args);}
+#define MACRO(num, str) {\
+            printf("%d", num);\
+            printf(" is");\
+            printf(" %s number", str);\
+            printf("\n");\
+           } 
+
+
+#define MACRO2(num, str) {printf("%d", num);printf(" is");printf(" %s number", str);printf("\n");} 
 /*
               A multiline comment bla bla
 

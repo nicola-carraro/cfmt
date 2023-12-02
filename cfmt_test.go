@@ -307,3 +307,13 @@ func TestFormatMultilineLineComment(t *testing.T) {
 	_testFormat(t, input, expected)
 
 }
+
+func TestFormatMacro(t *testing.T) {
+	input := "#define MACRO(num, str) {printf(\"%d\", num);printf(\" is\");printf(\" %s number\", str);printf(\"\\n\");}\r\n"
+	expected := "#define MACRO(num, str) {\\\r\n    printf(\"%d\", num);\\\r\n    printf(\" is\");\\\r\n    printf(\" %s number\", str);\\\r\n    printf(\"\\n\");\\\r\n}\r\n"
+	_testFormat(t, input, expected)
+
+	input = "#define MACRO(num, str) {\\\r\n    printf(\"%d\", num);\\\r\n    printf(\" is\");\\\r\n    printf(\" %s number\", str);\\\r\n    printf(\"\\n\");\\\r\n}\r\n"
+	expected = "#define MACRO(num, str) {\\\r\n    printf(\"%d\", num);\\\r\n    printf(\" is\");\\\r\n    printf(\" %s number\", str);\\\r\n    printf(\"\\n\");\\\r\n}\r\n"
+	_testFormat(t, input, expected)
+}
