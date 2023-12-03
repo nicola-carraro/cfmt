@@ -79,6 +79,8 @@ func TestFormatStructDecl(t *testing.T) {
 
 	expected = "struct Foo {\r\n    int bar;\r\n    char *baz;\r\n};\r\n"
 
+	input = "typedef struct { struct {C8_Key kp_0;} keypad;} C8_Keypad;"
+	expected = "typedef struct {\r\n    struct {\r\n        C8_Key kp_0;\r\n    } keypad;\r\n} C8_Keypad;\r\n"
 	_testFormat(t, input, expected)
 
 }

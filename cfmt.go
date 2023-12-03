@@ -896,6 +896,8 @@ func (parser *Parser) formatToken() {
 func formatDeclarationBody(parser *Parser) {
 
 	//fmt.Printf("DECLARATION: %s\n", parser.Input)
+
+	initialIndent := parser.Indent
 	parser.Indent++
 
 	parser.writeNewLines(1)
@@ -906,6 +908,7 @@ func formatDeclarationBody(parser *Parser) {
 
 		if isRightBrace(parser.NextToken) {
 			parser.Indent--
+
 		}
 
 		if isLeftBrace(parser.Token) {
@@ -920,7 +923,7 @@ func formatDeclarationBody(parser *Parser) {
 			parser.Output.WriteString(" ")
 		}
 
-		if isRightBrace(parser.Token) {
+		if parser.Indent == initialIndent {
 			return
 		}
 	}
