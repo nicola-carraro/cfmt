@@ -324,4 +324,8 @@ func TestFormatDirective(t *testing.T) {
 	input := "#endif\r\nint i = 1;"
 	expected := "#endif\r\n\r\n\r\nint i = 1;\r\n"
 	_testFormat(t, input, expected)
+
+	input = "#include <stdio.h>\r\n"
+	expected = "#include <stdio.h>\r\n"
+	_testFormat(t, input, expected)
 }

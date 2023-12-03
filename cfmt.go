@@ -36,20 +36,21 @@ type StructUnionEnum struct {
 }
 
 type Parser struct {
-	PreviousToken    Token
-	Token            Token
-	NextToken        Token
-	Indent           int
-	InputLine        int
-	InputColumn      int
-	OutputLine       int
-	OutputColumn     int
-	Input            string
-	Output           strings.Builder
-	NewLinesAfter    int
-	IsParenthesis    bool
-	IsDirective      bool
-	IsEndOfDirective bool
+	PreviousToken      Token
+	Token              Token
+	NextToken          Token
+	Indent             int
+	InputLine          int
+	InputColumn        int
+	OutputLine         int
+	OutputColumn       int
+	Input              string
+	Output             strings.Builder
+	NewLinesAfter      int
+	IsParenthesis      bool
+	IsDirective        bool
+	IsIncludeDirective bool
+	IsEndOfDirective   bool
 }
 
 const indentation = "    "
@@ -96,7 +97,7 @@ func (parser *Parser) consumeSpace() bool {
 		parser.NewLinesAfter++
 		if parser.IsDirective {
 			parser.IsDirective = false
-
+			parser.IsIncludeDirective = false
 		}
 		return true
 	}
@@ -471,6 +472,10 @@ func isTwoCharsPunctuation(text string) bool {
 	return false
 }
 
+func isIncludeDirective(token Token) bool {
+	return isDirective(token) && token.Content == "#include"
+}
+
 func isOneCharPunctuation(text string) bool {
 	oneChar := [...]string{"~", "*", "/", "%", "+", "-", "<", ">",
 		"&", "|", "^", ",", "=", "[", "]", "(", ")", "{",
@@ -492,6 +497,10 @@ func (parser *Parser) parseToken() bool {
 		parser.IsDirective = true
 	}
 
+	if isIncludeDirective(parser.NextToken) {
+		parser.IsIncludeDirective = true
+	}
+
 	wasDirective := parser.IsDirective
 
 	parser.IsEndOfDirective = false
@@ -502,6 +511,10 @@ func (parser *Parser) parseToken() bool {
 		parser.Token = parseToken(parser.Input)
 		if isDirective(parser.Token) {
 			parser.IsDirective = true
+		}
+
+		if isIncludeDirective(parser.Token) {
+			parser.IsIncludeDirective = true
 		}
 
 		wasDirective = parser.IsDirective
@@ -951,7 +964,16 @@ func neverWhiteSpace(parser *Parser) bool {
 		isDotOperator(parser.Token) ||
 		isArrowOperator(parser.Token) ||
 		isArrowOperator(parser.NextToken) ||
-		isComma(parser.NextToken)
+		isComma(parser.NextToken) ||
+		(parser.IsIncludeDirective && (isGreaterThanSign(parser.NextToken) || isLessThanSign(parser.Token)))
+}
+
+func isGreaterThanSign(token Token) bool {
+	return token.Type == Punctuation && token.Content == ">"
+}
+
+func isLessThanSign(token Token) bool {
+	return token.Type == Punctuation && token.Content == "<"
 }
 
 func format(input string) string {
