@@ -8,6 +8,8 @@
 
 
 #define COBJMACROS
+
+
 #include "chip8.h"
 
 

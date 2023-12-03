@@ -826,6 +826,7 @@ func (parser *Parser) hasTrailingComment() bool {
 }
 
 func formatBlockBody(parser *Parser) {
+
 	parser.Indent++
 
 	if isRightBrace(parser.NextToken) {
@@ -842,7 +843,6 @@ func formatBlockBody(parser *Parser) {
 	for parser.parseToken() {
 
 		if isRightBrace(parser.NextToken) {
-
 			parser.Indent--
 		}
 
@@ -851,6 +851,10 @@ func formatBlockBody(parser *Parser) {
 		}
 
 		parser.formatToken()
+
+		if isRightBrace(parser.Token) {
+			return
+		}
 
 		if isLeftBrace(parser.Token) {
 
@@ -865,10 +869,8 @@ func formatBlockBody(parser *Parser) {
 			}
 		} else if isSingleLineComment(parser.Token) || isMultilineComment(parser.Token) {
 			parser.writeNewLines(1)
-		} else if isSemicolon(parser.Token) && !parser.IsParenthesis && !parser.hasTrailingComment() {
+		} else if (isSemicolon(parser.Token) && !parser.IsParenthesis && !parser.hasTrailingComment()) || parser.IsEndOfDirective {
 			parser.oneOrTwoLines()
-		} else if isRightBrace(parser.Token) {
-			return
 		} else if !neverWhiteSpace(parser) &&
 			!isDotOperator(parser.NextToken) {
 			parser.Output.WriteString(" ")

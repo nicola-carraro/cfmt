@@ -7,28 +7,28 @@
 #undef UNICODE
 
 
-#include < stdio.h >
+#include <stdio.h>
 
 
-#include < assert.h >
+#include <assert.h>
 
 
-#include < stdint.h >
+#include <stdint.h>
 
 
-#include < stdbool.h >
+#include <stdbool.h>
 
 
-#include < stdlib.h >
+#include <stdlib.h>
 
 
-#include < Windows.h >
+#include <Windows.h>
 
 
-#include < d3d9.h >
+#include <d3d9.h>
 
 
-#include < DSound.h >
+#include <DSound.h>
 
 
 #include "shobjidl.h"
