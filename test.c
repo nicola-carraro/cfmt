@@ -10,7 +10,7 @@
             printf(" %s number", str);\
             printf("\n");\
            } 
-
+#define C8_LOG_ERROR(msg) {}
 
 #define MACRO2(num, str) {printf("%d", num);printf(" is");printf(" %s number", str);printf("\n");} 
 /*

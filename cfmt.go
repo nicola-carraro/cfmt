@@ -813,8 +813,12 @@ func (parser *Parser) hasTrailingComment() bool {
 }
 
 func formatBlockBody(parser *Parser) {
-
 	parser.Indent++
+
+	if isRightBrace(parser.NextToken) {
+
+		parser.Indent--
+	}
 
 	parser.writeNewLines(1)
 
@@ -824,15 +828,16 @@ func formatBlockBody(parser *Parser) {
 
 	for parser.parseToken() {
 
+		if isRightBrace(parser.NextToken) {
+
+			parser.Indent--
+		}
+
 		if isStructUnionEnumKeyword(parser.Token) {
 			structUnionOrEnum = true
 		}
 
 		parser.formatToken()
-
-		if isRightBrace(parser.NextToken) {
-			parser.Indent--
-		}
 
 		if isLeftBrace(parser.Token) {
 
