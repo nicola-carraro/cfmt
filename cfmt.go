@@ -27,8 +27,9 @@ const (
 )
 
 type Token struct {
-	Type    TokenType
-	Content string
+	Type       TokenType
+	Content    string
+	WhiteSpace WhiteSpace
 }
 
 type StructUnionEnum struct {
@@ -46,11 +47,15 @@ type Parser struct {
 	OutputColumn       int
 	Input              string
 	Output             strings.Builder
-	NewLinesAfter      int
 	IsParenthesis      bool
 	IsDirective        bool
 	IsIncludeDirective bool
 	IsEndOfDirective   bool
+}
+
+type WhiteSpace struct {
+	NewLines          int
+	HasUnescapedLines bool
 }
 
 const indentation = "    "
@@ -75,7 +80,7 @@ func isSpace(r rune) bool {
 	return r == ' ' || r == '\t' || r == '\r' || r == '\n' || r == '\v' || r == '\f'
 }
 
-func (parser *Parser) consumeSpace() bool {
+func (parser *Parser) consumeSpace(whiteSpace *WhiteSpace) bool {
 
 	newLineInDirective := []string{"\\\r\n", "\\\n"}
 
@@ -83,7 +88,7 @@ func (parser *Parser) consumeSpace() bool {
 		for _, nl := range newLineInDirective {
 			if parser.IsDirective && strings.HasPrefix(parser.Input, nl) {
 				parser.Input = parser.Input[len(nl):]
-				parser.NewLinesAfter++
+				whiteSpace.NewLines++
 				return true
 			}
 		}
@@ -94,7 +99,9 @@ func (parser *Parser) consumeSpace() bool {
 
 	if r == '\n' {
 		parser.Input = parser.Input[size:]
-		parser.NewLinesAfter++
+		whiteSpace.NewLines++
+		whiteSpace.HasUnescapedLines = true
+
 		if parser.IsDirective {
 			parser.IsDirective = false
 			parser.IsIncludeDirective = false
@@ -493,40 +500,37 @@ func isOneCharPunctuation(text string) bool {
 
 func (parser *Parser) parseToken() bool {
 
-	if isDirective(parser.NextToken) {
-		parser.IsDirective = true
-	}
-
-	if isIncludeDirective(parser.NextToken) {
-		parser.IsIncludeDirective = true
-	}
-
-	wasDirective := parser.IsDirective
-
-	parser.IsEndOfDirective = false
-
-	skipSpaceAndCountNewLines(parser)
-
 	if isAbsent(parser.Token) {
+		_ = skipSpaceAndCountNewLines(parser)
+
 		parser.Token = parseToken(parser.Input)
-		if isDirective(parser.Token) {
-			parser.IsDirective = true
-		}
-
-		if isIncludeDirective(parser.Token) {
-			parser.IsIncludeDirective = true
-		}
-
-		wasDirective = parser.IsDirective
 		parser.Input = parser.Input[len(parser.Token.Content):]
-		skipSpaceAndCountNewLines(parser)
 	} else {
 		parser.PreviousToken = parser.Token
 		parser.Token = parser.NextToken
 	}
 
+	parser.IsEndOfDirective = false
+
+	if isDirective(parser.Token) {
+		parser.IsDirective = true
+	}
+
+	wasDirective := parser.IsDirective
+
+	if isIncludeDirective(parser.Token) {
+		parser.IsIncludeDirective = true
+	}
+
+	parser.Token.WhiteSpace = skipSpaceAndCountNewLines(parser)
+
 	parser.NextToken = parseToken(parser.Input)
 	parser.Input = parser.Input[len(parser.NextToken.Content):]
+
+	if parser.Token.WhiteSpace.HasUnescapedLines {
+		parser.IsDirective = false
+		parser.IsIncludeDirective = false
+	}
 
 	if wasDirective && !parser.IsDirective {
 		parser.IsEndOfDirective = true
@@ -633,12 +637,14 @@ func startsWithNewLine(input string) bool {
 	return strings.HasPrefix(input, "\r\n")
 }
 
-func skipSpaceAndCountNewLines(parser *Parser) {
+func skipSpaceAndCountNewLines(parser *Parser) WhiteSpace {
 
-	parser.NewLinesAfter = 0
+	result := WhiteSpace{}
 
-	for parser.consumeSpace() {
+	for parser.consumeSpace(&result) {
 	}
+
+	return result
 
 }
 
@@ -793,7 +799,7 @@ func formatInitialiserList(parser *Parser) {
 }
 
 func (parser *Parser) oneOrTwoLines() {
-	if parser.NewLinesAfter <= 1 || isRightBrace(parser.NextToken) {
+	if parser.Token.WhiteSpace.NewLines <= 1 || isRightBrace(parser.NextToken) {
 		parser.writeNewLines(1)
 
 	} else {
@@ -822,7 +828,7 @@ func isPrefixIncrDecr(parser *Parser) bool {
 }
 
 func (parser *Parser) hasTrailingComment() bool {
-	return isSingleLineComment(parser.NextToken) && parser.NewLinesAfter == 0
+	return isSingleLineComment(parser.NextToken) && parser.Token.WhiteSpace.NewLines == 0
 }
 
 func formatBlockBody(parser *Parser) {
