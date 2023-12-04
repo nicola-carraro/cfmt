@@ -918,14 +918,17 @@ void c8_load_from_file_dialog(C8_State * state) {
 
 
 void c8_message_box(const char *message) {
-    #ifndef C8_TEST BOOL succeded = MessageBox(global_state.window, message, "Error", MB_OK);
+    #ifndef C8_TEST
+    BOOL succeded = MessageBox(global_state.window, message, "Error", MB_OK);
 
     if (! succeded) {
         C8_LOG_ERROR("Error while showing message box\n");
     }
 
-    #else C8_UNREFERENCED(message);
-    #endif }
+    #else
+    C8_UNREFERENCED(message);
+    #endif
+}
 
 
 int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, PSTR cmd_line, int cmd_show) {

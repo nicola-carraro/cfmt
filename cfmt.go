@@ -954,11 +954,22 @@ func isInclude(token Token) bool {
 	return token.Type == Directive && token.Content == "#include"
 }
 
+func isLeftBracket(token Token) bool {
+	return token.Type == Punctuation && token.Content == "["
+}
+
+func isRightBracket(token Token) bool {
+	return token.Type == Punctuation && token.Content == "]"
+}
+
 func neverWhiteSpace(parser *Parser) bool {
 
 	return isSemicolon(parser.NextToken) ||
 		isLeftParenthesis(parser.Token) ||
 		isRightParenthesis(parser.NextToken) ||
+		isLeftBracket(parser.Token) ||
+		isLeftBracket(parser.NextToken) ||
+		isRightBracket(parser.NextToken) ||
 		isPointerOperator(parser) ||
 		isFunctionName(parser) ||
 		hasPostfixIncrDecr(parser) ||

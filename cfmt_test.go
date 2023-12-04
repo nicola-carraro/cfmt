@@ -333,3 +333,14 @@ func TestFormatDirective(t *testing.T) {
 	expected = "{\r\n    #ifdef FOO\r\n    foo();\r\n    #else\r\n    bar();\r\n    #endif\r\n}\r\n"
 	_testFormat(t, input, expected)
 }
+
+func TestFormatBrackets(t *testing.T) {
+	input := "foo[1]=2;"
+	expected := "foo[1] = 2;\r\n"
+	_testFormat(t, input, expected)
+
+	input = "foo [ 1 ]=2;"
+	expected = "foo[1] = 2;\r\n"
+	_testFormat(t, input, expected)
+
+}
