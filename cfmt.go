@@ -962,6 +962,10 @@ func isRightBracket(token Token) bool {
 	return token.Type == Punctuation && token.Content == "]"
 }
 
+func isNegation(token Token) bool {
+	return token.Type == Punctuation && token.Content == "!"
+}
+
 func neverWhiteSpace(parser *Parser) bool {
 
 	return isSemicolon(parser.NextToken) ||
@@ -978,6 +982,7 @@ func neverWhiteSpace(parser *Parser) bool {
 		isArrowOperator(parser.Token) ||
 		isArrowOperator(parser.NextToken) ||
 		isComma(parser.NextToken) ||
+		isNegation(parser.Token) ||
 		(parser.IsIncludeDirective && (isGreaterThanSign(parser.NextToken) || isLessThanSign(parser.Token)))
 }
 
