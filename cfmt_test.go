@@ -275,24 +275,33 @@ func TestFormatNewLines(t *testing.T) {
 
 func TestFormatSingleLineComment(t *testing.T) {
 	input := "int i = 3;//comment\r\n"
-	expected := "int i = 3; //comment\r\n"
+	expected := "int i = 3; // comment\r\n"
 	_testFormat(t, input, expected)
 
 	input = "int i = 3;\r\n//comment\r\n"
-	expected = "int i = 3;\r\n\r\n\r\n//comment\r\n"
+	expected = "int i = 3;\r\n\r\n\r\n// comment\r\n"
 	_testFormat(t, input, expected)
 
 	input = "void foo() {\r\n    int i = 3;//comment\r\n}\r\n"
-	expected = "void foo() {\r\n    int i = 3; //comment\r\n}\r\n"
+	expected = "void foo() {\r\n    int i = 3; // comment\r\n}\r\n"
 	_testFormat(t, input, expected)
 
 	input = "void foo() {\r\n    int i = 3;\r\n    //comment\r\n}\r\n"
-	expected = "void foo() {\r\n    int i = 3;\r\n    //comment\r\n}\r\n"
+	expected = "void foo() {\r\n    int i = 3;\r\n    // comment\r\n}\r\n"
 	_testFormat(t, input, expected)
 
 	input = "Foo foo = {\"123\", //A comment\r\n123};\r\n"
-	expected = "Foo foo = {\"123\", //A comment\r\n123};\r\n"
+	expected = "Foo foo = {\"123\", // A comment\r\n123};\r\n"
 	_testFormat(t, input, expected)
+
+	input = "//Shift left"
+	expected = "// Shift left\r\n"
+	_testFormat(t, input, expected)
+
+	input = "//    Shift left"
+	expected = "// Shift left\r\n"
+	_testFormat(t, input, expected)
+
 }
 
 func TestFormatMultilineLineComment(t *testing.T) {
@@ -343,4 +352,14 @@ func TestFormatBrackets(t *testing.T) {
 	expected = "foo[1] = 2;\r\n"
 	_testFormat(t, input, expected)
 
+}
+
+func TestFormatPointerTypes(t *testing.T) {
+	input := "C8_Keypad * keypad = &(global_state.keypad);\r\n"
+	expected := "C8_Keypad *keypad = &(global_state.keypad);\r\n"
+	_testFormat(t, input, expected)
+
+	input = "void c8_load_from_file_dialog(C8_State*state) {\r\n    printf(\"Hi\");\r\n}\r\n"
+	expected = "void c8_load_from_file_dialog(C8_State *state) {\r\n    printf(\"Hi\");\r\n}\r\n"
+	_testFormat(t, input, expected)
 }

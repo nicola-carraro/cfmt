@@ -2120,7 +2120,7 @@ void c8_update_emulator(C8_State *state)
 			}
 			else if ((instruction & 0xf00f) == 0x800e)
 			{
-				// Shift left
+				//Shift left
 
 				u8 bit = state->var_registers[x] >> 7;
 				state->var_registers[x] = state->var_registers[x] << 1;

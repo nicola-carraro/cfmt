@@ -37,20 +37,21 @@ type StructUnionEnum struct {
 }
 
 type Parser struct {
-	PreviousToken      Token
-	Token              Token
-	NextToken          Token
-	Indent             int
-	InputLine          int
-	InputColumn        int
-	OutputLine         int
-	OutputColumn       int
-	Input              string
-	Output             strings.Builder
-	IsParenthesis      bool
-	IsDirective        bool
-	IsIncludeDirective bool
-	IsEndOfDirective   bool
+	PreviousToken         Token
+	Token                 Token
+	NextToken             Token
+	Indent                int
+	InputLine             int
+	InputColumn           int
+	OutputLine            int
+	OutputColumn          int
+	Input                 string
+	Output                strings.Builder
+	IsParenthesis         bool
+	IsDirective           bool
+	IsIncludeDirective    bool
+	IsEndOfDirective      bool
+	RightSideOfAssignment bool
 }
 
 type WhiteSpace struct {
@@ -522,6 +523,14 @@ func (parser *Parser) parseToken() bool {
 		parser.IsIncludeDirective = true
 	}
 
+	if isAssignment(parser.Token) {
+		parser.RightSideOfAssignment = true
+	}
+
+	if isSemicolon(parser.Token) {
+		parser.RightSideOfAssignment = false
+	}
+
 	parser.Token.WhiteSpace = skipSpaceAndCountNewLines(parser)
 
 	parser.NextToken = parseToken(parser.Input)
@@ -726,7 +735,7 @@ func isStructUnionEnumKeyword(token Token) bool {
 
 }
 
-func isAssignement(token Token) bool {
+func isAssignment(token Token) bool {
 	assignmentOps := []string{"=", "*=", "/=", "%=", "+=", "-=", "<<=", ">>=", "&=", "^=", "|="}
 
 	return token.Type == Punctuation && slices.Contains(assignmentOps, token.Content)
@@ -816,7 +825,7 @@ func (parser *Parser) threeLinesOrEof() {
 }
 
 func isPointerOperator(parser *Parser) bool {
-	return canBePointerOperator(parser.Token) && !canBeLeftOperand(parser.PreviousToken)
+	return canBePointerOperator(parser.Token) && (!canBeLeftOperand(parser.PreviousToken) || !parser.RightSideOfAssignment)
 }
 
 func hasPostfixIncrDecr(parser *Parser) bool {
@@ -864,7 +873,7 @@ func formatBlockBody(parser *Parser) {
 
 		if isLeftBrace(parser.Token) {
 
-			if isAssignement(parser.PreviousToken) {
+			if isAssignment(parser.PreviousToken) {
 				formatInitialiserList(parser)
 			} else if structUnionOrEnum {
 				formatDeclarationBody(parser)
@@ -905,10 +914,18 @@ func (parser *Parser) formatMultilineComment() {
 	parser.Output.WriteString("*/")
 }
 
+func (parser *Parser) formatSingleLineComment() {
+	text := strings.TrimSpace(parser.Token.Content[2:])
+	parser.Output.WriteString("// ")
+	parser.Output.WriteString(text)
+}
+
 func (parser *Parser) formatToken() {
 
 	if isMultilineComment(parser.Token) {
 		parser.formatMultilineComment()
+	} else if isSingleLineComment(parser.Token) {
+		parser.formatSingleLineComment()
 	} else {
 		parser.Output.WriteString(parser.Token.Content)
 	}
@@ -1011,7 +1028,7 @@ func format(input string) string {
 		parser.formatToken()
 
 		if isLeftBrace(parser.Token) {
-			if isAssignement(parser.PreviousToken) {
+			if isAssignment(parser.PreviousToken) {
 				formatInitialiserList(parser)
 			} else if structUnionOrEnum {
 				formatDeclarationBody(parser)
@@ -1029,7 +1046,7 @@ func format(input string) string {
 
 		const maxNewLines = 2
 
-		isBlockStart := isLeftBrace(parser.Token) && !isAssignement(parser.PreviousToken)
+		isBlockStart := isLeftBrace(parser.Token) && !isAssignment(parser.PreviousToken)
 
 		if isBlockStart || isSingleLineComment(parser.Token) || isMultilineComment(parser.Token) {
 			parser.writeNewLines(1)

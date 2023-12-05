@@ -34,7 +34,7 @@
 #pragma comment(lib, "Comdlg32.lib")
 
 
-void c8_render_text(C8_State * state) {
+void c8_render_text(C8_State *state) {
     HRESULT hr = IDirect3DDevice9_SetFVF(state->d3d_dev, C8_TEX_FVF);
 
     if (FAILED(hr)) {
@@ -49,7 +49,7 @@ void c8_render_text(C8_State * state) {
         assert(false);
     }
 
-    C8_D3D_Texture_Vertex * vertices;
+    C8_D3D_Texture_Vertex *vertices;
 
     hr = IDirect3DVertexBuffer9_Lock(state->text_vb, 0, 0, (void **) & vertices, 0);
     if (SUCCEEDED(hr)) {
@@ -124,7 +124,7 @@ void c8_render_text(C8_State * state) {
 }
 
 
-BOOL c8_load_font(C8_State * state, const char *file_name) {
+BOOL c8_load_font(C8_State *state, const char *file_name) {
     BOOL result = false;
 
     C8_File file = {0};
@@ -134,7 +134,7 @@ BOOL c8_load_font(C8_State * state, const char *file_name) {
 
         state->font = font;
 
-        u8 * input_bitmap = (u8 *) file.data + sizeof (font);
+        u8 *input_bitmap = (u8 *) file.data + sizeof (font);
         HRESULT textureCreated = IDirect3DDevice9_CreateTexture(state->d3d_dev, font.width, font.height, 0, 0, D3DFMT_A32B32G32R32F, D3DPOOL_MANAGED, &state->texture, NULL);
 
         if (SUCCEEDED(textureCreated)) {
@@ -142,17 +142,17 @@ BOOL c8_load_font(C8_State * state, const char *file_name) {
 
             HRESULT locked = IDirect3DTexture9_LockRect(state->texture, 0, &out_rect, 0, 0);
             if (SUCCEEDED(locked)) {
-                uint8_t * row_start = (uint8_t *) (out_rect.pBits);
+                uint8_t *row_start = (uint8_t *) (out_rect.pBits);
                 for (uint32_t row = 0; row < font.height; row++) {
                     for (uint32_t column = 0; column < font.width; column++) {
                         uint8_t src_pixel = input_bitmap[(row * font.width) + column];
 
                         float alpha = ((float) src_pixel) / 255.0f;
 
-                        ((float *) row_start)[column * 4] = 1.0f;
-                        ((float *) row_start)[column * 4 + 1] = 1.0f;
-                        ((float *) row_start)[column * 4 + 2] = 1.0f;
-                        ((float *) row_start)[column * 4 + 3] = alpha;
+                        ((float *) row_start)[column *4] = 1.0f;
+                        ((float *) row_start)[column *4 + 1] = 1.0f;
+                        ((float *) row_start)[column *4 + 2] = 1.0f;
+                        ((float *) row_start)[column *4 + 3] = alpha;
                     }
 
                     row_start += out_rect.Pitch;
@@ -216,7 +216,7 @@ D3DPRESENT_PARAMETERS c8_init_d3d_params(HWND window) {
 }
 
 
-bool c8_query_perf_count(C8_Timer * timer, LARGE_INTEGER * perf_count) {
+bool c8_query_perf_count(C8_Timer *timer, LARGE_INTEGER *perf_count) {
     bool result = false;
     if (QueryPerformanceCounter(perf_count)) {
         result = true;
@@ -260,7 +260,7 @@ float c8_compute_millis(C8_Timer timer, LARGE_INTEGER new_perf_count) {
 }
 
 
-float c8_millis_elapsed(C8_Timer * timer, bool reset_timer) {
+float c8_millis_elapsed(C8_Timer *timer, bool reset_timer) {
     float millis_elapsed = - 1.0f;
 
     if (timer->has_timer) {
@@ -279,8 +279,8 @@ float c8_millis_elapsed(C8_Timer * timer, bool reset_timer) {
 }
 
 
-void c8_render_color(C8_State * state) {
-    VOID * vp;
+void c8_render_color(C8_State *state) {
+    VOID *vp;
 
     HRESULT hr = IDirect3DDevice9_SetTexture(state->d3d_dev, 0, 0);
     if (FAILED(hr)) {
@@ -335,7 +335,7 @@ void c8_render_color(C8_State * state) {
 }
 
 
-void c8_render(C8_State * state) {
+void c8_render(C8_State *state) {
     HRESULT hr = IDirect3DDevice9_Clear(state->d3d_dev, 0, 0, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255, 255, 255, 255), 1.0f, 0);
 
     if (FAILED(hr)) {
@@ -368,7 +368,7 @@ void c8_render(C8_State * state) {
 }
 
 
-bool c8_init_texture(C8_State * state, const char *file_name) {
+bool c8_init_texture(C8_State *state, const char *file_name) {
     bool result = false;
 
     C8_File file = {0};
@@ -384,7 +384,7 @@ bool c8_init_texture(C8_State * state, const char *file_name) {
             rect.Pitch = width;
             rect.pBits = 0;
 
-            u8 * input_bitmap = (u8 *) (((UINT *) file.data) + 2);
+            u8 *input_bitmap = (u8 *) (((UINT *) file.data) + 2);
             HRESULT locked = IDirect3DTexture9_LockRect(state->texture, 0, &rect, 0, 0);
 
             if (SUCCEEDED(locked)) {
@@ -427,7 +427,7 @@ bool c8_init_texture(C8_State * state, const char *file_name) {
 }
 
 
-bool c8_initd3d(C8_State * state, HWND window) {
+bool c8_initd3d(C8_State *state, HWND window) {
     state->d3d = Direct3DCreate9(DIRECT3D_VERSION);
     if (!state->d3d) {
         C8_LOG_ERROR("Could not create D3D interface\n");
@@ -489,7 +489,7 @@ bool c8_initd3d(C8_State * state, HWND window) {
 }
 
 
-void c8_process_key(C8_Key * key, WORD key_flags) {
+void c8_process_key(C8_Key *key, WORD key_flags) {
     BOOL is_up = (key_flags & KF_UP) == KF_UP;
     if (is_up) {
         key->ended_down = false;
@@ -505,7 +505,7 @@ void c8_process_key(C8_Key * key, WORD key_flags) {
 }
 
 
-bool c8_init_dsound(C8_State * state, HWND window, i32 samples_per_sec) {
+bool c8_init_dsound(C8_State *state, HWND window, i32 samples_per_sec) {
     bool result = false;
 
     LPDIRECTSOUND dsound;
@@ -556,7 +556,7 @@ bool c8_init_dsound(C8_State * state, HWND window, i32 samples_per_sec) {
 
                             i32 half_wave_period = wave_period / 2;
 
-                            i16 * samples = (i16 *) buf_data;
+                            i16 *samples = (i16 *) buf_data;
 
                             for (i16 i = 0; i < buf_size / sizeof (i16);
                             i++) {
@@ -663,109 +663,109 @@ LRESULT CALLBACK WindowProc(HWND window, UINT msg, WPARAM wparam, LPARAM lparam)
             WORD key_flags = HIWORD(lparam);
             WORD scan_code = LOBYTE(key_flags);
             WORD vkey_code = LOWORD(wparam);
-            C8_Control_Keys * controls = &(global_state.control_keys);
+            C8_Control_Keys *controls = &(global_state.control_keys);
             switch (vkey_code) {
                 case VK_RETURN : {
-                    C8_Key * key = &(controls->control_keys.enter);
+                    C8_Key *key = &(controls->control_keys.enter);
                     c8_process_key(key, key_flags);
                 }
                 break;
                 case VK_ESCAPE : {
-                    C8_Key * key = &(controls->control_keys.esc);
+                    C8_Key *key = &(controls->control_keys.esc);
                     c8_process_key(key, key_flags);
                 }
                 break;
                 case 'P' : {
-                    C8_Key * key = &(controls->control_keys.p);
+                    C8_Key *key = &(controls->control_keys.p);
                     c8_process_key(key, key_flags);
                 }
                 break;
                 case VK_SPACE : {
-                    C8_Key * key = &(controls->control_keys.space);
+                    C8_Key *key = &(controls->control_keys.space);
                     c8_process_key(key, key_flags);
                 }
                 break;
             }
 
-            C8_Keypad * keypad = &(global_state.keypad);
+            C8_Keypad *keypad = &(global_state.keypad);
             switch (scan_code) {
                 case 2 : {
-                    C8_Key * key = &(keypad->keypad.kp_1);
+                    C8_Key *key = &(keypad->keypad.kp_1);
                     c8_process_key(key, key_flags);
                 }
                 break;
                 case 3 : {
-                    C8_Key * key = &(keypad->keypad.kp_2);
+                    C8_Key *key = &(keypad->keypad.kp_2);
                     c8_process_key(key, key_flags);
                 }
                 break;
                 case 4 : {
-                    C8_Key * key = &(keypad->keypad.kp_3);
+                    C8_Key *key = &(keypad->keypad.kp_3);
                     c8_process_key(key, key_flags);
                 }
                 break;
                 case 5 : {
-                    C8_Key * key = &(keypad->keypad.kp_c);
+                    C8_Key *key = &(keypad->keypad.kp_c);
                     c8_process_key(key, key_flags);
                 }
                 break;
                 case 16 : {
-                    C8_Key * key = &(keypad->keypad.kp_4);
+                    C8_Key *key = &(keypad->keypad.kp_4);
                     c8_process_key(key, key_flags);
                 }
                 break;
                 case 17 : {
-                    C8_Key * key = &(keypad->keypad.kp_5);
+                    C8_Key *key = &(keypad->keypad.kp_5);
                     c8_process_key(key, key_flags);
                 }
                 break;
                 case 18 : {
-                    C8_Key * key = &(keypad->keypad.kp_6);
+                    C8_Key *key = &(keypad->keypad.kp_6);
                     c8_process_key(key, key_flags);
                 }
                 break;
                 case 19 : {
-                    C8_Key * key = &(keypad->keypad.kp_d);
+                    C8_Key *key = &(keypad->keypad.kp_d);
                     c8_process_key(key, key_flags);
                 }
                 break;
                 case 30 : {
-                    C8_Key * key = &(keypad->keypad.kp_7);
+                    C8_Key *key = &(keypad->keypad.kp_7);
                     c8_process_key(key, key_flags);
                 }
                 break;
                 case 31 : {
-                    C8_Key * key = &(keypad->keypad.kp_8);
+                    C8_Key *key = &(keypad->keypad.kp_8);
                     c8_process_key(key, key_flags);
                 }
                 break;
                 case 32 : {
-                    C8_Key * key = &(keypad->keypad.kp_9);
+                    C8_Key *key = &(keypad->keypad.kp_9);
                     c8_process_key(key, key_flags);
                 }
                 break;
                 case 33 : {
-                    C8_Key * key = &(keypad->keypad.kp_e);
+                    C8_Key *key = &(keypad->keypad.kp_e);
                     c8_process_key(key, key_flags);
                 }
                 break;
                 case 44 : {
-                    C8_Key * key = &(keypad->keypad.kp_a);
+                    C8_Key *key = &(keypad->keypad.kp_a);
                     c8_process_key(key, key_flags);
                 }
                 break;
                 case 45 : {
-                    C8_Key * key = &(keypad->keypad.kp_0);
+                    C8_Key *key = &(keypad->keypad.kp_0);
                     c8_process_key(key, key_flags);
                 }
                 break;
                 case 46 : {
-                    C8_Key * key = &(keypad->keypad.kp_b);
+                    C8_Key *key = &(keypad->keypad.kp_b);
                     c8_process_key(key, key_flags);
                 }
                 break;
                 case 47 : {
-                    C8_Key * key = &(keypad->keypad.kp_f);
+                    C8_Key *key = &(keypad->keypad.kp_f);
                     c8_process_key(key, key_flags);
                 }
                 break;
@@ -818,7 +818,7 @@ HWND c8_create_window(HINSTANCE instance, int width, int height) {
 }
 
 
-bool c8_process_msgs(C8_State * state, HWND window) {
+bool c8_process_msgs(C8_State *state, HWND window) {
     MSG msg;
     while (PeekMessage(&msg, window, 0, 0, PM_REMOVE)) {
         TranslateMessage(&msg);
@@ -833,14 +833,14 @@ bool c8_process_msgs(C8_State * state, HWND window) {
 }
 
 
-void c8_color_triangle(C8_State * state, C8_V2 p1, C8_V2 p2, C8_V2 p3, C8_Rgba rgb) {
+void c8_color_triangle(C8_State *state, C8_V2 p1, C8_V2 p2, C8_V2 p3, C8_Rgba rgb) {
     c8_color_vertex(state, p1.x, p1.y, rgb.r, rgb.g, rgb.b, rgb.a);
     c8_color_vertex(state, p2.x, p2.y, rgb.r, rgb.g, rgb.b, rgb.a);
     c8_color_vertex(state, p3.x, p3.y, rgb.r, rgb.g, rgb.b, rgb.a);
 }
 
 
-bool c8_start_beep(C8_State * state) {
+bool c8_start_beep(C8_State *state) {
     bool result = false;
 
     HRESULT play = IDirectSoundBuffer_Play(state->ds_sec_buf, 0, 0, DSBPLAY_LOOPING);
@@ -856,7 +856,7 @@ bool c8_start_beep(C8_State * state) {
 }
 
 
-bool c8_stop_beep(C8_State * state) {
+bool c8_stop_beep(C8_State *state) {
     bool result = false;
 
     HRESULT stop = IDirectSoundBuffer_Stop(state->ds_sec_buf);
@@ -872,13 +872,13 @@ bool c8_stop_beep(C8_State * state) {
 }
 
 
-wchar_t * c8_get_first_argument(LPWSTR cmd_line, C8_Arena * arena) {
-    wchar_t * first_argument = 0;
+wchar_t *c8_get_first_argument(LPWSTR cmd_line, C8_Arena *arena) {
+    wchar_t *first_argument = 0;
 
     size_t length = 0;
     size_t start = 0;
 
-    wchar_t * next_char = cmd_line;
+    wchar_t *next_char = cmd_line;
     while (*next_char != '\0' && isspace(*next_char)) {
         next_char++;
         start++;
@@ -900,7 +900,7 @@ wchar_t * c8_get_first_argument(LPWSTR cmd_line, C8_Arena * arena) {
 }
 
 
-void c8_load_from_file_dialog(C8_State * state) {
+void c8_load_from_file_dialog(C8_State *state) {
     char path[1024] = {0};
 
     OPENFILENAME file_name = {.lStructSize = sizeof (file_name), .hwndOwner = state->window, .hInstance = state->instance, .lpstrFilter = "Chip 8 rom (*.ch8)\0*.ch8\0All files (*.*)'\0*.*", .lpstrFile = path, .nMaxFile = C8_ARRCOUNT(path), .lpstrInitialDir = "roms"};
@@ -953,7 +953,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, PSTR cmd_line, i
 
     i32 samples_per_sec = 8000;
 
-    if (!c8_arena_init(&(global_state.arena), 5 * 1024 * 1024, 4)) {
+    if (!c8_arena_init(&(global_state.arena), 5 *1024 *1024, 4)) {
         c8_message_box(initError);
         C8_LOG_ERROR("Could not initialise arena\n");
         return - 1;
@@ -1090,7 +1090,7 @@ bool c8_close_file(HANDLE file) {
 }
 
 
-bool c8_read_entire_file(const char *path, C8_Arena * arena, C8_File * read_result) {
+bool c8_read_entire_file(const char *path, C8_Arena *arena, C8_File *read_result) {
     bool result = false;
     char buf[256];
 
@@ -1135,21 +1135,21 @@ u16 c8_read_instruction(u16 bytes) {
 }
 
 
-float c8_frame_x(C8_State * state) {
+float c8_frame_x(C8_State *state) {
     float result = (state->cli_width / 2) - (C8_MONITOR_WIDTH / 2);
 
     return result;
 }
 
 
-float c8_frame_y(C8_State * state) {
+float c8_frame_y(C8_State *state) {
     float result = (state->cli_height / 2) - (C8_MONITOR_HEIGHT / 2);
 
     return result;
 }
 
 
-void c8_emulator_frame(C8_State * state) {
+void c8_emulator_frame(C8_State *state) {
     float frame_x = c8_frame_x(state);
 
     float frame_y = c8_frame_y(state);
@@ -1164,7 +1164,7 @@ void c8_emulator_frame(C8_State * state) {
 }
 
 
-void c8_color_vertex(C8_State * state, float x, float y, u8 r, u8 g, u8 b, u8 a) {
+void c8_color_vertex(C8_State *state, float x, float y, u8 r, u8 g, u8 b, u8 a) {
     assert(state->color_vertex_count < C8_ARRCOUNT(state->color_vertices));
 
     if (state->color_vertex_count < C8_ARRCOUNT(state->color_vertices)) {
@@ -1185,14 +1185,14 @@ void c8_color_vertex(C8_State * state, float x, float y, u8 r, u8 g, u8 b, u8 a)
 }
 
 
-void c8_reset_emulator(C8_State * state) {
+void c8_reset_emulator(C8_State *state) {
     memset(state->ram, 0, sizeof (state->ram));
     memset(state->pixels, 0, sizeof (state->pixels));
     state->pc = C8_PROG_ADDR;
 }
 
 
-void c8_load_rom(const char *path, C8_State * state) {
+void c8_load_rom(const char *path, C8_State *state) {
     HANDLE handle = c8_open_file_for_read(path);
 
     if (handle == INVALID_HANDLE_VALUE) {
@@ -1223,7 +1223,7 @@ void c8_load_rom(const char *path, C8_State * state) {
 
         c8_arena_free_all(&state->arena);
 
-        const u8 font_sprites[C8_FONT_SIZE * C8_FONT_COUNT] = {0 xF0, 0 x90, 0 x90, 0 x90, 0 xF0, // 0
+        const u8 font_sprites[C8_FONT_SIZE *C8_FONT_COUNT] = {0 xF0, 0 x90, 0 x90, 0 x90, 0 xF0, // 0
         0 x20, 0 x60, 0 x20, 0 x20, 0 x70, // 1
         0 xF0, 0 x10, 0 xF0, 0 x80, 0 xF0, // 2
         0 xF0, 0 x10, 0 xF0, 0 x10, 0 xF0, // 3
@@ -1256,14 +1256,14 @@ void c8_load_rom(const char *path, C8_State * state) {
 }
 
 
-void c8_text_triangle(C8_State * state, C8_V2 p1, C8_V2 p2, C8_V2 p3, C8_Rgba rgb, float u1, float v1, float u2, float v2, float u3, float v3) {
+void c8_text_triangle(C8_State *state, C8_V2 p1, C8_V2 p2, C8_V2 p3, C8_Rgba rgb, float u1, float v1, float u2, float v2, float u3, float v3) {
     c8_text_vertex(state, p1.x, p1.y, rgb.r, rgb.g, rgb.b, rgb.a, u1, v1);
     c8_text_vertex(state, p2.x, p2.y, rgb.r, rgb.g, rgb.b, rgb.a, u2, v2);
     c8_text_vertex(state, p3.x, p3.y, rgb.r, rgb.g, rgb.b, rgb.a, u3, v3);
 }
 
 
-void c8_glyph(C8_State * state, C8_Glyph glyph, float x, float y, float width, float height, C8_Rgba rgb) {
+void c8_glyph(C8_State *state, C8_Glyph glyph, float x, float y, float width, float height, C8_Rgba rgb) {
     c8_text_vertex(state, x, y, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_left, glyph.v_top);
     c8_text_vertex(state, x + width, y, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_right, glyph.v_top);
     c8_text_vertex(state, x + width, y + height, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_right, glyph.v_bottom);
@@ -1274,7 +1274,7 @@ void c8_glyph(C8_State * state, C8_Glyph glyph, float x, float y, float width, f
 }
 
 
-void c8_text(C8_State * state, char *text, float x, float y, float scale, float spacing, C8_Rgba rgba) {
+void c8_text(C8_State *state, char *text, float x, float y, float scale, float spacing, C8_Rgba rgba) {
     float x_offset = 0;
 
     char c = 0;
@@ -1282,7 +1282,7 @@ void c8_text(C8_State * state, char *text, float x, float y, float scale, float 
     while (*text) {
         c = *text;
         C8_Glyph glyph = state->font.glyphs[c - C8_FIRST_CHAR];
-        c8_glyph(state, glyph, x + x_offset, y + glyph.y_offset * scale, glyph.width * scale, glyph.height * scale, rgba);
+        c8_glyph(state, glyph, x + x_offset, y + glyph.y_offset *scale, glyph.width *scale, glyph.height *scale, rgba);
         x_offset += glyph.width * scale;
         x_offset += spacing * scale;
         text++;
@@ -1290,7 +1290,7 @@ void c8_text(C8_State * state, char *text, float x, float y, float scale, float 
 }
 
 
-void c8_text_vertex(C8_State * state, float x, float y, u8 r, u8 g, u8 b, u8 a, float u, float v) {
+void c8_text_vertex(C8_State *state, float x, float y, u8 r, u8 g, u8 b, u8 a, float u, float v) {
     assert(state->text_vertex_count < C8_ARRCOUNT(state->text_vertices));
 
     if (state->text_vertex_count < C8_ARRCOUNT(state->text_vertices)) {
@@ -1312,7 +1312,7 @@ void c8_text_vertex(C8_State * state, float x, float y, u8 r, u8 g, u8 b, u8 a, 
 }
 
 
-void c8_rect(C8_State * state, float x, float y, float width, float height, C8_Rgba rgb) {
+void c8_rect(C8_State *state, float x, float y, float width, float height, C8_Rgba rgb) {
     C8_V2 p1 = {x, y};
     C8_V2 p2 = {x + width, y};
     C8_V2 p3 = {x + width, y + height};
@@ -1323,7 +1323,7 @@ void c8_rect(C8_State * state, float x, float y, float width, float height, C8_R
 }
 
 
-void c8_emulator_pixels(C8_State * state) {
+void c8_emulator_pixels(C8_State *state) {
     for (i32 r = 0; r < C8_ARRCOUNT(state->pixels);
     r++) {
         for (i32 c = 0; c < C8_ARRCOUNT(state->pixels[r]);
@@ -1332,14 +1332,14 @@ void c8_emulator_pixels(C8_State * state) {
                 float frame_x = c8_frame_x(state);
                 float frame_y = c8_frame_y(state);
 
-                c8_rect(state, frame_x + (c * C8_PIXEL_SIDE) + C8_FRAME_WIDTH, frame_y + (r * C8_PIXEL_SIDE) + C8_FRAME_WIDTH, C8_PIXEL_SIDE, C8_PIXEL_SIDE, emulator_color);
+                c8_rect(state, frame_x + (c *C8_PIXEL_SIDE) + C8_FRAME_WIDTH, frame_y + (r *C8_PIXEL_SIDE) + C8_FRAME_WIDTH, C8_PIXEL_SIDE, C8_PIXEL_SIDE, emulator_color);
             }
         }
     }
 }
 
 
-void c8_reset_key(C8_Key * k) {
+void c8_reset_key(C8_Key *k) {
     k->started_down = k->ended_down;
     k->was_down = k->ended_down;
     k->was_lifted = false;
@@ -1348,7 +1348,7 @@ void c8_reset_key(C8_Key * k) {
 }
 
 
-void c8_add_number_to_register(C8_State * state, u8 x, u8 nn) {
+void c8_add_number_to_register(C8_State *state, u8 x, u8 nn) {
     u8 vx = state->var_registers[x];
     u16 result = (u16) vx + (u16) nn;
 
@@ -1363,7 +1363,7 @@ void c8_add_number_to_register(C8_State * state, u8 x, u8 nn) {
 }
 
 
-void c8_call(C8_State * state, u16 nnn) {
+void c8_call(C8_State *state, u16 nnn) {
     state->stack[state->stack_pointer] = state->pc;
     state->stack_pointer++;
     if (state->stack_pointer >= C8_ARRCOUNT(state->stack)) {
@@ -1373,7 +1373,7 @@ void c8_call(C8_State * state, u16 nnn) {
 }
 
 
-float c8_max_v_height(char *text, size_t text_length, C8_Font * font) {
+float c8_max_v_height(char *text, size_t text_length, C8_Font *font) {
     float result = 0.0f;
     for (size_t i = 0; i < text_length; i++) {
         char c = text[i];
@@ -1392,7 +1392,7 @@ float c8_max_v_height(char *text, size_t text_length, C8_Font * font) {
 }
 
 
-float c8_text_width(C8_Font * font, char *text, float text_scale, float spacing) {
+float c8_text_width(C8_Font *font, char *text, float text_scale, float spacing) {
     float result = 0.0f;
 
     float scaled_spacing = spacing * text_scale;
@@ -1412,7 +1412,7 @@ float c8_text_width(C8_Font * font, char *text, float text_scale, float spacing)
 }
 
 
-float c8_offset_to_center_vertically(C8_Font * font, const char *text, float text_scale, float container_height) {
+float c8_offset_to_center_vertically(C8_Font *font, const char *text, float text_scale, float container_height) {
     C8_UNREFERENCED(container_height);
 
     float max_ascent = 0.0f;
@@ -1440,7 +1440,7 @@ float c8_offset_to_center_vertically(C8_Font * font, const char *text, float tex
 }
 
 
-void c8_load_button_init(C8_State * state, C8_Button * button) {
+void c8_load_button_init(C8_State *state, C8_Button *button) {
     button->x = (state->cli_width / 2.0f) - (C8_LOAD_BUTTON_WIDTH / 2.0f);
 
     button->y = C8_LOAD_BUTTON_Y;
@@ -1465,7 +1465,7 @@ void c8_load_button_init(C8_State * state, C8_Button * button) {
 }
 
 
-void c8_load_button(C8_State * state) {
+void c8_load_button(C8_State *state) {
     C8_Button button = state->load_button;
 
     if (button.is_mouse_over) {
@@ -1489,19 +1489,19 @@ void c8_load_button(C8_State * state) {
 }
 
 
-void c8_bad_rom(C8_State * state) {
+void c8_bad_rom(C8_State *state) {
     c8_message_box("Bad ROM");
     c8_reset_emulator(state);
     state->program_loaded = false;
 }
 
 
-void c8_clear(C8_State * state) {
+void c8_clear(C8_State *state) {
     memset(state->pixels, 0, sizeof (state->pixels));
 }
 
 
-void c8_return(C8_State * state) {
+void c8_return(C8_State *state) {
     state->stack_pointer--;
 
     if (state->stack_pointer > C8_ARRCOUNT(state->stack)) {
@@ -1514,18 +1514,18 @@ void c8_return(C8_State * state) {
 }
 
 
-void c8_random(C8_State * state, u8 x, u8 nn) {
+void c8_random(C8_State *state, u8 x, u8 nn) {
     int random = rand();
     u8 result = (u8) ((u16) random & nn);
     state->var_registers[x] = result;
 }
 
 
-void c8_display_sprite(C8_State * state, u8 x, u8 y, u8 n) {
+void c8_display_sprite(C8_State *state, u8 x, u8 y, u8 n) {
     u8 flag_register = 0;
     u16 sprite_x = state->var_registers[x] % C8_PIXEL_COLS;
     u16 sprite_y = state->var_registers[y] % C8_PIXEL_ROWS;
-    u8 * sprite_start = state->ram + state->index_register;
+    u8 *sprite_start = state->ram + state->index_register;
 
     for (i32 r = 0; r < n && sprite_y + r < C8_PIXEL_ROWS; r++) {
         u8 sprite_row = *(sprite_start + r);
@@ -1551,7 +1551,7 @@ void c8_display_sprite(C8_State * state, u8 x, u8 y, u8 n) {
 }
 
 
-void c8_update_emulator(C8_State * state) {
+void c8_update_emulator(C8_State *state) {
     C8_Button load_button = state->load_button;
 
     state->load_button.is_mouse_over = state->mouse_position.x >= load_button.x && state->mouse_position.x <= load_button.x + load_button.width && state->mouse_position.y >= load_button.y && state->mouse_position.y <= load_button.y + load_button.height;
@@ -1637,34 +1637,34 @@ void c8_update_emulator(C8_State * state) {
                     state->pc += 2;
                 }
             }
-            else if ((instruction & 0 xf00f) == 0 x5000) {
+            else if ((instruction &0 xf00f) == 0 x5000) {
                 if (state->var_registers[x] == state->var_registers[y]) {
                     state->pc += 2;
                 }
             }
-            else if ((instruction & 0 xf00f) == 0 x9000) {
+            else if ((instruction &0 xf00f) == 0 x9000) {
                 if (state->var_registers[x] != state->var_registers[y]) {
                     state->pc += 2;
                 }
             }
-            else if ((instruction & 0 xf00f) == 0 x8000) {
+            else if ((instruction &0 xf00f) == 0 x8000) {
                 // Set register to register
                 state->var_registers[x] = state->var_registers[y];
             }
-            else if ((instruction & 0 xf00f) == 0 x8001) {
+            else if ((instruction &0 xf00f) == 0 x8001) {
                 // Binary or
                 state->var_registers[x] = state->var_registers[x] | state->var_registers[y];
             }
-            else if ((instruction & 0 xf00f) == 0 x8002) {
+            else if ((instruction &0 xf00f) == 0 x8002) {
                 u8 result = vx & vy;
                 // Binary and
                 state->var_registers[x] = result;
             }
-            else if ((instruction & 0 xf00f) == 0 x8003) {
+            else if ((instruction &0 xf00f) == 0 x8003) {
                 // Binary xor
                 state->var_registers[x] = state->var_registers[x] ^ state->var_registers[y];
             }
-            else if ((instruction & 0 xf00f) == 0 x8004) {
+            else if ((instruction &0 xf00f) == 0 x8004) {
                 // Add
                 u16 result = state->var_registers[x] + state->var_registers[y];
                 if (result > 0 xff) {
@@ -1675,13 +1675,13 @@ void c8_update_emulator(C8_State * state) {
                 }
                 state->var_registers[x] = (u8) result;
             }
-            else if ((instruction & 0 xf00f) == 0 x8006) {
+            else if ((instruction &0 xf00f) == 0 x8006) {
                 // Shift right
                 u8 bit = state->var_registers[x] &0 x1;
                 state->var_registers[x] = state->var_registers[x] >> 1;
                 state->var_registers[C8_FLAG_REG] = bit;
             }
-            else if ((instruction & 0 xf00f) == 0 x8005) {
+            else if ((instruction &0 xf00f) == 0 x8005) {
                 // x - y
                 if (state->var_registers[x] > state->var_registers[y]) {
                     state->var_registers[C8_FLAG_REG] = 1;
@@ -1692,7 +1692,7 @@ void c8_update_emulator(C8_State * state) {
                 }
                 state->var_registers[x] = state->var_registers[x] - state->var_registers[y];
             }
-            else if ((instruction & 0 xf00f) == 0 x8007) {
+            else if ((instruction &0 xf00f) == 0 x8007) {
                 // y - x
                 if (state->var_registers[y] > state->var_registers[x]) {
                     state->var_registers[C8_FLAG_REG] = 1;
@@ -1703,13 +1703,13 @@ void c8_update_emulator(C8_State * state) {
                 }
                 state->var_registers[x] = state->var_registers[y] - state->var_registers[x];
             }
-            else if ((instruction & 0 xf00f) == 0 x800e) {
+            else if ((instruction &0 xf00f) == 0 x800e) {
                 // Shift left
                 u8 bit = state->var_registers[x] >> 7;
                 state->var_registers[x] = state->var_registers[x] << 1;
                 state->var_registers[C8_FLAG_REG] = bit;
             }
-            else if ((instruction & 0 xf0ff) == 0 xE09E) {
+            else if ((instruction &0 xf0ff) == 0 xE09E) {
                 // Skip if key pressed
                 u8 key = state->var_registers[x];
 
@@ -1717,32 +1717,32 @@ void c8_update_emulator(C8_State * state) {
                     state->pc += 2;
                 }
             }
-            else if ((instruction & 0 xf0ff) == 0 xE0A1) {
+            else if ((instruction &0 xf0ff) == 0 xE0A1) {
                 // Skip if key is not pressed
                 u8 key = state->var_registers[x];
                 if (!state->keypad.keys[key].ended_down) {
                     state->pc += 2;
                 }
             }
-            else if ((instruction & 0 xf0ff) == 0 xF00A) {
+            else if ((instruction &0 xf0ff) == 0 xF00A) {
                 // Wait for key
                 if (!state->keypad.keys[x].ended_down) {
                     state->pc -= 2;
                 }
             }
-            else if ((instruction & 0 xf0ff) == 0 xF007) {
+            else if ((instruction &0 xf0ff) == 0 xF007) {
                 // Get delay timer
                 state->var_registers[x] = state->delay_timer;
             }
-            else if ((instruction & 0 xf0ff) == 0 xF015) {
+            else if ((instruction &0 xf0ff) == 0 xF015) {
                 // Set delay timer
                 state->delay_timer = state->var_registers[x];
             }
-            else if ((instruction & 0 xf0ff) == 0 xF018) {
+            else if ((instruction &0 xf0ff) == 0 xF018) {
                 // Set sound timer
                 state->sound_timer = state->var_registers[x];
             }
-            else if ((instruction & 0 xf0ff) == 0 xF01E) {
+            else if ((instruction &0 xf0ff) == 0 xF01E) {
                 // Add to index
                 u16 result = state->index_register + vx;
 
@@ -1753,12 +1753,12 @@ void c8_update_emulator(C8_State * state) {
 
                 state->index_register = result;
             }
-            else if ((instruction & 0 xf0ff) == 0 xF029) {
+            else if ((instruction &0 xf0ff) == 0 xF029) {
                 // Point index to font
                 u8 c = (state->var_registers[x]) & 0 x0f;
                 state->index_register = C8_FONT_ADDR + (C8_FONT_SIZE * c);
             }
-            else if ((instruction & 0 xf0ff) == 0 xF033) {
+            else if ((instruction &0 xf0ff) == 0 xF033) {
                 // Decimal conversion
                 u16 start = state->index_register;
                 u8 dividend = state->var_registers[x];
@@ -1769,7 +1769,7 @@ void c8_update_emulator(C8_State * state) {
                     divisor /= 10;
                 }
             }
-            else if ((instruction & 0 xf0ff) == 0 xF055) {
+            else if ((instruction &0 xf0ff) == 0 xF055) {
                 // Store register
                 u16 start = state->index_register;
 
@@ -1777,7 +1777,7 @@ void c8_update_emulator(C8_State * state) {
                     state->ram[start + reg_i] = state->var_registers[reg_i];
                 }
             }
-            else if ((instruction & 0 xf0ff) == 0 xF065) {
+            else if ((instruction &0 xf0ff) == 0 xF065) {
                 // Load register
                 u16 start = state->index_register;
 
@@ -1798,13 +1798,13 @@ void c8_update_emulator(C8_State * state) {
 
     for (int kp = 0; kp < C8_ARRCOUNT(state->keypad.keys);
     kp++) {
-        C8_Key * k = &(state->keypad.keys[kp]);
+        C8_Key *k = &(state->keypad.keys[kp]);
         c8_reset_key(k);
     }
 
     for (int ck = 0; ck < C8_ARRCOUNT(state->control_keys.keys);
     ck++) {
-        C8_Key * k = &(state->control_keys.keys[ck]);
+        C8_Key *k = &(state->control_keys.keys[ck]);
         c8_reset_key(k);
     }
 
@@ -1827,7 +1827,7 @@ void c8_update_emulator(C8_State * state) {
 }
 
 
-void c8_app_update(C8_State * state) {
+void c8_app_update(C8_State *state) {
     state->color_vertex_count = 0;
     state->text_vertex_count = 0;
 
@@ -1835,7 +1835,7 @@ void c8_app_update(C8_State * state) {
 }
 
 
-bool c8_arena_init(C8_Arena * arena, psz size, i32 alignement) {
+bool c8_arena_init(C8_Arena *arena, psz size, i32 alignement) {
     bool result = false;
 
     assert(size % alignement == 0);
@@ -1857,7 +1857,7 @@ bool c8_arena_init(C8_Arena * arena, psz size, i32 alignement) {
 }
 
 
-void *c8_arena_alloc(C8_Arena * arena, psz size) {
+void *c8_arena_alloc(C8_Arena *arena, psz size) {
     assert(arena != 0);
 
     void *result = 0;
@@ -1880,7 +1880,7 @@ void *c8_arena_alloc(C8_Arena * arena, psz size) {
 }
 
 
-void c8_arena_free_all(C8_Arena * arena) {
+void c8_arena_free_all(C8_Arena *arena) {
     assert(arena != 0);
 
     arena->offset = 0;
