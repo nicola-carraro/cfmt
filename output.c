@@ -800,7 +800,11 @@ void c8_log_error(const char *file, uint32_t line, const char *msg) {
 HWND c8_create_window(HINSTANCE instance, int width, int height) {
     const char *class_name = "chip8";
 
-    WNDCLASS wc = {.lpfnWndProc = WindowProc, .hInstance = instance, .lpszClassName = class_name};
+    WNDCLASS wc = {
+        .lpfnWndProc = WindowProc,
+        .hInstance = instance,
+        .lpszClassName = class_name
+    };
 
     HWND window = 0;
     if (RegisterClass(&wc) != 0) {
@@ -903,7 +907,15 @@ wchar_t *c8_get_first_argument(LPWSTR cmd_line, C8_Arena *arena) {
 void c8_load_from_file_dialog(C8_State *state) {
     char path[1024] = {0};
 
-    OPENFILENAME file_name = {.lStructSize = sizeof (file_name), .hwndOwner = state->window, .hInstance = state->instance, .lpstrFilter = "Chip 8 rom (*.ch8)\0*.ch8\0All files (*.*)'\0*.*", .lpstrFile = path, .nMaxFile = C8_ARRCOUNT(path), .lpstrInitialDir = "roms"};
+    OPENFILENAME file_name = {
+        .lStructSize = sizeof (file_name),
+        .hwndOwner = state->window,
+        .hInstance = state->instance,
+        .lpstrFilter = "Chip 8 rom (*.ch8)\0*.ch8\0All files (*.*)'\0*.*",
+        .lpstrFile = path,
+        .nMaxFile = C8_ARRCOUNT(path),
+        .lpstrInitialDir = "roms"
+    };
 
     if (GetOpenFileName(&file_name)) {
         c8_load_rom(path, state);
@@ -1223,22 +1235,23 @@ void c8_load_rom(const char *path, C8_State *state) {
 
         c8_arena_free_all(&state->arena);
 
-        const u8 font_sprites[C8_FONT_SIZE *C8_FONT_COUNT] = {0 xF0, 0 x90, 0 x90, 0 x90, 0 xF0, // 0
-        0 x20, 0 x60, 0 x20, 0 x20, 0 x70, // 1
-        0 xF0, 0 x10, 0 xF0, 0 x80, 0 xF0, // 2
-        0 xF0, 0 x10, 0 xF0, 0 x10, 0 xF0, // 3
-        0 x90, 0 x90, 0 xF0, 0 x10, 0 x10, // 4
-        0 xF0, 0 x80, 0 xF0, 0 x10, 0 xF0, // 5
-        0 xF0, 0 x80, 0 xF0, 0 x90, 0 xF0, // 6
-        0 xF0, 0 x10, 0 x20, 0 x40, 0 x40, // 7
-        0 xF0, 0 x90, 0 xF0, 0 x90, 0 xF0, // 8
-        0 xF0, 0 x90, 0 xF0, 0 x10, 0 xF0, // 9
-        0 xF0, 0 x90, 0 xF0, 0 x90, 0 x90, // A
-        0 xE0, 0 x90, 0 xE0, 0 x90, 0 xE0, // B
-        0 xF0, 0 x80, 0 x80, 0 x80, 0 xF0, // C
-        0 xE0, 0 x90, 0 x90, 0 x90, 0 xE0, // D
-        0 xF0, 0 x80, 0 xF0, 0 x80, 0 xF0, // E
-        0 xF0, 0 x80, 0 xF0, 0 x80, 0 x80 // F
+        const u8 font_sprites[C8_FONT_SIZE *C8_FONT_COUNT] = {
+            0 xF0, 0 x90, 0 x90, 0 x90, 0 xF0, // 0
+            0 x20, 0 x60, 0 x20, 0 x20, 0 x70, // 1
+            0 xF0, 0 x10, 0 xF0, 0 x80, 0 xF0, // 2
+            0 xF0, 0 x10, 0 xF0, 0 x10, 0 xF0, // 3
+            0 x90, 0 x90, 0 xF0, 0 x10, 0 x10, // 4
+            0 xF0, 0 x80, 0 xF0, 0 x10, 0 xF0, // 5
+            0 xF0, 0 x80, 0 xF0, 0 x90, 0 xF0, // 6
+            0 xF0, 0 x10, 0 x20, 0 x40, 0 x40, // 7
+            0 xF0, 0 x90, 0 xF0, 0 x90, 0 xF0, // 8
+            0 xF0, 0 x90, 0 xF0, 0 x10, 0 xF0, // 9
+            0 xF0, 0 x90, 0 xF0, 0 x90, 0 x90, // A
+            0 xE0, 0 x90, 0 xE0, 0 x90, 0 xE0, // B
+            0 xF0, 0 x80, 0 x80, 0 x80, 0 xF0, // C
+            0 xE0, 0 x90, 0 x90, 0 x90, 0 xE0, // D
+            0 xF0, 0 x80, 0 xF0, 0 x80, 0 xF0, // E
+            0 xF0, 0 x80, 0 xF0, 0 x80, 0 x80 // F
         };
 
         memcpy(state->ram + C8_FONT_ADDR, font_sprites, sizeof (font_sprites));

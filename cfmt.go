@@ -342,7 +342,42 @@ func parseChar(text string) Token {
 	panic("unreachable")
 }
 
-func parseDecimal(text string) Token {
+func longSuffixLength(text string) int {
+	suffixes := []string{"i64", "ll", "l"}
+
+	for _, s := range suffixes {
+		if strings.HasPrefix(text, s) || strings.HasPrefix(text, strings.ToUpper(s)) {
+			return len(s)
+		}
+	}
+
+	return 0
+}
+
+func suffixLength(text string) int {
+	next := text
+	result := 0
+	if isUnsignedSuffix(text) {
+		result++
+		next = next[1:]
+		result += longSuffixLength(next)
+	} else {
+		lSuffixLength := longSuffixLength(next)
+		next = next[lSuffixLength:]
+		result += lSuffixLength
+		if isUnsignedSuffix(next) {
+			result++
+		}
+	}
+
+	return result
+}
+
+func isUnsignedSuffix(text string) bool {
+	return strings.HasPrefix(text, "u") || strings.HasPrefix(text, "U")
+}
+
+func parseDecimalOrOctal(text string) Token {
 	tokenSize := 0
 
 	next := text
@@ -354,7 +389,8 @@ func parseDecimal(text string) Token {
 		next = next[size:]
 		r, size = peakRune(next)
 	}
-	//TODO: handle suffixes
+
+	tokenSize += suffixLength(next)
 
 	token := Token{Type: Integer, Content: text[:tokenSize]}
 	return token
@@ -560,6 +596,10 @@ func (parser *Parser) parseToken() bool {
 	return !isAbsent(parser.Token)
 }
 
+func isOneToNine(r rune) bool {
+	return r >= 1 && r <= 9
+}
+
 func parseToken(input string) Token {
 
 	//fmt.Printf("parseToken, current token %s\n", parser.Token)
@@ -630,7 +670,7 @@ func parseToken(input string) Token {
 
 	if isDigit(r) {
 		//TODO: handle octal and hex
-		return parseDecimal(input)
+		return parseDecimalOrOctal(input)
 	}
 
 	max := 20
