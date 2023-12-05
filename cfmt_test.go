@@ -89,26 +89,27 @@ func TestFormatInitializerList(t *testing.T) {
 	input := "Foo foo = {\r\n" +
 		"0    }\r\n" +
 		";"
-
 	expected := "Foo foo = {0};\r\n"
 
 	_testFormat(t, input, expected)
 
 	input = " p = {.x,.y};\r\n"
-
 	expected = "p = {.x, .y};\r\n"
 
 	_testFormat(t, input, expected)
 
 	input = " p = {. x, . y};\r\n"
-
 	expected = "p = {.x, .y};\r\n"
 
 	_testFormat(t, input, expected)
 
 	input = " p = { .x, .y};\r\n"
-
 	expected = "p = {.x, .y};\r\n"
+
+	_testFormat(t, input, expected)
+
+	input = " p = { x, {y,\r\n z}};\r\n"
+	expected = "p = {\r\n    x, {\r\n        y,\r\n        z\r\n    }\r\n};\r\n"
 
 	_testFormat(t, input, expected)
 
@@ -136,7 +137,7 @@ func TestFormatForLoop(t *testing.T) {
 	_testFormat(t, input, expected)
 
 	input = "Foo zz = {\r\n123,\r\n\"123\"\r\n};"
-	expected = "Foo zz = {123, \"123\"};\r\n"
+	expected = "Foo zz = {\r\n    123,\r\n    \"123\"\r\n};\r\n"
 	_testFormat(t, input, expected)
 
 }
@@ -291,7 +292,7 @@ func TestFormatSingleLineComment(t *testing.T) {
 	_testFormat(t, input, expected)
 
 	input = "Foo foo = {\"123\", //A comment\r\n123};\r\n"
-	expected = "Foo foo = {\"123\", // A comment\r\n123};\r\n"
+	expected = "Foo foo = {\r\n    \"123\", // A comment\r\n    123\r\n};\r\n"
 	_testFormat(t, input, expected)
 
 	input = "//Shift left"

@@ -29,7 +29,7 @@ const (
 type Token struct {
 	Type       TokenType
 	Content    string
-	WhiteSpace WhiteSpace
+	Whitespace Whitespace
 }
 
 type StructUnionEnum struct {
@@ -47,6 +47,7 @@ type Parser struct {
 	OutputColumn          int
 	Input                 string
 	Output                strings.Builder
+	SavedInput            string
 	IsParenthesis         bool
 	IsDirective           bool
 	IsIncludeDirective    bool
@@ -54,7 +55,7 @@ type Parser struct {
 	RightSideOfAssignment bool
 }
 
-type WhiteSpace struct {
+type Whitespace struct {
 	NewLines          int
 	HasUnescapedLines bool
 }
@@ -81,7 +82,7 @@ func isSpace(r rune) bool {
 	return r == ' ' || r == '\t' || r == '\r' || r == '\n' || r == '\v' || r == '\f'
 }
 
-func (parser *Parser) consumeSpace(whiteSpace *WhiteSpace) bool {
+func (parser *Parser) consumeSpace(Whitespace *Whitespace) bool {
 
 	newLineInDirective := []string{"\\\r\n", "\\\n"}
 
@@ -89,7 +90,7 @@ func (parser *Parser) consumeSpace(whiteSpace *WhiteSpace) bool {
 		for _, nl := range newLineInDirective {
 			if parser.IsDirective && strings.HasPrefix(parser.Input, nl) {
 				parser.Input = parser.Input[len(nl):]
-				whiteSpace.NewLines++
+				Whitespace.NewLines++
 				return true
 			}
 		}
@@ -100,8 +101,8 @@ func (parser *Parser) consumeSpace(whiteSpace *WhiteSpace) bool {
 
 	if r == '\n' {
 		parser.Input = parser.Input[size:]
-		whiteSpace.NewLines++
-		whiteSpace.HasUnescapedLines = true
+		Whitespace.NewLines++
+		Whitespace.HasUnescapedLines = true
 
 		if parser.IsDirective {
 			parser.IsDirective = false
@@ -531,12 +532,12 @@ func (parser *Parser) parseToken() bool {
 		parser.RightSideOfAssignment = false
 	}
 
-	parser.Token.WhiteSpace = skipSpaceAndCountNewLines(parser)
+	parser.Token.Whitespace = skipSpaceAndCountNewLines(parser)
 
 	parser.NextToken = parseToken(parser.Input)
 	parser.Input = parser.Input[len(parser.NextToken.Content):]
 
-	if parser.Token.WhiteSpace.HasUnescapedLines {
+	if parser.Token.Whitespace.HasUnescapedLines {
 		parser.IsDirective = false
 		parser.IsIncludeDirective = false
 	}
@@ -646,9 +647,9 @@ func startsWithNewLine(input string) bool {
 	return strings.HasPrefix(input, "\r\n")
 }
 
-func skipSpaceAndCountNewLines(parser *Parser) WhiteSpace {
+func skipSpaceAndCountNewLines(parser *Parser) Whitespace {
 
-	result := WhiteSpace{}
+	result := Whitespace{}
 
 	for parser.consumeSpace(&result) {
 	}
@@ -772,7 +773,15 @@ func (parser *Parser) writeNewLines(lines int) {
 	}
 }
 
-func formatInitialiserList(parser *Parser) {
+func hasNewLines(token Token) bool {
+	return token.Whitespace.NewLines > 0
+}
+
+func isComment(token Token) bool {
+	return isSingleLineComment(token) || isMultilineComment(token)
+}
+
+func tryFormatInlineInitialiserList(parser *Parser) bool {
 	openBraces := 1
 
 	//fmt.Println(parser.Input)
@@ -785,15 +794,71 @@ func formatInitialiserList(parser *Parser) {
 			openBraces--
 		}
 
+		if isComma(parser.Token) && hasNewLines(parser.Token) {
+			return false
+		}
+
+		if isComment(parser.Token) {
+			return false
+		}
+
 		if isLeftBrace(parser.Token) {
 
-			formatInitialiserList(parser)
+			if !tryFormatInlineInitialiserList(parser) {
+				return false
+			}
 			continue
 		}
 
 		if isSingleLineComment(parser.Token) {
 			parser.writeNewLines(1)
-		} else if !neverWhiteSpace(parser) &&
+		} else if !neverWhitespace(parser) &&
+			!isRightBrace(parser.NextToken) &&
+			!isRightBrace(parser.Token) {
+			parser.Output.WriteString(" ")
+		}
+
+		if openBraces == 0 {
+			return true
+		}
+	}
+
+	log.Fatal("Unclosed initialiser list")
+	panic("unreachable")
+}
+
+func formatMultilineInitialiserList(parser *Parser) {
+	openBraces := 1
+
+	parser.Indent++
+
+	parser.writeNewLines(1)
+
+	for parser.parseToken() {
+
+		parser.formatToken()
+		if isRightBrace(parser.NextToken) {
+			parser.Indent--
+		}
+
+		if isRightBrace(parser.Token) {
+			openBraces--
+		}
+
+		if isLeftBrace(parser.Token) {
+
+			formatMultilineInitialiserList(parser)
+
+			continue
+		}
+
+		if isRightBrace(parser.NextToken) {
+			parser.writeNewLines(1)
+		} else if isComma(parser.Token) && hasNewLines(parser.Token) {
+			parser.writeNewLines(1)
+		} else if isSingleLineComment(parser.Token) {
+			parser.writeNewLines(1)
+		} else if !neverWhitespace(parser) &&
 			!isRightBrace(parser.NextToken) &&
 			!isRightBrace(parser.Token) {
 			parser.Output.WriteString(" ")
@@ -807,8 +872,19 @@ func formatInitialiserList(parser *Parser) {
 	log.Fatal("Unclosed initialiser list")
 }
 
+func formatInitialiserList(parser *Parser) {
+
+	initialState := *parser
+
+	if !tryFormatInlineInitialiserList(parser) {
+		*parser = initialState
+		formatMultilineInitialiserList(parser)
+	}
+
+}
+
 func (parser *Parser) oneOrTwoLines() {
-	if parser.Token.WhiteSpace.NewLines <= 1 || isRightBrace(parser.NextToken) {
+	if parser.Token.Whitespace.NewLines <= 1 || isRightBrace(parser.NextToken) {
 		parser.writeNewLines(1)
 
 	} else {
@@ -837,7 +913,7 @@ func isPrefixIncrDecr(parser *Parser) bool {
 }
 
 func (parser *Parser) hasTrailingComment() bool {
-	return isSingleLineComment(parser.NextToken) && parser.Token.WhiteSpace.NewLines == 0
+	return isSingleLineComment(parser.NextToken) && parser.Token.Whitespace.NewLines == 0
 }
 
 func formatBlockBody(parser *Parser) {
@@ -886,7 +962,7 @@ func formatBlockBody(parser *Parser) {
 			parser.writeNewLines(1)
 		} else if (isSemicolon(parser.Token) && !parser.IsParenthesis && !parser.hasTrailingComment()) || parser.IsEndOfDirective {
 			parser.oneOrTwoLines()
-		} else if !neverWhiteSpace(parser) &&
+		} else if !neverWhitespace(parser) &&
 			!isDotOperator(parser.NextToken) {
 			parser.Output.WriteString(" ")
 		}
@@ -955,7 +1031,7 @@ func formatDeclarationBody(parser *Parser) {
 			parser.writeNewLines(1)
 		} else if isSemicolon(parser.Token) && !parser.hasTrailingComment() {
 			parser.writeNewLines(1)
-		} else if !neverWhiteSpace(parser) &&
+		} else if !neverWhitespace(parser) &&
 			!isDotOperator(parser.NextToken) &&
 			!isSemicolon(parser.NextToken) {
 			parser.Output.WriteString(" ")
@@ -989,7 +1065,7 @@ func isNegation(token Token) bool {
 	return token.Type == Punctuation && token.Content == "!"
 }
 
-func neverWhiteSpace(parser *Parser) bool {
+func neverWhitespace(parser *Parser) bool {
 
 	return isSemicolon(parser.NextToken) ||
 		isLeftParenthesis(parser.Token) ||
@@ -1054,7 +1130,7 @@ func format(input string) string {
 			isDirective(parser.NextToken) ||
 			(isSemicolon(parser.Token) && !parser.IsParenthesis && !parser.hasTrailingComment()) {
 			parser.threeLinesOrEof()
-		} else if !neverWhiteSpace(parser) &&
+		} else if !neverWhitespace(parser) &&
 			!isRightBrace(parser.NextToken) &&
 			!isDotOperator(parser.NextToken) &&
 			!isLeftBrace(parser.Token) {
