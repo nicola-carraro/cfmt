@@ -48,6 +48,44 @@ func TestTokenizeFloat(t *testing.T) {
 	_testTokenizeSingleToken(t, "123e+86", Float)
 }
 
+func TestTokenizeInteger(t *testing.T) {
+	_testTokenizeSingleToken(t, "0", Integer)
+	_testTokenizeSingleToken(t, "3", Integer)
+	_testTokenizeSingleToken(t, "0x1C", Integer)
+	_testTokenizeSingleToken(t, "034", Integer)
+	_testTokenizeSingleToken(t, "28", Integer)
+
+	_testTokenizeSingleToken(t, "024", Integer)
+	_testTokenizeSingleToken(t, "4000000024u", Integer)
+	_testTokenizeSingleToken(t, "2000000022l", Integer)
+	_testTokenizeSingleToken(t, "4000000000ul", Integer)
+	_testTokenizeSingleToken(t, "9000000000LL", Integer)
+	_testTokenizeSingleToken(t, "900000000001ull", Integer)
+	_testTokenizeSingleToken(t, "9000000000002I64", Integer)
+	_testTokenizeSingleToken(t, "90000000000004ui64", Integer)
+
+
+	_testTokenizeSingleToken(t, "024", Integer)
+	_testTokenizeSingleToken(t, "04000000024u", Integer)
+	_testTokenizeSingleToken(t, "02000000022l", Integer)
+	_testTokenizeSingleToken(t, "04000000000UL", Integer)
+	_testTokenizeSingleToken(t, "044000000000000ll", Integer)
+	_testTokenizeSingleToken(t, "044400000000000001Ull", Integer)
+	_testTokenizeSingleToken(t, "04444000000000000002i64", Integer)
+	_testTokenizeSingleToken(t, "04444000000000000004uI64", Integer)
+
+	_testTokenizeSingleToken(t, "0x2a", Integer)
+	_testTokenizeSingleToken(t, "0XA0000024u", Integer)
+	_testTokenizeSingleToken(t, "0x20000022l", Integer)
+	_testTokenizeSingleToken(t, "0XA0000021uL", Integer)
+	_testTokenizeSingleToken(t, "0x8a000000000000ll", Integer)
+	_testTokenizeSingleToken(t, "0x8A40000000000010uLL", Integer)
+	_testTokenizeSingleToken(t, "0x4a44000000000020I64", Integer)
+	_testTokenizeSingleToken(t, "0x8a44000000000040Ui64", Integer)
+
+
+}
+
 func TestFormatStructDecl(t *testing.T) {
 	input :=
 		"typedef struct {\r\n" +

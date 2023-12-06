@@ -74,10 +74,6 @@ func isDigit(r rune) bool {
 	return r >= '0' && r <= '9'
 }
 
-func isNonzeroDigit(r rune) bool {
-	return r >= '1' && r <= '9'
-}
-
 func isSpace(r rune) bool {
 	return r == ' ' || r == '\t' || r == '\r' || r == '\n' || r == '\v' || r == '\f'
 }
@@ -377,12 +373,58 @@ func isUnsignedSuffix(text string) bool {
 	return strings.HasPrefix(text, "u") || strings.HasPrefix(text, "U")
 }
 
-func parseDecimalOrOctal(text string) Token {
+func isOctalDigit(r rune) bool {
+	return (r >= '0' && r <= '7')
+}
+
+func isHexDigit(r rune) bool {
+	return (r >= '0' && r <= '9') || (r >= 'a' && r <= 'f') || (r >= 'A' && r <= 'F')
+}
+
+func parseHex(text string) Token {
+	tokenSize := 2
+
+	next := text[2:]
+
+	r, size := peakRune(next)
+
+	for isHexDigit(r) {
+		tokenSize += size
+		next = next[size:]
+		r, size = peakRune(next)
+	}
+
+	tokenSize += suffixLength(next)
+
+	token := Token{Type: Integer, Content: text[:tokenSize]}
+	return token
+}
+
+func parseOctal(text string) Token {
 	tokenSize := 0
 
 	next := text
 
-	r, size := peakRune(text)
+	r, size := peakRune(next)
+
+	for isOctalDigit(r) {
+		tokenSize += size
+		next = next[size:]
+		r, size = peakRune(next)
+	}
+
+	tokenSize += suffixLength(next)
+
+	token := Token{Type: Integer, Content: text[:tokenSize]}
+	return token
+}
+
+func parseDecimal(text string) Token {
+	tokenSize := 0
+
+	next := text
+
+	r, size := peakRune(next)
 
 	for isDigit(r) {
 		tokenSize += size
@@ -597,7 +639,7 @@ func (parser *Parser) parseToken() bool {
 }
 
 func isOneToNine(r rune) bool {
-	return r >= 1 && r <= 9
+	return r >= '1' && r <= '9'
 }
 
 func parseToken(input string) Token {
@@ -668,9 +710,18 @@ func parseToken(input string) Token {
 		return token
 	}
 
-	if isDigit(r) {
+	if strings.HasPrefix(input, "0x") || strings.HasPrefix(input, "0X") {
+		return parseHex(input)
+
+	}
+
+	if isOneToNine(r) {
 		//TODO: handle octal and hex
-		return parseDecimalOrOctal(input)
+		return parseDecimal(input)
+	}
+
+	if r == '0' {
+		return parseOctal(input)
 	}
 
 	max := 20
