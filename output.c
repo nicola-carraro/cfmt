@@ -1142,7 +1142,7 @@ bool c8_read_entire_file(const char *path, C8_Arena *arena, C8_File *read_result
 
 
 u16 c8_read_instruction(u16 bytes) {
-    u16 result = ((bytes & 0 x00ff) << 8) | ((bytes & 0 xff00) >> 8);
+    u16 result = ((bytes & 0x00ff) << 8) | ((bytes & 0xff00) >> 8);
     return result;
 }
 
@@ -1236,22 +1236,22 @@ void c8_load_rom(const char *path, C8_State *state) {
         c8_arena_free_all(&state->arena);
 
         const u8 font_sprites[C8_FONT_SIZE *C8_FONT_COUNT] = {
-            0 xF0, 0 x90, 0 x90, 0 x90, 0 xF0, // 0
-            0 x20, 0 x60, 0 x20, 0 x20, 0 x70, // 1
-            0 xF0, 0 x10, 0 xF0, 0 x80, 0 xF0, // 2
-            0 xF0, 0 x10, 0 xF0, 0 x10, 0 xF0, // 3
-            0 x90, 0 x90, 0 xF0, 0 x10, 0 x10, // 4
-            0 xF0, 0 x80, 0 xF0, 0 x10, 0 xF0, // 5
-            0 xF0, 0 x80, 0 xF0, 0 x90, 0 xF0, // 6
-            0 xF0, 0 x10, 0 x20, 0 x40, 0 x40, // 7
-            0 xF0, 0 x90, 0 xF0, 0 x90, 0 xF0, // 8
-            0 xF0, 0 x90, 0 xF0, 0 x10, 0 xF0, // 9
-            0 xF0, 0 x90, 0 xF0, 0 x90, 0 x90, // A
-            0 xE0, 0 x90, 0 xE0, 0 x90, 0 xE0, // B
-            0 xF0, 0 x80, 0 x80, 0 x80, 0 xF0, // C
-            0 xE0, 0 x90, 0 x90, 0 x90, 0 xE0, // D
-            0 xF0, 0 x80, 0 xF0, 0 x80, 0 xF0, // E
-            0 xF0, 0 x80, 0 xF0, 0 x80, 0 x80 // F
+            0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+            0x20, 0x60, 0x20, 0x20, 0x70, // 1
+            0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+            0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+            0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+            0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+            0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+            0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+            0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+            0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+            0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+            0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+            0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+            0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+            0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+            0xF0, 0x80, 0xF0, 0x80, 0x80 // F
         };
 
         memcpy(state->ram + C8_FONT_ADDR, font_sprites, sizeof (font_sprites));
@@ -1365,14 +1365,14 @@ void c8_add_number_to_register(C8_State *state, u8 x, u8 nn) {
     u8 vx = state->var_registers[x];
     u16 result = (u16) vx + (u16) nn;
 
-    if (result > 0 xff) {
+    if (result > 0xff) {
         state->var_registers[C8_FLAG_REG] = 1;
     }
     else {
         state->var_registers[C8_FLAG_REG] = 0;
     }
 
-    state->var_registers[x] = (result & 0 xff);
+    state->var_registers[x] = (result & 0xff);
 }
 
 
@@ -1544,8 +1544,8 @@ void c8_display_sprite(C8_State *state, u8 x, u8 y, u8 n) {
         u8 sprite_row = *(sprite_start + r);
 
         for (i32 c = 0; c < 8 && sprite_x + c < C8_PIXEL_COLS; c++) {
-            u8 on = (sprite_row >> (7 - c)) & 0 x01;
-            if (on == 0 x01) {
+            u8 on = (sprite_row >> (7 - c)) & 0x01;
+            if (on == 0x01) {
                 if (state->pixels[sprite_y + r][sprite_x + c]) {
                     state->pixels[sprite_y + r][sprite_x + c] = false;
                 }
@@ -1555,7 +1555,7 @@ void c8_display_sprite(C8_State *state, u8 x, u8 y, u8 n) {
                 flag_register = 1;
             }
             else {
-                assert(on == 0 x00);
+                assert(on == 0x00);
             }
         }
     }
@@ -1597,90 +1597,90 @@ void c8_update_emulator(C8_State *state) {
 
             u8 op = instruction >> 12;
 
-            u8 x = (instruction & 0 x0f00) >> 8;
-            u8 y = (instruction & 0 x00f0) >> 4;
-            u8 n = (instruction & 0 x000f);
-            u8 nn = (instruction & 0 x00ff);
-            u16 nnn = (instruction & 0 x0fff);
+            u8 x = (instruction & 0x0f00) >> 8;
+            u8 y = (instruction & 0x00f0) >> 4;
+            u8 n = (instruction & 0x000f);
+            u8 nn = (instruction & 0x00ff);
+            u16 nnn = (instruction & 0x0fff);
 
             u8 vx = state->var_registers[x];
             u8 vy = state->var_registers[y];
 
             state->pc += 2;
 
-            if (instruction == 0 x00e0) {
+            if (instruction == 0x00e0) {
                 c8_clear(state);
             }
-            else if (op == 0 x1) {
+            else if (op == 0x1) {
                 // Jump
                 state->pc = nnn;
             }
-            else if (op == 0 x2) {
+            else if (op == 0x2) {
                 c8_call(state, nnn);
             }
-            else if (instruction == 0 x00ee) {
+            else if (instruction == 0x00ee) {
                 c8_return(state);
             }
-            else if (op == 0 x6) {
+            else if (op == 0x6) {
                 // Set register
                 state->var_registers[x] = nn;
             }
-            else if (op == 0 x7) {
+            else if (op == 0x7) {
                 // Add number to register
                 c8_add_number_to_register(state, x, nn);
             }
-            else if (op == 0 xa) {
+            else if (op == 0xa) {
                 // Set index to register
                 state->index_register = nnn;
             }
-            else if (op == 0 xc) {
+            else if (op == 0xc) {
                 c8_random(state, x, nn);
             }
-            else if (op == 0 xd) {
+            else if (op == 0xd) {
                 c8_display_sprite(state, x, y, n);
             }
             // Skip
-            else if (op == 0 x3) {
+            else if (op == 0x3) {
                 if (vx == nn) {
                     state->pc += 2;
                 }
             }
-            else if (op == 0 x4) {
+            else if (op == 0x4) {
                 if (vx != nn) {
                     state->pc += 2;
                 }
             }
-            else if ((instruction &0 xf00f) == 0 x5000) {
+            else if ((instruction &0xf00f) == 0x5000) {
                 if (state->var_registers[x] == state->var_registers[y]) {
                     state->pc += 2;
                 }
             }
-            else if ((instruction &0 xf00f) == 0 x9000) {
+            else if ((instruction &0xf00f) == 0x9000) {
                 if (state->var_registers[x] != state->var_registers[y]) {
                     state->pc += 2;
                 }
             }
-            else if ((instruction &0 xf00f) == 0 x8000) {
+            else if ((instruction &0xf00f) == 0x8000) {
                 // Set register to register
                 state->var_registers[x] = state->var_registers[y];
             }
-            else if ((instruction &0 xf00f) == 0 x8001) {
+            else if ((instruction &0xf00f) == 0x8001) {
                 // Binary or
                 state->var_registers[x] = state->var_registers[x] | state->var_registers[y];
             }
-            else if ((instruction &0 xf00f) == 0 x8002) {
+            else if ((instruction &0xf00f) == 0x8002) {
                 u8 result = vx & vy;
                 // Binary and
                 state->var_registers[x] = result;
             }
-            else if ((instruction &0 xf00f) == 0 x8003) {
+            else if ((instruction &0xf00f) == 0x8003) {
                 // Binary xor
                 state->var_registers[x] = state->var_registers[x] ^ state->var_registers[y];
             }
-            else if ((instruction &0 xf00f) == 0 x8004) {
+            else if ((instruction &0xf00f) == 0x8004) {
                 // Add
                 u16 result = state->var_registers[x] + state->var_registers[y];
-                if (result > 0 xff) {
+                if (result > 0xff) {
                     state->var_registers[C8_FLAG_REG] = 1;
                 }
                 else {
@@ -1688,13 +1688,13 @@ void c8_update_emulator(C8_State *state) {
                 }
                 state->var_registers[x] = (u8) result;
             }
-            else if ((instruction &0 xf00f) == 0 x8006) {
+            else if ((instruction &0xf00f) == 0x8006) {
                 // Shift right
-                u8 bit = state->var_registers[x] &0 x1;
+                u8 bit = state->var_registers[x] &0x1;
                 state->var_registers[x] = state->var_registers[x] >> 1;
                 state->var_registers[C8_FLAG_REG] = bit;
             }
-            else if ((instruction &0 xf00f) == 0 x8005) {
+            else if ((instruction &0xf00f) == 0x8005) {
                 // x - y
                 if (state->var_registers[x] > state->var_registers[y]) {
                     state->var_registers[C8_FLAG_REG] = 1;
@@ -1705,7 +1705,7 @@ void c8_update_emulator(C8_State *state) {
                 }
                 state->var_registers[x] = state->var_registers[x] - state->var_registers[y];
             }
-            else if ((instruction &0 xf00f) == 0 x8007) {
+            else if ((instruction &0xf00f) == 0x8007) {
                 // y - x
                 if (state->var_registers[y] > state->var_registers[x]) {
                     state->var_registers[C8_FLAG_REG] = 1;
@@ -1716,13 +1716,13 @@ void c8_update_emulator(C8_State *state) {
                 }
                 state->var_registers[x] = state->var_registers[y] - state->var_registers[x];
             }
-            else if ((instruction &0 xf00f) == 0 x800e) {
+            else if ((instruction &0xf00f) == 0x800e) {
                 // Shift left
                 u8 bit = state->var_registers[x] >> 7;
                 state->var_registers[x] = state->var_registers[x] << 1;
                 state->var_registers[C8_FLAG_REG] = bit;
             }
-            else if ((instruction &0 xf0ff) == 0 xE09E) {
+            else if ((instruction &0xf0ff) == 0xE09E) {
                 // Skip if key pressed
                 u8 key = state->var_registers[x];
 
@@ -1730,48 +1730,48 @@ void c8_update_emulator(C8_State *state) {
                     state->pc += 2;
                 }
             }
-            else if ((instruction &0 xf0ff) == 0 xE0A1) {
+            else if ((instruction &0xf0ff) == 0xE0A1) {
                 // Skip if key is not pressed
                 u8 key = state->var_registers[x];
                 if (!state->keypad.keys[key].ended_down) {
                     state->pc += 2;
                 }
             }
-            else if ((instruction &0 xf0ff) == 0 xF00A) {
+            else if ((instruction &0xf0ff) == 0xF00A) {
                 // Wait for key
                 if (!state->keypad.keys[x].ended_down) {
                     state->pc -= 2;
                 }
             }
-            else if ((instruction &0 xf0ff) == 0 xF007) {
+            else if ((instruction &0xf0ff) == 0xF007) {
                 // Get delay timer
                 state->var_registers[x] = state->delay_timer;
             }
-            else if ((instruction &0 xf0ff) == 0 xF015) {
+            else if ((instruction &0xf0ff) == 0xF015) {
                 // Set delay timer
                 state->delay_timer = state->var_registers[x];
             }
-            else if ((instruction &0 xf0ff) == 0 xF018) {
+            else if ((instruction &0xf0ff) == 0xF018) {
                 // Set sound timer
                 state->sound_timer = state->var_registers[x];
             }
-            else if ((instruction &0 xf0ff) == 0 xF01E) {
+            else if ((instruction &0xf0ff) == 0xF01E) {
                 // Add to index
                 u16 result = state->index_register + vx;
 
-                if (result > 0 x0fff) {
+                if (result > 0x0fff) {
                     state->var_registers[C8_FLAG_REG] = 1;
-                    result &= 0 x0fff;
+                    result &= 0x0fff;
                 }
 
                 state->index_register = result;
             }
-            else if ((instruction &0 xf0ff) == 0 xF029) {
+            else if ((instruction &0xf0ff) == 0xF029) {
                 // Point index to font
-                u8 c = (state->var_registers[x]) & 0 x0f;
+                u8 c = (state->var_registers[x]) & 0x0f;
                 state->index_register = C8_FONT_ADDR + (C8_FONT_SIZE * c);
             }
-            else if ((instruction &0 xf0ff) == 0 xF033) {
+            else if ((instruction &0xf0ff) == 0xF033) {
                 // Decimal conversion
                 u16 start = state->index_register;
                 u8 dividend = state->var_registers[x];
@@ -1782,7 +1782,7 @@ void c8_update_emulator(C8_State *state) {
                     divisor /= 10;
                 }
             }
-            else if ((instruction &0 xf0ff) == 0 xF055) {
+            else if ((instruction &0xf0ff) == 0xF055) {
                 // Store register
                 u16 start = state->index_register;
 
@@ -1790,7 +1790,7 @@ void c8_update_emulator(C8_State *state) {
                     state->ram[start + reg_i] = state->var_registers[reg_i];
                 }
             }
-            else if ((instruction &0 xf0ff) == 0 xF065) {
+            else if ((instruction &0xf0ff) == 0xF065) {
                 // Load register
                 u16 start = state->index_register;
 

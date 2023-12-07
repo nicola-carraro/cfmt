@@ -848,19 +848,26 @@ func isAbsent(token Token) bool {
 	return token.Type == NoTokenType
 }
 
+func (parser *Parser) writeString(str string) {
+    parser.Output.WriteString(str)
+	parser.OutputColumn+=len(str)
+}
+
 func (parser *Parser) writeNewLines(lines int) {
 	const newLine = "\r\n"
 
 	for line := 0; line < lines; line++ {
 
 		if parser.IsDirective {
-			parser.Output.WriteString("\\")
+			parser.writeString("\\")
 		}
-		parser.Output.WriteString(newLine)
+		parser.writeString(newLine)
+		parser.OutputColumn = 0
+		parser.OutputLine++
 	}
 
 	for indentLevel := 0; indentLevel < parser.Indent; indentLevel++ {
-		parser.Output.WriteString(indentation)
+		parser.writeString(indentation)
 	}
 }
 
@@ -906,7 +913,7 @@ func tryFormatInlineInitialiserList(parser *Parser) bool {
 		} else if !neverWhitespace(parser) &&
 			!isRightBrace(parser.NextToken) &&
 			!isRightBrace(parser.Token) {
-			parser.Output.WriteString(" ")
+			parser.writeString(" ")
 		}
 
 		if openBraces == 0 {
@@ -952,7 +959,7 @@ func formatMultilineInitialiserList(parser *Parser) {
 		} else if !neverWhitespace(parser) &&
 			!isRightBrace(parser.NextToken) &&
 			!isRightBrace(parser.Token) {
-			parser.Output.WriteString(" ")
+			parser.writeString(" ")
 		}
 
 		if openBraces == 0 {
@@ -1055,7 +1062,7 @@ func formatBlockBody(parser *Parser) {
 			parser.oneOrTwoLines()
 		} else if !neverWhitespace(parser) &&
 			!isDotOperator(parser.NextToken) {
-			parser.Output.WriteString(" ")
+			parser.writeString(" ")
 		}
 	}
 
@@ -1066,25 +1073,25 @@ func (parser *Parser) formatMultilineComment() {
 	text := strings.TrimSpace(parser.Token.Content[2 : len(parser.Token.Content)-2])
 
 	lines := strings.Split(text, "\n")
-	parser.Output.WriteString("/*")
+	parser.writeString("/*")
 
 	for _, line := range lines {
 		trimmed := strings.TrimSpace(line)
 
 		parser.writeNewLines(1)
 		if len(trimmed) > 0 {
-			parser.Output.WriteString("   ")
-			parser.Output.WriteString(trimmed)
+			parser.writeString("   ")
+			parser.writeString(trimmed)
 		}
 	}
 	parser.writeNewLines(1)
-	parser.Output.WriteString("*/")
+	parser.writeString("*/")
 }
 
 func (parser *Parser) formatSingleLineComment() {
 	text := strings.TrimSpace(parser.Token.Content[2:])
-	parser.Output.WriteString("// ")
-	parser.Output.WriteString(text)
+	parser.writeString("// ")
+	parser.writeString(text)
 }
 
 func (parser *Parser) formatToken() {
@@ -1094,7 +1101,7 @@ func (parser *Parser) formatToken() {
 	} else if isSingleLineComment(parser.Token) {
 		parser.formatSingleLineComment()
 	} else {
-		parser.Output.WriteString(parser.Token.Content)
+		parser.writeString(parser.Token.Content)
 	}
 }
 
@@ -1125,7 +1132,7 @@ func formatDeclarationBody(parser *Parser) {
 		} else if !neverWhitespace(parser) &&
 			!isDotOperator(parser.NextToken) &&
 			!isSemicolon(parser.NextToken) {
-			parser.Output.WriteString(" ")
+			parser.writeString(" ")
 		}
 
 		if parser.Indent == initialIndent {
@@ -1225,7 +1232,7 @@ func format(input string) string {
 			!isRightBrace(parser.NextToken) &&
 			!isDotOperator(parser.NextToken) &&
 			!isLeftBrace(parser.Token) {
-			parser.Output.WriteString(" ")
+			parser.writeString(" ")
 		}
 	}
 
