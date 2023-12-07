@@ -64,6 +64,8 @@ const indentation = "    "
 
 const allowWrap = 90
 
+const maxInlineFunctionArgs = 5
+
 func isIdentifierStart(r rune) bool {
 	return (r >= 'A' && r <= 'Z') || (r >= 'a' && r <= 'z') || (r == '_')
 }
@@ -979,9 +981,18 @@ func formatMultilineInitialiserList(parser *Parser) {
 }
 
 func tryFormatInlineFunctionArguments(parser *Parser) bool {
+	commas := 0
 	for parser.parseToken() {
 
-		if parser.OutputColumn > allowWrap {
+		if(isComma(parser.Token)){
+			commas++
+		}
+
+		if parser.OutputColumn > allowWrap  {
+			return false
+		}
+
+		if(commas >= maxInlineFunctionArgs){
 			return false
 		}
 

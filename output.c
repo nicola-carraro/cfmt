@@ -1166,7 +1166,15 @@ void c8_emulator_frame(C8_State *state) {
 }
 
 
-void c8_color_vertex(C8_State *state, float x, float y, u8 r, u8 g, u8 b, u8 a) {
+void c8_color_vertex(
+    C8_State *state,
+    float x,
+    float y,
+    u8 r,
+    u8 g,
+    u8 b,
+    u8 a
+) {
     assert(state->color_vertex_count < C8_ARRCOUNT(state->color_vertices));
 
     if (state->color_vertex_count < C8_ARRCOUNT(state->color_vertices)) {
