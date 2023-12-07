@@ -415,7 +415,6 @@ func TestFunctionArguments(t *testing.T) {
 	expected = "bool c8_read_entire_file(const char *path, C8_Arena *arena, C8_File *read_result) {\r\n}\r\n"
 	_testFormat(t, input, expected)
 
-
 	input = "bool foo(int a, int b, int c, int d, int e) {\r\n}\r\n"
 	expected = "bool foo(int a, int b, int c, int d, int e) {\r\n}\r\n"
 	_testFormat(t, input, expected)

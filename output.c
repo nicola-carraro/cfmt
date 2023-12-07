@@ -1,3 +1,418 @@
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
+Token{Type: Punctuation, Content: ")"}
 #ifndef CHIP8_C
 
 
@@ -13,13 +428,28 @@
 #include "chip8.h"
 
 
-#pragma comment(lib, "kernel32.lib") #pragma comment(lib, "user32.lib") #pragma comment(\
-    lib,\
-    "D3d9.lib"\
-) #pragma comment(lib, "Dsound.lib") #pragma comment(lib, "Dsound.lib") #pragma comment(\
-    lib,\
-    "ole32.lib"\
-) #pragma comment(lib, "Comdlg32.lib") void c8_render_text(C8_State *state) {
+#pragma comment(lib, "kernel32.lib")
+
+
+#pragma comment(lib, "user32.lib")
+
+
+#pragma comment(lib, "D3d9.lib")
+
+
+#pragma comment(lib, "Dsound.lib")
+
+
+#pragma comment(lib, "Dsound.lib")
+
+
+#pragma comment(lib, "ole32.lib")
+
+
+#pragma comment(lib, "Comdlg32.lib")
+
+
+void c8_render_text(C8_State *state) {
     HRESULT hr = IDirect3DDevice9_SetFVF(state->d3d_dev, C8_TEX_FVF);
 
     if (FAILED(hr)) {
@@ -27,7 +457,14 @@
         assert(false);
     }
 
-    hr = IDirect3DDevice9_SetStreamSource(state->d3d_dev, 0, state->text_vb, 0, sizeof (C8_D3D_Texture_Vertex));
+    hr = IDirect3DDevice9_SetStreamSource(
+        state->d3d_dev,
+        0,
+        state->text_vb,
+        0,
+        sizeof (C8_D3D_Texture_Vertex
+        )
+    );
 
     if (FAILED(hr)) {
         C8_LOG_ERROR("Could not set stream source texture\n");
@@ -47,7 +484,12 @@
             vertex.u = source_vertex.u;
             vertex.v = source_vertex.v;
             C8_Rgba source_color = source_vertex.color;
-            vertex.color = D3DCOLOR_ARGB(source_color.a, source_color.r, source_color.g, source_color.b);
+            vertex.color = D3DCOLOR_ARGB(
+                source_color .a,
+                source_color .r,
+                source_color .g,
+                source_color .b
+            );
             vertices[i] = vertex;
         }
 
@@ -80,7 +522,11 @@
         assert(false);
     }
 
-    hr = IDirect3DDevice9_SetRenderState(state->d3d_dev, D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+    hr = IDirect3DDevice9_SetRenderState(
+        state->d3d_dev,
+        D3DRS_DESTBLEND,
+        D3DBLEND_INVSRCALPHA
+    );
     if (FAILED(hr)) {
         C8_LOG_ERROR("Could not set D3DBLEND_INVSRCALPHA\n");
         assert(false);
@@ -92,13 +538,23 @@
         assert(false);
     }
 
-    hr = IDirect3DDevice9_SetTexture(state->d3d_dev, 0, (IDirect3DBaseTexture9 *) state->texture);
+    hr = IDirect3DDevice9_SetTexture(
+        state->d3d_dev,
+        0,
+        (IDirect3DBaseTexture9 *
+        ) state->texture
+    );
     if (FAILED(hr)) {
         C8_LOG_ERROR("Could not set texture\n");
         assert(false);
     }
 
-    hr = IDirect3DDevice9_DrawPrimitive(state->d3d_dev, D3DPT_TRIANGLELIST, 0, state->text_vertex_count);
+    hr = IDirect3DDevice9_DrawPrimitive(
+        state->d3d_dev,
+        D3DPT_TRIANGLELIST,
+        0,
+        state->text_vertex_count
+    );
     if (FAILED(hr)) {
         C8_LOG_ERROR("Could not draw primitive\n");
 
@@ -120,7 +576,17 @@ BOOL c8_load_font(C8_State *state, const char *file_name) {
         state->font = font;
 
         u8 *input_bitmap = (u8 *) file.data + sizeof (font);
-        HRESULT textureCreated = IDirect3DDevice9_CreateTexture(state->d3d_dev, font.width, font.height, 0, 0, D3DFMT_A32B32G32R32F, D3DPOOL_MANAGED, &state->texture, NULL);
+        HRESULT textureCreated = IDirect3DDevice9_CreateTexture(
+            state->d3d_dev,
+            font .width,
+            font .height,
+            0,
+            0,
+            D3DFMT_A32B32G32R32F,
+            D3DPOOL_MANAGED,
+            &state->texture,
+            NULL
+        );
 
         if (SUCCEEDED(textureCreated)) {
             D3DLOCKED_RECT out_rect = {0};
@@ -151,7 +617,16 @@ BOOL c8_load_font(C8_State *state, const char *file_name) {
 
             HRESULT unlocked = IDirect3DTexture9_UnlockRect(state->texture, 0);
             if (SUCCEEDED(unlocked)) {
-                HRESULT vb_created = IDirect3DDevice9_CreateVertexBuffer(state->d3d_dev, sizeof (state->text_vertices), 0, C8_TEX_FVF, D3DPOOL_MANAGED, &state->text_vb, 0);
+                HRESULT vb_created = IDirect3DDevice9_CreateVertexBuffer(
+                    state->d3d_dev,
+                    sizeof (state->text_vertices
+                    ),
+                    0,
+                    C8_TEX_FVF,
+                    D3DPOOL_MANAGED,
+                    &state->text_vb,
+                    0
+                );
 
                 if (SUCCEEDED(vb_created)) {
                     result = TRUE;
@@ -283,7 +758,7 @@ void c8_render_color(C8_State *state) {
             win_vertex.y = vertex.y;
             win_vertex.rhw = 1.0f;
             C8_Rgba color = vertex.color;
-            win_vertex.color = D3DCOLOR_ARGB(color.a, color.r, color.g, color.b);
+            win_vertex.color = D3DCOLOR_ARGB(color .a, color .r, color .g, color .b);
             ((C8_D3D_Color_Vertex *) vp)[vertex_index] = win_vertex;
         }
 
@@ -305,13 +780,25 @@ void c8_render_color(C8_State *state) {
         assert(false);
     }
 
-    hr = IDirect3DDevice9_SetStreamSource(state->d3d_dev, 0, state->color_vb, 0, sizeof (C8_D3D_Color_Vertex));
+    hr = IDirect3DDevice9_SetStreamSource(
+        state->d3d_dev,
+        0,
+        state->color_vb,
+        0,
+        sizeof (C8_D3D_Color_Vertex
+        )
+    );
     if (FAILED(hr)) {
         C8_LOG_ERROR("SetStreamSource failed\n");
         assert(false);
     }
 
-    hr = IDirect3DDevice9_DrawPrimitive(state->d3d_dev, D3DPT_TRIANGLELIST, 0, state->color_vertex_count / 3);
+    hr = IDirect3DDevice9_DrawPrimitive(
+        state->d3d_dev,
+        D3DPT_TRIANGLELIST,
+        0,
+        state->color_vertex_count / 3
+    );
 
     if (FAILED(hr)) {
         C8_LOG_ERROR("DrawPrimitive failed\n");
@@ -321,7 +808,19 @@ void c8_render_color(C8_State *state) {
 
 
 void c8_render(C8_State *state) {
-    HRESULT hr = IDirect3DDevice9_Clear(state->d3d_dev, 0, 0, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255, 255, 255, 255), 1.0f, 0);
+    HRESULT hr = IDirect3DDevice9_Clear(
+        state->d3d_dev,
+        0,
+        0,
+        D3DCLEAR_TARGET,
+        D3DCOLOR_ARGB(255,
+        255,
+        255,
+        255
+        ),
+        1.0f,
+        0
+    );
 
     if (FAILED(hr)) {
         C8_LOG_ERROR("Could not clear screen\n");
@@ -362,7 +861,17 @@ bool c8_init_texture(C8_State *state, const char *file_name) {
         UINT width = ((UINT *) file.data)[0];
         UINT height = ((UINT *) file.data)[1];
 
-        HRESULT textureCreated = IDirect3DDevice9_CreateTexture(state->d3d_dev, width, height, 0, 0, D3DFMT_A32B32G32R32F, D3DPOOL_MANAGED, &state->texture, NULL);
+        HRESULT textureCreated = IDirect3DDevice9_CreateTexture(
+            state->d3d_dev,
+            width,
+            height,
+            0,
+            0,
+            D3DFMT_A32B32G32R32F,
+            D3DPOOL_MANAGED,
+            &state->texture,
+            NULL
+        );
 
         if (SUCCEEDED(textureCreated)) {
             D3DLOCKED_RECT rect;
@@ -420,14 +929,31 @@ bool c8_initd3d(C8_State *state, HWND window) {
     }
 
     D3DPRESENT_PARAMETERS d3dpp = c8_init_d3d_params(window);
-    HRESULT hr = IDirect3D9_CreateDevice(state->d3d, D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_HARDWARE_VERTEXPROCESSING, &d3dpp, &state->d3d_dev);
+    HRESULT hr = IDirect3D9_CreateDevice(
+        state->d3d,
+        D3DADAPTER_DEFAULT,
+        D3DDEVTYPE_HAL,
+        window,
+        D3DCREATE_HARDWARE_VERTEXPROCESSING,
+        &d3dpp,
+        &state->d3d_dev
+    );
 
     if (FAILED(hr)) {
         C8_LOG_ERROR("Could not create D3D device\n");
         return false;
     }
 
-    hr = IDirect3DDevice9_CreateVertexBuffer(state->d3d_dev, sizeof (state->color_vertices), 0, C8_D3D_FVF, D3DPOOL_MANAGED, &state->color_vb, 0);
+    hr = IDirect3DDevice9_CreateVertexBuffer(
+        state->d3d_dev,
+        sizeof (state->color_vertices
+        ),
+        0,
+        C8_D3D_FVF,
+        D3DPOOL_MANAGED,
+        &state->color_vb,
+        0
+    );
 
     if (FAILED(hr)) {
         C8_LOG_ERROR("Could not create vertex buffer\n");
@@ -458,7 +984,11 @@ bool c8_initd3d(C8_State *state, HWND window) {
         C8_LOG_ERROR("Could notset render state\n");
         return false;
     }
-    hr = IDirect3DDevice9_SetRenderState(state->d3d_dev, D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+    hr = IDirect3DDevice9_SetRenderState(
+        state->d3d_dev,
+        D3DRS_DESTBLEND,
+        D3DBLEND_INVSRCALPHA
+    );
 
     if (FAILED(hr)) {
         C8_LOG_ERROR("Could notset render state\n");
@@ -517,7 +1047,12 @@ bool c8_init_dsound(C8_State *state, HWND window, i32 samples_per_sec) {
             pbuf_desc.dwFlags = DSBCAPS_PRIMARYBUFFER;
             LPDIRECTSOUNDBUFFER pbuf;
 
-            HRESULT pbuf_created = IDirectSound_CreateSoundBuffer(dsound, &pbuf_desc, &pbuf, 0);
+            HRESULT pbuf_created = IDirectSound_CreateSoundBuffer(
+                dsound,
+                &pbuf_desc,
+                &pbuf,
+                0
+            );
 
             if (SUCCEEDED(pbuf_created)) {
                 HRESULT fset = IDirectSoundBuffer_SetFormat(pbuf, &wformat);
@@ -528,12 +1063,26 @@ bool c8_init_dsound(C8_State *state, HWND window, i32 samples_per_sec) {
                     sbuf_desc.lpwfxFormat = &wformat;
                     LPDIRECTSOUNDBUFFER sbuf;
 
-                    HRESULT sbuf_created = IDirectSound_CreateSoundBuffer(dsound, &sbuf_desc, &sbuf, 0);
+                    HRESULT sbuf_created = IDirectSound_CreateSoundBuffer(
+                        dsound,
+                        &sbuf_desc,
+                        &sbuf,
+                        0
+                    );
 
                     if (SUCCEEDED(sbuf_created)) {
                         LPVOID buf_data;
                         DWORD buf_size;
-                        HRESULT locked = IDirectSoundBuffer_Lock(sbuf, 0, 0, &buf_data, &buf_size, 0, 0, DSBLOCK_ENTIREBUFFER);
+                        HRESULT locked = IDirectSoundBuffer_Lock(
+                            sbuf,
+                            0,
+                            0,
+                            &buf_data,
+                            &buf_size,
+                            0,
+                            0,
+                            DSBLOCK_ENTIREBUFFER
+                        );
 
                         if (SUCCEEDED(locked)) {
                             i32 hz = 250;
@@ -556,7 +1105,13 @@ bool c8_init_dsound(C8_State *state, HWND window, i32 samples_per_sec) {
                                 samples[i] = value;
                             }
 
-                            HRESULT unlocked = IDirectSoundBuffer_Unlock(sbuf, buf_data, buf_size, 0, 0);
+                            HRESULT unlocked = IDirectSoundBuffer_Unlock(
+                                sbuf,
+                                buf_data,
+                                buf_size,
+                                0,
+                                0
+                            );
 
                             if (SUCCEEDED(unlocked)) {
                                 state->ds = dsound;
@@ -620,7 +1175,7 @@ LRESULT CALLBACK WindowProc(HWND window, UINT msg, WPARAM wparam, LPARAM lparam)
 
             if (global_state.d3d_dev != 0) {
                 D3DPRESENT_PARAMETERS d3dpp = c8_init_d3d_params(window);
-                IDirect3DDevice9_Reset(global_state.d3d_dev, &d3dpp);
+                IDirect3DDevice9_Reset(global_state .d3d_dev, &d3dpp);
             }
         }
         break;
@@ -777,7 +1332,15 @@ void c8_logln(const char *message) {
 
 void c8_log_error(const char *file, uint32_t line, const char *msg) {
     char buf[1024] = {0};
-    snprintf(buf, sizeof (buf), "ERROR (%s:%u): %s", file, line, msg);
+    snprintf(
+        buf,
+        sizeof (buf
+        ),
+        "ERROR (%s:%u): %s",
+        file,
+        line,
+        msg
+    );
     c8_log(buf);
 }
 
@@ -793,7 +1356,20 @@ HWND c8_create_window(HINSTANCE instance, int width, int height) {
 
     HWND window = 0;
     if (RegisterClass(&wc) != 0) {
-        window = CreateWindowEx(0, class_name, "Chip 8", WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU, CW_USEDEFAULT, CW_USEDEFAULT, width, height, 0, 0, instance, 0);
+        window = CreateWindowEx(
+            0,
+            class_name,
+            "Chip 8",
+            WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU,
+            CW_USEDEFAULT,
+            CW_USEDEFAULT,
+            width,
+            height,
+            0,
+            0,
+            instance,
+            0
+        );
 
         if (!window) {
             C8_LOG_ERROR("Could not create window\n");
@@ -823,9 +1399,33 @@ bool c8_process_msgs(C8_State *state, HWND window) {
 
 
 void c8_color_triangle(C8_State *state, C8_V2 p1, C8_V2 p2, C8_V2 p3, C8_Rgba rgb) {
-    c8_color_vertex(state, p1.x, p1.y, rgb.r, rgb.g, rgb.b, rgb.a);
-    c8_color_vertex(state, p2.x, p2.y, rgb.r, rgb.g, rgb.b, rgb.a);
-    c8_color_vertex(state, p3.x, p3.y, rgb.r, rgb.g, rgb.b, rgb.a);
+    c8_color_vertex(
+        state,
+        p1 .x,
+        p1 .y,
+        rgb .r,
+        rgb .g,
+        rgb .b,
+        rgb .a
+    );
+    c8_color_vertex(
+        state,
+        p2 .x,
+        p2 .y,
+        rgb .r,
+        rgb .g,
+        rgb .b,
+        rgb .a
+    );
+    c8_color_vertex(
+        state,
+        p3 .x,
+        p3 .y,
+        rgb .r,
+        rgb .g,
+        rgb .b,
+        rgb .a
+    );
 }
 
 
@@ -916,7 +1516,7 @@ void c8_load_from_file_dialog(C8_State *state) {
 
 void c8_message_box(const char *message) {
     #ifndef C8_TEST
-    BOOL succeded = MessageBox(global_state.window, message, "Error", MB_OK);
+    BOOL succeded = MessageBox(global_state .window, message, "Error", MB_OK);
 
     if (!succeded) {
         C8_LOG_ERROR("Error while showing message box\n");
@@ -955,7 +1555,7 @@ int WINAPI WinMain(
 
     i32 samples_per_sec = 8000;
 
-    if (!c8_arena_init(&(global_state.arena), 5 *1024 *1024, 4)) {
+    if (!c8_arena_init(&(global_state .arena), 5 *1024 *1024, 4)) {
         c8_message_box(initError);
         C8_LOG_ERROR("Could not initialise arena\n");
         return - 1;
@@ -968,7 +1568,7 @@ int WINAPI WinMain(
     }
 
     ShowWindow(window, cmd_show);
-    c8_load_button_init(&global_state, &global_state.load_button);
+    c8_load_button_init(&global_state, &global_state .load_button);
 
     global_state.running = true;
 
@@ -1039,7 +1639,15 @@ void *c8_allocate(psz size) {
 
 
 HANDLE c8_open_file_for_read(const char *path) {
-    HANDLE f = CreateFile(path, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    HANDLE f = CreateFile(
+        path,
+        GENERIC_READ,
+        FILE_SHARE_READ,
+        0,
+        OPEN_EXISTING,
+        FILE_ATTRIBUTE_NORMAL,
+        0
+    );
 
     if (f == INVALID_HANDLE_VALUE) {
         C8_LOG_ERROR("Could not open file");
@@ -1156,13 +1764,41 @@ void c8_emulator_frame(C8_State *state) {
 
     float frame_y = c8_frame_y(state);
 
-    c8_rect(state, frame_x, frame_y, C8_MONITOR_WIDTH, C8_FRAME_WIDTH, emulator_color);
+    c8_rect(
+        state,
+        frame_x,
+        frame_y,
+        C8_MONITOR_WIDTH,
+        C8_FRAME_WIDTH,
+        emulator_color
+    );
 
-    c8_rect(state, frame_x + C8_MONITOR_WIDTH, frame_y, C8_FRAME_WIDTH, C8_MONITOR_HEIGHT, emulator_color);
+    c8_rect(
+        state,
+        frame_x + C8_MONITOR_WIDTH,
+        frame_y,
+        C8_FRAME_WIDTH,
+        C8_MONITOR_HEIGHT,
+        emulator_color
+    );
 
-    c8_rect(state, frame_x + C8_FRAME_WIDTH, frame_y + C8_MONITOR_HEIGHT, C8_MONITOR_WIDTH, C8_FRAME_WIDTH, emulator_color);
+    c8_rect(
+        state,
+        frame_x + C8_FRAME_WIDTH,
+        frame_y + C8_MONITOR_HEIGHT,
+        C8_MONITOR_WIDTH,
+        C8_FRAME_WIDTH,
+        emulator_color
+    );
 
-    c8_rect(state, frame_x, frame_y + C8_FRAME_WIDTH, C8_FRAME_WIDTH, C8_MONITOR_HEIGHT, emulator_color);
+    c8_rect(
+        state,
+        frame_x,
+        frame_y + C8_FRAME_WIDTH,
+        C8_FRAME_WIDTH,
+        C8_MONITOR_HEIGHT,
+        emulator_color
+    );
 }
 
 
@@ -1280,9 +1916,39 @@ void c8_text_triangle(
     float u3,
     float v3
 ) {
-    c8_text_vertex(state, p1.x, p1.y, rgb.r, rgb.g, rgb.b, rgb.a, u1, v1);
-    c8_text_vertex(state, p2.x, p2.y, rgb.r, rgb.g, rgb.b, rgb.a, u2, v2);
-    c8_text_vertex(state, p3.x, p3.y, rgb.r, rgb.g, rgb.b, rgb.a, u3, v3);
+    c8_text_vertex(
+        state,
+        p1 .x,
+        p1 .y,
+        rgb .r,
+        rgb .g,
+        rgb .b,
+        rgb .a,
+        u1,
+        v1
+    );
+    c8_text_vertex(
+        state,
+        p2 .x,
+        p2 .y,
+        rgb .r,
+        rgb .g,
+        rgb .b,
+        rgb .a,
+        u2,
+        v2
+    );
+    c8_text_vertex(
+        state,
+        p3 .x,
+        p3 .y,
+        rgb .r,
+        rgb .g,
+        rgb .b,
+        rgb .a,
+        u3,
+        v3
+    );
 }
 
 
@@ -1295,13 +1961,73 @@ void c8_glyph(
     float height,
     C8_Rgba rgb
 ) {
-    c8_text_vertex(state, x, y, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_left, glyph.v_top);
-    c8_text_vertex(state, x + width, y, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_right, glyph.v_top);
-    c8_text_vertex(state, x + width, y + height, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_right, glyph.v_bottom);
+    c8_text_vertex(
+        state,
+        x,
+        y,
+        rgb .r,
+        rgb .g,
+        rgb .b,
+        rgb .a,
+        glyph .u_left,
+        glyph .v_top
+    );
+    c8_text_vertex(
+        state,
+        x + width,
+        y,
+        rgb .r,
+        rgb .g,
+        rgb .b,
+        rgb .a,
+        glyph .u_right,
+        glyph .v_top
+    );
+    c8_text_vertex(
+        state,
+        x + width,
+        y + height,
+        rgb .r,
+        rgb .g,
+        rgb .b,
+        rgb .a,
+        glyph .u_right,
+        glyph .v_bottom
+    );
 
-    c8_text_vertex(state, x, y, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_left, glyph.v_top);
-    c8_text_vertex(state, x + width, y + height, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_right, glyph.v_bottom);
-    c8_text_vertex(state, x, y + height, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_left, glyph.v_bottom);
+    c8_text_vertex(
+        state,
+        x,
+        y,
+        rgb .r,
+        rgb .g,
+        rgb .b,
+        rgb .a,
+        glyph .u_left,
+        glyph .v_top
+    );
+    c8_text_vertex(
+        state,
+        x + width,
+        y + height,
+        rgb .r,
+        rgb .g,
+        rgb .b,
+        rgb .a,
+        glyph .u_right,
+        glyph .v_bottom
+    );
+    c8_text_vertex(
+        state,
+        x,
+        y + height,
+        rgb .r,
+        rgb .g,
+        rgb .b,
+        rgb .a,
+        glyph .u_left,
+        glyph .v_bottom
+    );
 }
 
 
@@ -1321,7 +2047,15 @@ void c8_text(
     while (*text) {
         c = *text;
         C8_Glyph glyph = state->font.glyphs[c - C8_FIRST_CHAR];
-        c8_glyph(state, glyph, x + x_offset, y + glyph.y_offset *scale, glyph.width *scale, glyph.height *scale, rgba);
+        c8_glyph(
+            state,
+            glyph,
+            x + x_offset,
+            y + glyph .y_offset *scale,
+            glyph .width *scale,
+            glyph .height *scale,
+            rgba
+        );
         x_offset += glyph.width * scale;
         x_offset += spacing * scale;
         text++;
@@ -1361,7 +2095,14 @@ void c8_text_vertex(
 }
 
 
-void c8_rect(C8_State *state, float x, float y, float width, float height, C8_Rgba rgb) {
+void c8_rect(
+    C8_State *state,
+    float x,
+    float y,
+    float width,
+    float height,
+    C8_Rgba rgb
+) {
     C8_V2 p1 = {x, y};
     C8_V2 p2 = {x + width, y};
     C8_V2 p3 = {x + width, y + height};
@@ -1381,7 +2122,16 @@ void c8_emulator_pixels(C8_State *state) {
                 float frame_x = c8_frame_x(state);
                 float frame_y = c8_frame_y(state);
 
-                c8_rect(state, frame_x + (c *C8_PIXEL_SIDE) + C8_FRAME_WIDTH, frame_y + (r *C8_PIXEL_SIDE) + C8_FRAME_WIDTH, C8_PIXEL_SIDE, C8_PIXEL_SIDE, emulator_color);
+                c8_rect(
+                    state,
+                    frame_x + (c *C8_PIXEL_SIDE
+                    ) + C8_FRAME_WIDTH,
+                    frame_y + (r *C8_PIXEL_SIDE
+                    ) + C8_FRAME_WIDTH,
+                    C8_PIXEL_SIDE,
+                    C8_PIXEL_SIDE,
+                    emulator_color
+                );
             }
         }
     }
@@ -1512,9 +2262,19 @@ void c8_load_button_init(C8_State *state, C8_Button *button) {
     button->title = C8_LOAD_BUTTON_TITLE;
 
     // float text_max_height = c8_text_max_height(&state->font, text, text_height);
-    button->text_y_offset = c8_offset_to_center_vertically(&state->font, button->title, button->text_scale, button->height);
+    button->text_y_offset = c8_offset_to_center_vertically(
+        &state->font,
+        button->title,
+        button->text_scale,
+        button->height
+    );
 
-    float text_width = c8_text_width(&state->font, button->title, button->text_scale, button->text_spacing);
+    float text_width = c8_text_width(
+        &state->font,
+        button->title,
+        button->text_scale,
+        button->text_spacing
+    );
     button->text_x_offset = (button->width - text_width) / 2.0f;
 }
 
@@ -1523,22 +2283,73 @@ void c8_load_button(C8_State *state) {
     C8_Button button = state->load_button;
 
     if (button.is_mouse_over) {
-        c8_rect(state, button.x, button.y, button.width, button.height, button.text_color);
+        c8_rect(
+            state,
+            button .x,
+            button .y,
+            button .width,
+            button .height,
+            button .text_color
+        );
 
         C8_Rgba white = {255, 255, 255, 255};
 
-        c8_text(state, button.title, button.x + button.text_x_offset, button.y + button.text_y_offset, button.text_scale, button.text_spacing, white);
+        c8_text(
+            state,
+            button .title,
+            button .x + button .text_x_offset,
+            button .y + button .text_y_offset,
+            button .text_scale,
+            button .text_spacing,
+            white
+        );
     }
     else {
-        c8_rect(state, button.x, button.y, button.width, button.border, button.text_color);
+        c8_rect(
+            state,
+            button .x,
+            button .y,
+            button .width,
+            button .border,
+            button .text_color
+        );
 
-        c8_rect(state, button.x, button.y, button.border, button.height, button.text_color);
+        c8_rect(
+            state,
+            button .x,
+            button .y,
+            button .border,
+            button .height,
+            button .text_color
+        );
 
-        c8_rect(state, button.x, button.y + button.height - button.border, button.width, button.border, button.text_color);
+        c8_rect(
+            state,
+            button .x,
+            button .y + button .height - button .border,
+            button .width,
+            button .border,
+            button .text_color
+        );
 
-        c8_rect(state, button.x + button.width - button.border, button.y, button.border, button.height, button.text_color);
+        c8_rect(
+            state,
+            button .x + button .width - button .border,
+            button .y,
+            button .border,
+            button .height,
+            button .text_color
+        );
 
-        c8_text(state, button.title, button.x + button.text_x_offset, button.y + button.text_y_offset, button.text_scale, button.text_spacing, button.text_color);
+        c8_text(
+            state,
+            button .title,
+            button .x + button .text_x_offset,
+            button .y + button .text_y_offset,
+            button .text_scale,
+            button .text_spacing,
+            button .text_color
+        );
     }
 }
 
@@ -1850,20 +2661,20 @@ void c8_update_emulator(C8_State *state) {
 
     c8_emulator_pixels(state);
 
-    for (int kp = 0; kp < C8_ARRCOUNT(state->keypad.keys);
+    for (int kp = 0; kp < C8_ARRCOUNT(state->keypad .keys);
     kp++) {
         C8_Key *k = &(state->keypad.keys[kp]);
         c8_reset_key(k);
     }
 
-    for (int ck = 0; ck < C8_ARRCOUNT(state->control_keys.keys);
+    for (int ck = 0; ck < C8_ARRCOUNT(state->control_keys .keys);
     ck++) {
         C8_Key *k = &(state->control_keys.keys[ck]);
         c8_reset_key(k);
     }
 
-    c8_reset_key(&(state->mouse_buttons.left_button));
-    c8_reset_key(&(state->mouse_buttons.right_button));
+    c8_reset_key(&(state->mouse_buttons .left_button));
+    c8_reset_key(&(state->mouse_buttons .right_button));
 
     state->frame_count++;
 

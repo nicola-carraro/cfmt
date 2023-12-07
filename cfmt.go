@@ -982,24 +982,32 @@ func formatMultilineInitialiserList(parser *Parser) {
 
 func tryFormatInlineFunctionArguments(parser *Parser) bool {
 	commas := 0
+	openParenthesis := 1
 	for parser.parseToken() {
 
-		if(isComma(parser.Token)){
+		if isComma(parser.Token) {
 			commas++
 		}
 
-		if parser.OutputColumn > allowWrap  {
+		if parser.OutputColumn > allowWrap {
 			return false
 		}
 
-		if(commas >= maxInlineFunctionArgs){
+		if commas >= maxInlineFunctionArgs {
 			return false
 		}
 
 		parser.formatToken()
 
 		if isRightParenthesis(parser.Token) {
-			parser.writeString(" ")
+			openParenthesis--
+		}
+
+		if isLeftParenthesis(parser.Token) {
+			openParenthesis++
+		}
+
+		if openParenthesis == 0 {
 			return true
 		}
 
@@ -1020,22 +1028,28 @@ func tryFormatInlineFunctionArguments(parser *Parser) bool {
 func formatMultilineFunctionArguments(parser *Parser) {
 	parser.Indent++
 
+	openParenthesis := 1
+
 	parser.writeNewLines(1)
 
 	for parser.parseToken() {
 		parser.formatToken()
 
-		if isRightParenthesis(parser.NextToken) {
-			parser.Indent--
+		if isRightParenthesis(parser.Token) {
+			openParenthesis--
 		}
 
-		if isRightParenthesis(parser.Token) {
-			if isAbsent(parser.NextToken) {
-				parser.writeNewLines(1)
+		if isLeftParenthesis(parser.Token) {
+			openParenthesis++
+		}
 
-			} else {
-				parser.writeString(" ")
-			}
+		if openParenthesis == 1 && isRightParenthesis(parser.NextToken) {
+			parser.Indent--
+
+		}
+
+		if openParenthesis == 0 {
+
 			return
 		}
 
@@ -1131,6 +1145,10 @@ func formatBlockBody(parser *Parser) {
 		}
 
 		parser.formatToken()
+
+		if startsFunctionArguments(parser) {
+			formatFunctionArguments(parser)
+		}
 
 		if isRightBrace(parser.Token) {
 			return
@@ -1298,7 +1316,6 @@ func format(input string) string {
 
 		if startsFunctionArguments(parser) {
 			formatFunctionArguments(parser)
-			continue
 		}
 
 		if isLeftBrace(parser.Token) {
@@ -1322,7 +1339,7 @@ func format(input string) string {
 
 		isBlockStart := isLeftBrace(parser.Token) && !isAssignment(parser.PreviousToken)
 
-		if isBlockStart || isComment(parser.Token) {
+		if (isAbsent(parser.NextToken)) || isBlockStart || isComment(parser.Token) {
 			parser.writeNewLines(1)
 		} else if parser.IsEndOfDirective ||
 			isDirective(parser.NextToken) ||
