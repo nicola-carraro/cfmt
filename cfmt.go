@@ -908,7 +908,7 @@ func tryFormatInlineInitialiserList(parser *Parser) bool {
 			continue
 		}
 
-		if isSingleLineComment(parser.Token) {
+		if isComment(parser.Token) {
 			parser.writeNewLines(1)
 		} else if !neverWhitespace(parser) &&
 			!isRightBrace(parser.NextToken) &&
@@ -954,7 +954,7 @@ func formatMultilineInitialiserList(parser *Parser) {
 			parser.writeNewLines(1)
 		} else if isComma(parser.Token) && hasNewLines(parser.Token) {
 			parser.writeNewLines(1)
-		} else if isSingleLineComment(parser.Token) {
+		} else if isComment(parser.Token) || isMultilineComment(parser.Token) {
 			parser.writeNewLines(1)
 		} else if !neverWhitespace(parser) &&
 			!isRightBrace(parser.NextToken) &&
@@ -968,6 +968,30 @@ func formatMultilineInitialiserList(parser *Parser) {
 	}
 
 	log.Fatal("Unclosed initialiser list")
+}
+
+func formatFunctionArguments(parser *Parser){
+	for parser.parseToken() {
+
+		parser.formatToken()
+
+		if isRightParenthesis(parser.Token) {
+			parser.writeString(" ")
+			return
+		}
+
+		if isComma(parser.Token) && hasNewLines(parser.Token) {
+			parser.writeNewLines(1)
+		} else if isSingleLineComment(parser.Token) {
+			parser.writeNewLines(1)
+		} else if !neverWhitespace(parser) &&
+			!isRightBrace(parser.NextToken) &&
+			!isRightBrace(parser.Token) {
+			parser.writeString(" ")
+		}
+	}
+
+	log.Fatal("Unclosed function arguments")
 }
 
 func formatInitialiserList(parser *Parser) {
@@ -1056,7 +1080,7 @@ func formatBlockBody(parser *Parser) {
 				formatBlockBody(parser)
 				parser.oneOrTwoLines()
 			}
-		} else if isSingleLineComment(parser.Token) || isMultilineComment(parser.Token) {
+		} else if isComment(parser.Token) || isMultilineComment(parser.Token) {
 			parser.writeNewLines(1)
 		} else if (isSemicolon(parser.Token) && !parser.IsParenthesis && !parser.hasTrailingComment()) || parser.IsEndOfDirective {
 			parser.oneOrTwoLines()
@@ -1125,7 +1149,7 @@ func formatDeclarationBody(parser *Parser) {
 
 		if isLeftBrace(parser.Token) {
 			formatDeclarationBody(parser)
-		} else if isSingleLineComment(parser.Token) {
+		} else if isComment(parser.Token) || isComment(parser.NextToken) {
 			parser.writeNewLines(1)
 		} else if isSemicolon(parser.Token) && !parser.hasTrailingComment() {
 			parser.writeNewLines(1)
@@ -1141,6 +1165,10 @@ func formatDeclarationBody(parser *Parser) {
 	}
 
 	log.Fatal("Unclosed declaration braces")
+}
+
+func startsFunctionArguments(parser *Parser) bool {
+	return parser.PreviousToken.Type == Identifier && isLeftParenthesis(parser.Token)
 }
 
 func isFunctionName(parser *Parser) bool {
@@ -1201,6 +1229,11 @@ func format(input string) string {
 
 		parser.formatToken()
 
+		if(startsFunctionArguments(parser)){
+		    formatFunctionArguments(parser)
+			continue
+		}
+
 		if isLeftBrace(parser.Token) {
 			if isAssignment(parser.PreviousToken) {
 				formatInitialiserList(parser)
@@ -1222,7 +1255,7 @@ func format(input string) string {
 
 		isBlockStart := isLeftBrace(parser.Token) && !isAssignment(parser.PreviousToken)
 
-		if isBlockStart || isSingleLineComment(parser.Token) || isMultilineComment(parser.Token) {
+		if isBlockStart || isComment(parser.Token) {
 			parser.writeNewLines(1)
 		} else if parser.IsEndOfDirective ||
 			isDirective(parser.NextToken) ||
