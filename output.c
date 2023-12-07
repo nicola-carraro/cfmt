@@ -13,28 +13,13 @@
 #include "chip8.h"
 
 
-#pragma comment(lib, "kernel32.lib")
-
-
-#pragma comment(lib, "user32.lib")
-
-
-#pragma comment(lib, "D3d9.lib")
-
-
-#pragma comment(lib, "Dsound.lib")
-
-
-#pragma comment(lib, "Dsound.lib")
-
-
-#pragma comment(lib, "ole32.lib")
-
-
-#pragma comment(lib, "Comdlg32.lib")
-
-
-void c8_render_text(C8_State *state) {
+#pragma comment(lib, "kernel32.lib") #pragma comment(lib, "user32.lib") #pragma comment(\
+    lib,\
+    "D3d9.lib"\
+) #pragma comment(lib, "Dsound.lib") #pragma comment(lib, "Dsound.lib") #pragma comment(\
+    lib,\
+    "ole32.lib"\
+) #pragma comment(lib, "Comdlg32.lib") void c8_render_text(C8_State *state) {
     HRESULT hr = IDirect3DDevice9_SetFVF(state->d3d_dev, C8_TEX_FVF);
 
     if (FAILED(hr)) {
@@ -943,7 +928,12 @@ void c8_message_box(const char *message) {
 }
 
 
-int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, PSTR cmd_line, int cmd_show) {
+int WINAPI WinMain(
+    HINSTANCE instance,
+    HINSTANCE prev_instance,
+    PSTR cmd_line,
+    int cmd_show
+) {
     C8_UNREFERENCED(cmd_line);
 
     C8_UNREFERENCED(prev_instance);
@@ -1269,14 +1259,34 @@ void c8_load_rom(const char *path, C8_State *state) {
 }
 
 
-void c8_text_triangle(C8_State *state, C8_V2 p1, C8_V2 p2, C8_V2 p3, C8_Rgba rgb, float u1, float v1, float u2, float v2, float u3, float v3) {
+void c8_text_triangle(
+    C8_State *state,
+    C8_V2 p1,
+    C8_V2 p2,
+    C8_V2 p3,
+    C8_Rgba rgb,
+    float u1,
+    float v1,
+    float u2,
+    float v2,
+    float u3,
+    float v3
+) {
     c8_text_vertex(state, p1.x, p1.y, rgb.r, rgb.g, rgb.b, rgb.a, u1, v1);
     c8_text_vertex(state, p2.x, p2.y, rgb.r, rgb.g, rgb.b, rgb.a, u2, v2);
     c8_text_vertex(state, p3.x, p3.y, rgb.r, rgb.g, rgb.b, rgb.a, u3, v3);
 }
 
 
-void c8_glyph(C8_State *state, C8_Glyph glyph, float x, float y, float width, float height, C8_Rgba rgb) {
+void c8_glyph(
+    C8_State *state,
+    C8_Glyph glyph,
+    float x,
+    float y,
+    float width,
+    float height,
+    C8_Rgba rgb
+) {
     c8_text_vertex(state, x, y, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_left, glyph.v_top);
     c8_text_vertex(state, x + width, y, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_right, glyph.v_top);
     c8_text_vertex(state, x + width, y + height, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_right, glyph.v_bottom);
@@ -1287,7 +1297,15 @@ void c8_glyph(C8_State *state, C8_Glyph glyph, float x, float y, float width, fl
 }
 
 
-void c8_text(C8_State *state, char *text, float x, float y, float scale, float spacing, C8_Rgba rgba) {
+void c8_text(
+    C8_State *state,
+    char *text,
+    float x,
+    float y,
+    float scale,
+    float spacing,
+    C8_Rgba rgba
+) {
     float x_offset = 0;
 
     char c = 0;
@@ -1303,7 +1321,17 @@ void c8_text(C8_State *state, char *text, float x, float y, float scale, float s
 }
 
 
-void c8_text_vertex(C8_State *state, float x, float y, u8 r, u8 g, u8 b, u8 a, float u, float v) {
+void c8_text_vertex(
+    C8_State *state,
+    float x,
+    float y,
+    u8 r,
+    u8 g,
+    u8 b,
+    u8 a,
+    float u,
+    float v
+) {
     assert(state->text_vertex_count < C8_ARRCOUNT(state->text_vertices));
 
     if (state->text_vertex_count < C8_ARRCOUNT(state->text_vertices)) {
@@ -1425,7 +1453,12 @@ float c8_text_width(C8_Font *font, char *text, float text_scale, float spacing) 
 }
 
 
-float c8_offset_to_center_vertically(C8_Font *font, const char *text, float text_scale, float container_height) {
+float c8_offset_to_center_vertically(
+    C8_Font *font,
+    const char *text,
+    float text_scale,
+    float container_height
+) {
     C8_UNREFERENCED(container_height);
 
     float max_ascent = 0.0f;

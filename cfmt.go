@@ -62,6 +62,8 @@ type Whitespace struct {
 
 const indentation = "    "
 
+const allowWrap = 90
+
 func isIdentifierStart(r rune) bool {
 	return (r >= 'A' && r <= 'Z') || (r >= 'a' && r <= 'z') || (r == '_')
 }
@@ -849,8 +851,8 @@ func isAbsent(token Token) bool {
 }
 
 func (parser *Parser) writeString(str string) {
-    parser.Output.WriteString(str)
-	parser.OutputColumn+=len(str)
+	parser.Output.WriteString(str)
+	parser.OutputColumn += len(str)
 }
 
 func (parser *Parser) writeNewLines(lines int) {
@@ -970,17 +972,57 @@ func formatMultilineInitialiserList(parser *Parser) {
 	log.Fatal("Unclosed initialiser list")
 }
 
-func formatFunctionArguments(parser *Parser){
+func tryFormatInlineFunctionArguments(parser *Parser) bool {
 	for parser.parseToken() {
+
+		if parser.OutputColumn > allowWrap {
+			return false
+		}
 
 		parser.formatToken()
 
 		if isRightParenthesis(parser.Token) {
 			parser.writeString(" ")
+			return true
+		}
+
+		if isSingleLineComment(parser.Token) {
+			parser.writeNewLines(1)
+		} else if !neverWhitespace(parser) &&
+			!isRightBrace(parser.NextToken) &&
+			!isRightBrace(parser.Token) {
+			parser.writeString(" ")
+		}
+	}
+
+	log.Fatal("Unclosed function arguments")
+
+	panic("unreachable")
+}
+
+func formatMultilineFunctionArguments(parser *Parser) {
+	parser.Indent++
+
+	parser.writeNewLines(1)
+
+	for parser.parseToken() {
+		parser.formatToken()
+
+		if isRightParenthesis(parser.NextToken) {
+			parser.Indent--
+		}
+
+		if isRightParenthesis(parser.Token) {
+			if isAbsent(parser.NextToken) {
+				parser.writeNewLines(1)
+
+			} else {
+				parser.writeString(" ")
+			}
 			return
 		}
 
-		if isComma(parser.Token) && hasNewLines(parser.Token) {
+		if isComma(parser.Token) || isRightParenthesis(parser.NextToken) {
 			parser.writeNewLines(1)
 		} else if isSingleLineComment(parser.Token) {
 			parser.writeNewLines(1)
@@ -992,6 +1034,14 @@ func formatFunctionArguments(parser *Parser){
 	}
 
 	log.Fatal("Unclosed function arguments")
+}
+
+func formatFunctionArguments(parser *Parser) {
+	saved := *parser
+	if !tryFormatInlineFunctionArguments(parser) {
+		*parser = saved
+		formatMultilineFunctionArguments(parser)
+	}
 }
 
 func formatInitialiserList(parser *Parser) {
@@ -1229,8 +1279,8 @@ func format(input string) string {
 
 		parser.formatToken()
 
-		if(startsFunctionArguments(parser)){
-		    formatFunctionArguments(parser)
+		if startsFunctionArguments(parser) {
+			formatFunctionArguments(parser)
 			continue
 		}
 

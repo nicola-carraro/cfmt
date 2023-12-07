@@ -64,7 +64,6 @@ func TestTokenizeInteger(t *testing.T) {
 	_testTokenizeSingleToken(t, "9000000000002I64", Integer)
 	_testTokenizeSingleToken(t, "90000000000004ui64", Integer)
 
-
 	_testTokenizeSingleToken(t, "024", Integer)
 	_testTokenizeSingleToken(t, "04000000024u", Integer)
 	_testTokenizeSingleToken(t, "02000000022l", Integer)
@@ -82,7 +81,6 @@ func TestTokenizeInteger(t *testing.T) {
 	_testTokenizeSingleToken(t, "0x8A40000000000010uLL", Integer)
 	_testTokenizeSingleToken(t, "0x4a44000000000020I64", Integer)
 	_testTokenizeSingleToken(t, "0x8a44000000000040Ui64", Integer)
-
 
 }
 
@@ -401,4 +399,17 @@ func TestFormatPointerTypes(t *testing.T) {
 	input = "void c8_load_from_file_dialog(C8_State*state) {\r\n    printf(\"Hi\");\r\n}\r\n"
 	expected = "void c8_load_from_file_dialog(C8_State *state) {\r\n    printf(\"Hi\");\r\n}\r\n"
 	_testFormat(t, input, expected)
+}
+
+func TestFunctionArguments(t *testing.T) {
+	input := "void c8_glyph(C8_State *state, C8_Glyph glyph, float x, float y, float width, float height, C8_Rgba rgb)"
+	expected := "void c8_glyph(\r\n    C8_State *state,\r\n    C8_Glyph glyph,\r\n    float x,\r\n    float y,\r\n    float width,\r\n    float height,\r\n    C8_Rgba rgb\r\n)\r\n"
+	_testFormat(t, input, expected)
+
+	input = "void c8_glyph(C8_State *state, C8_Glyph glyph, float x, float y, float width, float height, C8_Rgba rgb){}"
+	expected = "void c8_glyph(\r\n    C8_State *state,\r\n    C8_Glyph glyph,\r\n    float x,\r\n    float y,\r\n    float width,\r\n    float height,\r\n    C8_Rgba rgb\r\n) {\r\n}\r\n"
+	_testFormat(t, input, expected)
+
+	input = "bool c8_read_entire_file(const char *path, C8_Arena *arena, C8_File *read_result) {}"
+	expected = "bool c8_read_entire_file(const char *path, C8_Arena *arena, C8_File *read_result) {\r\n}\r\n"
 }
