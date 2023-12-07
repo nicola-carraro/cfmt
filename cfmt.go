@@ -293,8 +293,14 @@ func parseIdentifier(text string) Token {
 
 // TODO: handle wide strings
 func parseString(text string) Token {
-	tokenSize := 1
-	next := text[1:]
+	var tokenSize int
+	if text[0] == 'L' {
+		tokenSize = 2
+	} else {
+		tokenSize = 1
+	}
+
+	next := text[tokenSize:]
 
 	for true {
 		r, size := peakRune(next)
@@ -669,6 +675,10 @@ func parseToken(input string) Token {
 		return token
 	}
 
+	if isDoubleQuote(r) || strings.HasPrefix(input, "L\"") {
+		return parseString(input)
+	}
+
 	if isIdentifierStart(r) {
 		return parseIdentifier(input)
 	}
@@ -679,10 +689,6 @@ func parseToken(input string) Token {
 
 	if strings.HasPrefix(input, "/*") {
 		return parseMultilineComment(input)
-	}
-
-	if isDoubleQuote(r) {
-		return parseString(input)
 	}
 
 	if isSingleQuote(r) {

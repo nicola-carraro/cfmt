@@ -40,6 +40,7 @@ func _testFormat(t *testing.T, input string, expected string) {
 func TestTokenizeString(t *testing.T) {
 	_testTokenizeSingleToken(t, "\"toto\"", String)
 	_testTokenizeSingleToken(t, "\"to\\\"o\"", String)
+	_testTokenizeSingleToken(t, "L\"A wide string\"", String)
 }
 
 func TestTokenizeFloat(t *testing.T) {
