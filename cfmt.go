@@ -625,7 +625,7 @@ func (parser *Parser) parseToken() bool {
 	parser.NextToken = parseToken(parser.Input)
 	parser.Input = parser.Input[len(parser.NextToken.Content):]
 
-	if parser.Token.Whitespace.HasUnescapedLines {
+	if parser.Token.Whitespace.HasUnescapedLines || isAbsent(parser.NextToken) {
 		parser.IsDirective = false
 		parser.IsIncludeDirective = false
 	}
@@ -868,7 +868,7 @@ func (parser *Parser) writeNewLines(lines int) {
 
 	for line := 0; line < lines; line++ {
 
-		if parser.IsDirective {
+		if parser.IsDirective{
 			parser.writeString("\\")
 		}
 		parser.writeString(newLine)
