@@ -434,4 +434,9 @@ func TestFunctionArguments(t *testing.T) {
 	input = "void foo() {\r\n    bar();\r\n}\r\n"
 	expected = "void foo() {\r\n    bar();\r\n}\r\n"
 	_testFormat(t, input, expected)
+
+	input = "int c = foo(foo(1, 2), foo(3, 4), foo(5, 6), foo(5, 6), foo(5, 6), foo(5, 6) );"
+	expected = "int c = foo(\r\n    foo(1, 2),\r\n    foo(3, 4),\r\n    foo(5, 6),\r\n    foo(5, 6),\r\n    foo(5, 6),\r\n    foo(5, 6)\r\n);\r\n"
+	_testFormat(t, input, expected)
+
 }

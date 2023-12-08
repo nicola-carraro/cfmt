@@ -1035,12 +1035,12 @@ func formatMultilineFunctionArguments(parser *Parser) {
 	for parser.parseToken() {
 		parser.formatToken()
 
-		if isRightParenthesis(parser.Token) {
-			openParenthesis--
-		}
-
 		if isLeftParenthesis(parser.Token) {
 			openParenthesis++
+		}
+
+		if isRightParenthesis(parser.Token) {
+			openParenthesis--
 		}
 
 		if openParenthesis == 1 && isRightParenthesis(parser.NextToken) {
@@ -1053,7 +1053,7 @@ func formatMultilineFunctionArguments(parser *Parser) {
 			return
 		}
 
-		if isComma(parser.Token) || isRightParenthesis(parser.NextToken) {
+		if (isComma(parser.Token) && openParenthesis == 1) || (isRightParenthesis(parser.NextToken) && openParenthesis == 1) {
 			parser.writeNewLines(1)
 		} else if isSingleLineComment(parser.Token) {
 			parser.writeNewLines(1)
@@ -1062,6 +1062,7 @@ func formatMultilineFunctionArguments(parser *Parser) {
 			!isRightBrace(parser.Token) {
 			parser.writeString(" ")
 		}
+
 	}
 
 	log.Fatal("Unclosed function arguments")
