@@ -426,4 +426,12 @@ func TestFunctionArguments(t *testing.T) {
 	input = "bool foo(int a, int b, int c, int d, int e, int f) {\r\n}\r\n"
 	expected = "bool foo(\r\n    int a,\r\n    int b,\r\n    int c,\r\n    int d,\r\n    int e,\r\n    int f\r\n) {\r\n}\r\n"
 	_testFormat(t, input, expected)
+
+	input = "int foo() {\r\n    return 0;\r\n}\r\n"
+	expected = "int foo() {\r\n    return 0;\r\n}\r\n"
+	_testFormat(t, input, expected)
+
+	input = "void foo() {\r\n    bar();\r\n}\r\n"
+	expected = "void foo() {\r\n    bar();\r\n}\r\n"
+	_testFormat(t, input, expected)
 }

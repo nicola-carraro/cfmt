@@ -868,7 +868,7 @@ func (parser *Parser) writeNewLines(lines int) {
 
 	for line := 0; line < lines; line++ {
 
-		if parser.IsDirective{
+		if parser.IsDirective {
 			parser.writeString("\\")
 		}
 		parser.writeString(newLine)
