@@ -29,7 +29,7 @@ func _testFormat(t *testing.T, input string, expected string) {
 
 		if r != output[i] {
 			t.Errorf("Index %d, expected %s, output %s", i, expected[i:], output[i:])
-			break;
+			break
 		}
 	}
 

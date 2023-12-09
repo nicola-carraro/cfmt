@@ -1168,8 +1168,8 @@ func formatBlockBody(parser *Parser) {
 			}
 		} else if isComment(parser.Token) || isMultilineComment(parser.Token) {
 			parser.writeNewLines(1)
-		} else if canWrap(parser){
-			parser.Indent ++
+		} else if canWrap(parser) {
+			parser.Indent++
 			parser.writeNewLines(1)
 			parser.Indent--
 		} else if (isSemicolon(parser.Token) && !parser.IsParenthesis && !parser.hasTrailingComment()) || parser.IsEndOfDirective {
@@ -1309,10 +1309,10 @@ func isLessThanSign(token Token) bool {
 	return token.Type == Punctuation && token.Content == "<"
 }
 
-func canWrap(parser *Parser)bool{
-	result := parser.NextToken.Type == Punctuation && 
-	(parser.NextToken.Content == "&&" || parser.NextToken.Content == "||") &&
-	parser.OutputColumn > allowWrap
+func canWrap(parser *Parser) bool {
+	result := parser.NextToken.Type == Punctuation &&
+		(parser.NextToken.Content == "&&" || parser.NextToken.Content == "||") &&
+		parser.OutputColumn > allowWrap
 
 	return result
 }
@@ -1376,28 +1376,23 @@ func main() {
 
 	for i := 1; i < len(os.Args); i++ {
 		path := os.Args[i]
-		
+
 		data, err := os.ReadFile(path)
 
 		if err != nil {
 			log.Fatalf("Error reading %s: %s", path, err)
 		}
 
-
 		text := fmt.Sprintf("%s", data)
 
 		formattedText := format(text)
 
-		os.WriteFile(path, []byte(formattedText), 0600)	
+		os.WriteFile(path, []byte(formattedText), 0600)
 
 		if err != nil {
 			log.Fatalf("Error writing %s: %s", path, err)
 		}
 
 	}
-
-
-
-
 
 }
