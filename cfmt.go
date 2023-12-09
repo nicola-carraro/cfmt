@@ -263,12 +263,14 @@ func parseIdentifierOrKeyword(text string) Token {
 		"default",
 		"double",
 		"do",
+		"else",
 		"enum",
 		"extern",
 		"float",
 		"for",
 		"goto",
 		"if",
+		"inline",
 		"int",
 		"long",
 		"register",
@@ -284,7 +286,17 @@ func parseIdentifierOrKeyword(text string) Token {
 		"unsigned",
 		"void",
 		"volatile",
-		"while"}
+		"while",
+		"_Alignof",
+		"_Atomic",
+		"_Bool",
+		"_Complex",
+		"_Generic",
+		"_Imaginary",
+		"_Noreturn",
+		"_Static_assert",
+		"_Thread_local",
+	}
 
 	for _, keyword := range keywords {
 		if content == keyword {

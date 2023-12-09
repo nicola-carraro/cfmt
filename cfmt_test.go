@@ -50,7 +50,7 @@ func TestTokenizeFloat(t *testing.T) {
 	_testTokenizeSingleToken(t, "123e+86", Float)
 }
 
-func testTokenizeIdentifier(t *testing.T) {
+func TestTokenizeIdentifier(t *testing.T) {
 	_testTokenizeSingleToken(t, "float_count", Identifier)
 }
 
