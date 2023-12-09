@@ -745,7 +745,7 @@ func parseToken(input string) Token {
 }
 
 func startsWithNewLine(input string) bool {
-	return strings.HasPrefix(input, "\r\n")
+	return strings.HasPrefix(input, "\r\n") || strings.HasPrefix(input, "\n")
 }
 
 func skipSpaceAndCountNewLines(parser *Parser) Whitespace {
@@ -1324,7 +1324,6 @@ func format(input string) string {
 	structUnionOrEnum := false
 
 	for parser.parseToken() {
-
 		parser.formatToken()
 
 		if startsFunctionArguments(parser) {
