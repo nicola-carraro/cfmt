@@ -170,44 +170,6 @@ func (t Token) String() string {
 }
 
 func tryParseKeyword(s string) (Token, bool) {
-	keywords := [...]string{
-		"auto",
-		"break",
-		"case",
-		"char",
-		"const",
-		"continue",
-		"default",
-		"double",
-		"do",
-		"enum",
-		"extern",
-		"float",
-		"for",
-		"goto",
-		"if",
-		"int",
-		"long",
-		"register",
-		"return",
-		"short",
-		"signed",
-		"sizeof",
-		"static",
-		"struct",
-		"switch",
-		"typedef",
-		"union",
-		"unsigned",
-		"void",
-		"volatile",
-		"while"}
-
-	for _, keyword := range keywords {
-		if strings.HasPrefix(s, keyword) {
-			return Token{Type: Keyword, Content: keyword}, true
-		}
-	}
 
 	return Token{}, false
 }
@@ -276,7 +238,7 @@ func parseSingleLineComment(text string) Token {
 	return token
 }
 
-func parseIdentifier(text string) Token {
+func parseIdentifierOrKeyword(text string) Token {
 
 	tokenSize := 0
 	next := text
@@ -289,8 +251,48 @@ func parseIdentifier(text string) Token {
 		r, size = peakRune(next)
 	}
 
-	token := Token{Type: Identifier, Content: text[:tokenSize]}
-	return token
+	content := text[:tokenSize]
+
+	keywords := [...]string{
+		"auto",
+		"break",
+		"case",
+		"char",
+		"const",
+		"continue",
+		"default",
+		"double",
+		"do",
+		"enum",
+		"extern",
+		"float",
+		"for",
+		"goto",
+		"if",
+		"int",
+		"long",
+		"register",
+		"return",
+		"short",
+		"signed",
+		"sizeof",
+		"static",
+		"struct",
+		"switch",
+		"typedef",
+		"union",
+		"unsigned",
+		"void",
+		"volatile",
+		"while"}
+
+	for _, keyword := range keywords {
+		if content == keyword {
+			return Token{Type: Keyword, Content: content}
+		}
+	}
+
+	return Token{Type: Identifier, Content: content}
 }
 
 // TODO: handle wide strings
@@ -672,17 +674,12 @@ func parseToken(input string) Token {
 		return token
 	}
 
-	token, keyword := tryParseKeyword(input)
-	if keyword {
-		return token
-	}
-
 	if isDoubleQuote(r) || strings.HasPrefix(input, "L\"") {
 		return parseString(input)
 	}
 
 	if isIdentifierStart(r) {
-		return parseIdentifier(input)
+		return parseIdentifierOrKeyword(input)
 	}
 
 	if strings.HasPrefix(input, "//") {

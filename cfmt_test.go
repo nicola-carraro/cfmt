@@ -50,6 +50,10 @@ func TestTokenizeFloat(t *testing.T) {
 	_testTokenizeSingleToken(t, "123e+86", Float)
 }
 
+func testTokenizeIdentifier(t *testing.T) {
+	_testTokenizeSingleToken(t, "float_count", Identifier)
+}
+
 func TestTokenizeInteger(t *testing.T) {
 	_testTokenizeSingleToken(t, "0", Integer)
 	_testTokenizeSingleToken(t, "3", Integer)
