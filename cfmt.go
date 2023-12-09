@@ -1168,6 +1168,10 @@ func formatBlockBody(parser *Parser) {
 			}
 		} else if isComment(parser.Token) || isMultilineComment(parser.Token) {
 			parser.writeNewLines(1)
+		} else if canWrap(parser){
+			parser.Indent ++
+			parser.writeNewLines(1)
+			parser.Indent--
 		} else if (isSemicolon(parser.Token) && !parser.IsParenthesis && !parser.hasTrailingComment()) || parser.IsEndOfDirective {
 			parser.oneOrTwoLines()
 		} else if !neverWhitespace(parser) &&
@@ -1305,6 +1309,14 @@ func isLessThanSign(token Token) bool {
 	return token.Type == Punctuation && token.Content == "<"
 }
 
+func canWrap(parser *Parser)bool{
+	result := parser.NextToken.Type == Punctuation && 
+	(parser.NextToken.Content == "&&" || parser.NextToken.Content == "||") &&
+	parser.OutputColumn > allowWrap
+
+	return result
+}
+
 func format(input string) string {
 
 	parser := newParser(input)
@@ -1339,7 +1351,6 @@ func format(input string) string {
 		const maxNewLines = 2
 
 		isBlockStart := isLeftBrace(parser.Token) && !isAssignment(parser.PreviousToken)
-
 		if (isAbsent(parser.NextToken)) || isBlockStart || isComment(parser.Token) {
 			parser.writeNewLines(1)
 		} else if parser.IsEndOfDirective ||
@@ -1373,5 +1384,5 @@ func main() {
 
 	formattedText := format(text)
 
-	fmt.Println(formattedText)
+	fmt.Print(formattedText)
 }

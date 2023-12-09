@@ -23,12 +23,13 @@ func _testFormat(t *testing.T, input string, expected string) {
 
 	for i, r := range []byte(expected) {
 		if i >= len(output) {
-			t.Errorf("Index %d, expected %d, found end of string", i, r)
+			t.Errorf("Index %d, expected %s, found end of string", i, output[i:])
 			break
 		}
 
 		if r != output[i] {
-			t.Errorf("Index %d, expected %d (%x), output %d (%x)", i, r, r, output[i], output[i])
+			t.Errorf("Index %d, expected %s, output %s", i, expected[i:], output[i:])
+			break;
 		}
 	}
 
@@ -439,4 +440,10 @@ func TestFunctionArguments(t *testing.T) {
 	expected = "int c = foo(\r\n    foo(1, 2),\r\n    foo(3, 4),\r\n    foo(5, 6),\r\n    foo(5, 6),\r\n    foo(5, 6),\r\n    foo(5, 6)\r\n);\r\n"
 	_testFormat(t, input, expected)
 
+}
+
+func TestWrapStatement(t *testing.T) {
+	input := "{state->load_button.is_mouse_over = state->mouse_position.x >= load_button.x && state->mouse_position.x <= load_button.x + load_button.width && state->mouse_position.y >= load_button.y && state->mouse_position.y <= load_button.y + load_button.height;}"
+	expected := "{\r\n    state->load_button.is_mouse_over = state->mouse_position.x >= load_button.x && state->mouse_position.x <= load_button.x + load_button.width\r\n        && state->mouse_position.y >= load_button.y && state->mouse_position.y <= load_button.y + load_button.height;\r\n}\r\n"
+	_testFormat(t, input, expected)
 }
