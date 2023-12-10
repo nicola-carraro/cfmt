@@ -715,7 +715,11 @@ func parseToken(input string) Token {
 	if isThreeCharsPunctuation(input) {
 		token.Type = Punctuation
 		token.Content = input[:3]
-	} else if isTwoCharsPunctuation(input) {
+
+		return token
+	}
+	
+	if isTwoCharsPunctuation(input) {
 		token.Type = Punctuation
 		token.Content = input[:2]
 
@@ -1395,11 +1399,13 @@ func main() {
 
 		formattedText := format(text)
 
-		os.WriteFile(path, []byte(formattedText), 0600)
+		fmt.Print(formattedText)
 
-		if err != nil {
-			log.Fatalf("Error writing %s: %s", path, err)
-		}
+		// os.WriteFile(path, []byte(formattedText), 0600)
+
+		// if err != nil {
+		// 	log.Fatalf("Error writing %s: %s", path, err)
+		// }
 
 	}
 
