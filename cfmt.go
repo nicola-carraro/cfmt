@@ -1362,8 +1362,7 @@ func format(input string) string {
 
 		const maxNewLines = 2
 
-		isBlockStart := isLeftBrace(parser.Token) && !isAssignment(parser.PreviousToken)
-		if (isAbsent(parser.NextToken)) || isBlockStart || isComment(parser.Token) || isMultilineComment(parser.NextToken) {
+		if (isAbsent(parser.NextToken)) ||  isComment(parser.Token) || isMultilineComment(parser.NextToken) {
 			parser.writeNewLines(1)
 		} else if parser.IsEndOfDirective ||
 			isDirective(parser.NextToken) ||
