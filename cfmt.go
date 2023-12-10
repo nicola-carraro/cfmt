@@ -718,7 +718,7 @@ func parseToken(input string) Token {
 
 		return token
 	}
-	
+
 	if isTwoCharsPunctuation(input) {
 		token.Type = Punctuation
 		token.Content = input[:2]
@@ -1179,7 +1179,7 @@ func formatBlockBody(parser *Parser) {
 				formatBlockBody(parser)
 				parser.oneOrTwoLines()
 			}
-		} else if isComment(parser.Token) || isMultilineComment(parser.Token) {
+		} else if isComment(parser.Token) || isMultilineComment(parser.Token) || parser.IsEndOfDirective {
 			parser.writeNewLines(1)
 		} else if canWrap(parser) {
 			parser.Indent++
@@ -1252,7 +1252,7 @@ func formatDeclarationBody(parser *Parser) {
 
 		if isLeftBrace(parser.Token) {
 			formatDeclarationBody(parser)
-		} else if isComment(parser.Token) || isComment(parser.NextToken) {
+		} else if isComment(parser.Token) || isComment(parser.NextToken) || parser.IsEndOfDirective {
 			parser.writeNewLines(1)
 		} else if isSemicolon(parser.Token) && !parser.hasTrailingComment() {
 			parser.writeNewLines(1)

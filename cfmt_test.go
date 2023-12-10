@@ -388,6 +388,11 @@ func TestFormatDirective(t *testing.T) {
 	input = "{#ifdef FOO\r\n foo(); #else\r\nbar(); #endif\r\n}"
 	expected = "{\r\n    #ifdef FOO\r\n    foo();\r\n    #else\r\n    bar();\r\n    #endif\r\n}\r\n"
 	_testFormat(t, input, expected)
+
+	input = "typedef struct stbtt__active_edge {\r\n    #if STBTT_RASTERIZER_VERSION==1\r\n    int x, int direction;\r\n    #elif STBTT_RASTERIZER_VERSION==2\r\nfloat fx,fdx,fdy;\r\n    #else\r\n#error \"Unrecognized value of STBTT_RASTERIZER_VERSION\"\r\n    #endif\r\n} stbtt__active_edge;\r\n"
+	expected = "typedef struct stbtt__active_edge {\r\n    #if STBTT_RASTERIZER_VERSION == 1\r\n    int x, int direction;\r\n    #elif STBTT_RASTERIZER_VERSION == 2\r\n    float fx, fdx, fdy;\r\n    #else\r\n    #error \"Unrecognized value of STBTT_RASTERIZER_VERSION\"\r\n    #endif\r\n} stbtt__active_edge;\r\n"
+	_testFormat(t, input, expected)
+
 }
 
 func TestFormatBrackets(t *testing.T) {
