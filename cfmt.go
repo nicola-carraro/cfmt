@@ -931,7 +931,7 @@ func tryFormatInlineInitialiserList(parser *Parser) bool {
 			continue
 		}
 
-		if isComment(parser.Token) {
+		if isComment(parser.Token) || isMultilineComment(parser.NextToken) {
 			parser.writeNewLines(1)
 		} else if !neverWhitespace(parser) &&
 			!isRightBrace(parser.NextToken) &&
@@ -1252,7 +1252,7 @@ func formatDeclarationBody(parser *Parser) {
 
 		if isLeftBrace(parser.Token) {
 			formatDeclarationBody(parser)
-		} else if isComment(parser.Token) || isComment(parser.NextToken) || parser.IsEndOfDirective {
+		} else if isComment(parser.Token) || isMultilineComment(parser.NextToken) || parser.IsEndOfDirective {
 			parser.writeNewLines(1)
 		} else if isSemicolon(parser.Token) && !parser.hasTrailingComment() {
 			parser.writeNewLines(1)
@@ -1363,7 +1363,7 @@ func format(input string) string {
 		const maxNewLines = 2
 
 		isBlockStart := isLeftBrace(parser.Token) && !isAssignment(parser.PreviousToken)
-		if (isAbsent(parser.NextToken)) || isBlockStart || isComment(parser.Token) {
+		if (isAbsent(parser.NextToken)) || isBlockStart || isComment(parser.Token) || isMultilineComment(parser.NextToken) {
 			parser.writeNewLines(1)
 		} else if parser.IsEndOfDirective ||
 			isDirective(parser.NextToken) ||
