@@ -889,13 +889,11 @@ func (parser *Parser) writeNewLines(lines int) {
 		parser.OutputLine++
 	}
 
-
-	if(! isDirective(parser.NextToken)){
+	if !isDirective(parser.NextToken) {
 		for indentLevel := 0; indentLevel < parser.Indent; indentLevel++ {
 			parser.writeString(indentation)
 		}
 	}
-
 
 }
 
@@ -1177,14 +1175,20 @@ func formatBlockBody(parser *Parser) {
 
 			if isAssignment(parser.PreviousToken) {
 				formatInitialiserList(parser)
+				continue
 			} else if structUnionOrEnum {
 				formatDeclarationBody(parser)
 				structUnionOrEnum = false
+				//fmt.Println(parser.Token)
+
 			} else {
 				formatBlockBody(parser)
 				parser.oneOrTwoLines()
+				continue
 			}
-		} else if isComment(parser.Token) || isMultilineComment(parser.Token) || parser.IsEndOfDirective {
+		}
+
+		if isComment(parser.Token) || isMultilineComment(parser.Token) || parser.IsEndOfDirective || isDirective(parser.NextToken) {
 			parser.writeNewLines(1)
 		} else if canWrap(parser) {
 			parser.Indent++
@@ -1241,7 +1245,6 @@ func formatDeclarationBody(parser *Parser) {
 
 	//fmt.Printf("DECLARATION: %s\n", parser.Input)
 
-	initialIndent := parser.Indent
 	parser.Indent++
 
 	parser.writeNewLines(1)
@@ -1255,9 +1258,15 @@ func formatDeclarationBody(parser *Parser) {
 
 		}
 
+		if isRightBrace(parser.Token) {
+			return
+		}
+
 		if isLeftBrace(parser.Token) {
 			formatDeclarationBody(parser)
-		} else if isComment(parser.Token) || isMultilineComment(parser.NextToken) || parser.IsEndOfDirective {
+		}
+
+		if isComment(parser.Token) || isMultilineComment(parser.NextToken) || parser.IsEndOfDirective || isDirective(parser.NextToken) {
 			parser.writeNewLines(1)
 		} else if isSemicolon(parser.Token) && !parser.hasTrailingComment() {
 			parser.writeNewLines(1)
@@ -1267,9 +1276,6 @@ func formatDeclarationBody(parser *Parser) {
 			parser.writeString(" ")
 		}
 
-		if parser.Indent == initialIndent {
-			return
-		}
 	}
 
 	log.Fatal("Unclosed declaration braces")
@@ -1351,14 +1357,17 @@ func format(input string) string {
 		if isLeftBrace(parser.Token) {
 			if isAssignment(parser.PreviousToken) {
 				formatInitialiserList(parser)
+				continue
 			} else if structUnionOrEnum {
 				formatDeclarationBody(parser)
 				structUnionOrEnum = false
+
 			} else {
 				formatBlockBody(parser)
 				parser.threeLinesOrEof()
+				continue
 			}
-			continue
+
 		}
 
 		if isStructUnionEnumKeyword(parser.Token) {
@@ -1367,7 +1376,7 @@ func format(input string) string {
 
 		const maxNewLines = 2
 
-		if (isAbsent(parser.NextToken)) ||  isComment(parser.Token) || isMultilineComment(parser.NextToken) {
+		if (isAbsent(parser.NextToken)) || isComment(parser.Token) || isMultilineComment(parser.NextToken) {
 			parser.writeNewLines(1)
 		} else if parser.IsEndOfDirective ||
 			isDirective(parser.NextToken) ||
