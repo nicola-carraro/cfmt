@@ -889,9 +889,14 @@ func (parser *Parser) writeNewLines(lines int) {
 		parser.OutputLine++
 	}
 
-	for indentLevel := 0; indentLevel < parser.Indent; indentLevel++ {
-		parser.writeString(indentation)
+
+	if(! isDirective(parser.NextToken)){
+		for indentLevel := 0; indentLevel < parser.Indent; indentLevel++ {
+			parser.writeString(indentation)
+		}
 	}
+
+
 }
 
 func hasNewLines(token Token) bool {
