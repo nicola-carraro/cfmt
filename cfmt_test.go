@@ -393,6 +393,13 @@ func TestFormatDirective(t *testing.T) {
 	expected = "typedef struct stbtt__active_edge {\r\n#if STBTT_RASTERIZER_VERSION == 1\r\n    int x, int direction;\r\n#elif STBTT_RASTERIZER_VERSION == 2\r\n    float fx, fdx, fdy;\r\n#else\r\n#error \"Unrecognized value of STBTT_RASTERIZER_VERSION\"\r\n#endif\r\n} stbtt__active_edge;\r\n"
 	_testFormat(t, input, expected)
 
+	input = "#define STBTT__OVER_MASK (STBTT_MAX_OVERSAMPLE - 1)"
+	expected = "#define STBTT__OVER_MASK (STBTT_MAX_OVERSAMPLE - 1)\r\n"
+	_testFormat(t, input, expected)
+
+	input = "  #define STBTT_ifloor(x)    ((int) floor(x))\r\n"
+	expected = "#define STBTT_ifloor(x) ((int) floor(x))\r\n"
+	_testFormat(t, input, expected)
 }
 
 func TestFormatBrackets(t *testing.T) {

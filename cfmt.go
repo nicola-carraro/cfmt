@@ -56,6 +56,7 @@ type Parser struct {
 }
 
 type Whitespace struct {
+	HasSpace          bool
 	NewLines          int
 	HasUnescapedLines bool
 }
@@ -766,6 +767,7 @@ func skipSpaceAndCountNewLines(parser *Parser) Whitespace {
 	result := Whitespace{}
 
 	for parser.consumeSpace(&result) {
+		result.HasSpace = true
 	}
 
 	return result
@@ -1282,11 +1284,17 @@ func formatDeclarationBody(parser *Parser) {
 }
 
 func startsFunctionArguments(parser *Parser) bool {
-	return parser.PreviousToken.Type == Identifier && isLeftParenthesis(parser.Token)
+
+	if !parser.IsDirective {
+		return parser.PreviousToken.Type == Identifier && isLeftParenthesis(parser.Token)
+
+	} else {
+		return parser.PreviousToken.Type == Identifier && isLeftParenthesis(parser.Token) && !parser.PreviousToken.Whitespace.HasSpace
+	}
 }
 
 func isFunctionName(parser *Parser) bool {
-	return parser.Token.Type == Identifier && isLeftParenthesis(parser.NextToken)
+	return parser.Token.Type == Identifier && isLeftParenthesis(parser.NextToken) && (!parser.IsDirective || !parser.Token.Whitespace.HasSpace)
 }
 
 func isInclude(token Token) bool {
