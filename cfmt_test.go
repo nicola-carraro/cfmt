@@ -474,3 +474,13 @@ func TestWrapStatement(t *testing.T) {
 	expected := "{\r\n    state->load_button.is_mouse_over = state->mouse_position.x >= load_button.x && state->mouse_position.x <= load_button.x + load_button.width\r\n        && state->mouse_position.y >= load_button.y && state->mouse_position.y <= load_button.y + load_button.height;\r\n}\r\n"
 	_testFormat(t, input, expected)
 }
+
+func TestFormatFunctionCall(t *testing.T) {
+	input := "{bool c8_read_entire_file(const char *path, C8_Arena *arena, C8_File *read_result);}\r\n"
+	expected := "{\r\n    bool c8_read_entire_file(\r\n        const char *path,\r\n        C8_Arena *arena,\r\n        C8_File *read_result\r\n    );\r\n}\r\n"
+	_testFormat(t, input, expected)
+
+	input = "{bool c8_read_entire_file(const char *path, C8_Arena *arena);}\r\n"
+	expected = "{\r\n    bool c8_read_entire_file(const char *path, C8_Arena *arena);\r\n}\r\n"
+	_testFormat(t, input, expected)
+}

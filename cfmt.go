@@ -995,7 +995,7 @@ func formatMultilineInitialiserList(parser *Parser) {
 	log.Fatal("Unclosed initialiser list")
 }
 
-func tryFormatInlineFunctionArguments(parser *Parser) bool {
+func tryFormatInlineFunctionDeclArguments(parser *Parser) bool {
 	commas := 0
 	openParenthesis := 1
 	for parser.parseToken() {
@@ -1040,7 +1040,7 @@ func tryFormatInlineFunctionArguments(parser *Parser) bool {
 	panic("unreachable")
 }
 
-func formatMultilineFunctionArguments(parser *Parser) {
+func formatMultilineFunctionDeclArguments(parser *Parser) {
 	parser.Indent++
 
 	openParenthesis := 1
@@ -1081,11 +1081,11 @@ func formatMultilineFunctionArguments(parser *Parser) {
 	log.Fatal("Unclosed function arguments")
 }
 
-func formatFunctionArguments(parser *Parser) {
+func formatFunctionDeclArguments(parser *Parser) {
 	saved := *parser
-	if !tryFormatInlineFunctionArguments(parser) {
+	if !tryFormatInlineFunctionDeclArguments(parser) {
 		*parser = saved
-		formatMultilineFunctionArguments(parser)
+		formatMultilineFunctionDeclArguments(parser)
 	}
 }
 
@@ -1133,10 +1133,75 @@ func (parser *Parser) hasTrailingComment() bool {
 	return isSingleLineComment(parser.NextToken) && parser.Token.Whitespace.NewLines == 0
 }
 
-func (parser *Parser) wrap(){
+func (parser *Parser) wrap() {
 	parser.Indent++
-			parser.writeNewLines(1)
+	parser.writeNewLines(1)
+	parser.Indent--
+}
+
+func tryFormatFunctionCall(parser *Parser, inline bool) bool {
+	commas := 0
+	openParenthesis := 1
+	if !inline {
+		parser.Indent++
+		parser.writeNewLines(1)
+	}
+
+	for parser.parseToken() {
+
+		topLevelComma := false
+
+		if isComma(parser.Token) && openParenthesis == 1 {
+			topLevelComma = true
+			commas++
+		}
+
+		if parser.OutputColumn > 80 && commas > 0 {
+			return false
+		}
+
+		parser.formatToken()
+
+		if isRightParenthesis(parser.Token) {
+			openParenthesis--
+		}
+
+		if isLeftParenthesis(parser.Token) {
+			openParenthesis++
+		}
+
+		if openParenthesis == 0 {
+			return true
+		}
+
+		beforeLastParenthesis := openParenthesis == 1 && isRightParenthesis(parser.NextToken) && !inline
+
+		if beforeLastParenthesis {
 			parser.Indent--
+		}
+
+		if parser.alwaysOneLine() || parser.alwaysDefaultLines() || (topLevelComma && !inline) || beforeLastParenthesis {
+			parser.writeNewLines(1)
+		} else if !neverWhitespace(parser) &&
+			!isRightBrace(parser.NextToken) &&
+			!isRightBrace(parser.Token) {
+			parser.writeString(" ")
+		}
+	}
+
+	log.Fatal("Unclosed function arguments")
+
+	panic("unreachable")
+}
+
+func formatFunctionCall(parser *Parser) {
+	saved := *parser
+	succeess := tryFormatFunctionCall(parser, true)
+
+	if !succeess {
+		*parser = saved
+		_ = tryFormatFunctionCall(parser, false)
+	}
 }
 
 func formatBlockBody(parser *Parser) {
@@ -1167,7 +1232,7 @@ func formatBlockBody(parser *Parser) {
 		parser.formatToken()
 
 		if startsFunctionArguments(parser) {
-			formatFunctionArguments(parser)
+			formatFunctionCall(parser)
 		}
 
 		if isRightBrace(parser.Token) {
@@ -1194,7 +1259,7 @@ func formatBlockBody(parser *Parser) {
 		if parser.alwaysOneLine() || isRightBrace(parser.NextToken) {
 			parser.writeNewLines(1)
 		} else if canWrap(parser) {
-		   parser.wrap()
+			parser.wrap()
 		} else if parser.alwaysDefaultLines() {
 			parser.oneOrTwoLines()
 		} else if !neverWhitespace(parser) {
@@ -1366,7 +1431,7 @@ func format(input string) string {
 		parser.formatToken()
 
 		if startsFunctionArguments(parser) {
-			formatFunctionArguments(parser)
+			formatFunctionDeclArguments(parser)
 		}
 
 		if isLeftBrace(parser.Token) {
