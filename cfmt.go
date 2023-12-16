@@ -936,7 +936,7 @@ func tryFormatInlineInitialiserList(parser *Parser) bool {
 			continue
 		}
 
-		if isComment(parser.Token) || isMultilineComment(parser.NextToken) {
+		if parser.alwaysOneLine() {
 			parser.writeNewLines(1)
 		} else if !neverWhitespace(parser) &&
 			!isRightBrace(parser.NextToken) &&
@@ -978,11 +978,7 @@ func formatMultilineInitialiserList(parser *Parser) {
 			continue
 		}
 
-		if isRightBrace(parser.NextToken) {
-			parser.writeNewLines(1)
-		} else if isComma(parser.Token) && hasNewLines(parser.Token) {
-			parser.writeNewLines(1)
-		} else if isComment(parser.Token) || isMultilineComment(parser.Token) {
+		if parser.alwaysOneLine() || isRightBrace(parser.NextToken) || (isComma(parser.Token) && hasNewLines(parser.Token)) {
 			parser.writeNewLines(1)
 		} else if !neverWhitespace(parser) &&
 			!isRightBrace(parser.NextToken) &&
@@ -1029,7 +1025,7 @@ func tryFormatInlineFunctionArguments(parser *Parser) bool {
 			return true
 		}
 
-		if isSingleLineComment(parser.Token) {
+		if parser.alwaysOneLine() {
 			parser.writeNewLines(1)
 		} else if !neverWhitespace(parser) &&
 			!isRightBrace(parser.NextToken) &&
@@ -1071,9 +1067,7 @@ func formatMultilineFunctionArguments(parser *Parser) {
 			return
 		}
 
-		if (isComma(parser.Token) && openParenthesis == 1) || (isRightParenthesis(parser.NextToken) && openParenthesis == 1) {
-			parser.writeNewLines(1)
-		} else if isSingleLineComment(parser.Token) {
+		if parser.alwaysOneLine() || (isComma(parser.Token) && openParenthesis == 1) || (isRightParenthesis(parser.NextToken) && openParenthesis == 1) {
 			parser.writeNewLines(1)
 		} else if !neverWhitespace(parser) &&
 			!isRightBrace(parser.NextToken) &&
@@ -1190,7 +1184,7 @@ func formatBlockBody(parser *Parser) {
 			}
 		}
 
-		if isComment(parser.Token) || isMultilineComment(parser.Token) || parser.IsEndOfDirective || isDirective(parser.NextToken) {
+		if parser.alwaysOneLine() || isMultilineComment(parser.Token) || isDirective(parser.NextToken) {
 			parser.writeNewLines(1)
 		} else if canWrap(parser) {
 			parser.Indent++
@@ -1268,9 +1262,7 @@ func formatDeclarationBody(parser *Parser) {
 			formatDeclarationBody(parser)
 		}
 
-		if isComment(parser.Token) || isMultilineComment(parser.NextToken) || parser.IsEndOfDirective || isDirective(parser.NextToken) {
-			parser.writeNewLines(1)
-		} else if isSemicolon(parser.Token) && !parser.hasTrailingComment() {
+		if parser.alwaysOneLine() || parser.IsEndOfDirective || isDirective(parser.NextToken) || isSemicolon(parser.Token) && !parser.hasTrailingComment() {
 			parser.writeNewLines(1)
 		} else if !neverWhitespace(parser) &&
 			!isDotOperator(parser.NextToken) &&
@@ -1349,6 +1341,10 @@ func canWrap(parser *Parser) bool {
 	return result
 }
 
+func (parser *Parser) alwaysOneLine() bool {
+	return isAbsent(parser.NextToken) || isComment(parser.Token)
+}
+
 func format(input string) string {
 
 	parser := newParser(input)
@@ -1383,11 +1379,11 @@ func format(input string) string {
 
 		const maxNewLines = 2
 
-		if (isAbsent(parser.NextToken)) || isComment(parser.Token)  {
+		if parser.alwaysOneLine() {
 			parser.writeNewLines(1)
 		} else if parser.IsEndOfDirective ||
 			isDirective(parser.NextToken) ||
-			isMultilineComment(parser.NextToken)||
+			isMultilineComment(parser.NextToken) ||
 			(isSemicolon(parser.Token) && !parser.IsParenthesis && !parser.hasTrailingComment()) {
 			parser.threeLinesOrEof()
 		} else if !neverWhitespace(parser) &&
