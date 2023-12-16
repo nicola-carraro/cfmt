@@ -1133,6 +1133,12 @@ func (parser *Parser) hasTrailingComment() bool {
 	return isSingleLineComment(parser.NextToken) && parser.Token.Whitespace.NewLines == 0
 }
 
+func (parser *Parser) wrap(){
+	parser.Indent++
+			parser.writeNewLines(1)
+			parser.Indent--
+}
+
 func formatBlockBody(parser *Parser) {
 
 	parser.Indent++
@@ -1188,9 +1194,7 @@ func formatBlockBody(parser *Parser) {
 		if parser.alwaysOneLine() || isRightBrace(parser.NextToken) {
 			parser.writeNewLines(1)
 		} else if canWrap(parser) {
-			parser.Indent++
-			parser.writeNewLines(1)
-			parser.Indent--
+		   parser.wrap()
 		} else if parser.alwaysDefaultLines() {
 			parser.oneOrTwoLines()
 		} else if !neverWhitespace(parser) {
