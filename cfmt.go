@@ -936,7 +936,7 @@ func tryFormatInlineInitialiserList(parser *Parser) bool {
 			continue
 		}
 
-		if parser.alwaysOneLine() {
+		if parser.alwaysOneLine() || parser.alwaysDefaultLines() {
 			parser.writeNewLines(1)
 		} else if !neverWhitespace(parser) &&
 			!isRightBrace(parser.NextToken) &&
@@ -978,7 +978,8 @@ func formatMultilineInitialiserList(parser *Parser) {
 			continue
 		}
 
-		if parser.alwaysOneLine() || isRightBrace(parser.NextToken) || (isComma(parser.Token) && hasNewLines(parser.Token)) {
+		if parser.alwaysOneLine() || isRightBrace(parser.NextToken) ||
+			(isComma(parser.Token) && hasNewLines(parser.Token)) || parser.alwaysDefaultLines() {
 			parser.writeNewLines(1)
 		} else if !neverWhitespace(parser) &&
 			!isRightBrace(parser.NextToken) &&
@@ -1025,7 +1026,7 @@ func tryFormatInlineFunctionArguments(parser *Parser) bool {
 			return true
 		}
 
-		if parser.alwaysOneLine() {
+		if parser.alwaysOneLine() || parser.alwaysDefaultLines() {
 			parser.writeNewLines(1)
 		} else if !neverWhitespace(parser) &&
 			!isRightBrace(parser.NextToken) &&
@@ -1067,7 +1068,7 @@ func formatMultilineFunctionArguments(parser *Parser) {
 			return
 		}
 
-		if parser.alwaysOneLine() || (isComma(parser.Token) && openParenthesis == 1) || (isRightParenthesis(parser.NextToken) && openParenthesis == 1) {
+		if parser.alwaysOneLine() || parser.alwaysDefaultLines() || (isComma(parser.Token) && openParenthesis == 1) || (isRightParenthesis(parser.NextToken) && openParenthesis == 1) {
 			parser.writeNewLines(1)
 		} else if !neverWhitespace(parser) &&
 			!isRightBrace(parser.NextToken) &&
@@ -1184,15 +1185,15 @@ func formatBlockBody(parser *Parser) {
 			}
 		}
 
-		if parser.alwaysOneLine() || isMultilineComment(parser.Token) || isDirective(parser.NextToken) {
+		if parser.alwaysOneLine() || isRightBrace(parser.NextToken) {
 			parser.writeNewLines(1)
 		} else if canWrap(parser) {
 			parser.Indent++
 			parser.writeNewLines(1)
 			parser.Indent--
-		} else if (isSemicolon(parser.Token) && !parser.IsParenthesis && !parser.hasTrailingComment()) || parser.IsEndOfDirective {
+		} else if parser.alwaysDefaultLines() {
 			parser.oneOrTwoLines()
-		} else if !neverWhitespace(parser)  {
+		} else if !neverWhitespace(parser) {
 			parser.writeString(" ")
 		}
 	}
@@ -1261,7 +1262,7 @@ func formatDeclarationBody(parser *Parser) {
 			formatDeclarationBody(parser)
 		}
 
-		if parser.alwaysOneLine() || parser.IsEndOfDirective || isDirective(parser.NextToken) || isSemicolon(parser.Token) && !parser.hasTrailingComment() {
+		if parser.alwaysOneLine() || parser.alwaysDefaultLines() {
 			parser.writeNewLines(1)
 		} else if !neverWhitespace(parser) &&
 			!isSemicolon(parser.NextToken) {
@@ -1315,7 +1316,7 @@ func neverWhitespace(parser *Parser) bool {
 		isFunctionName(parser) ||
 		hasPostfixIncrDecr(parser) ||
 		isPrefixIncrDecr(parser) ||
-        (isIdentifier(parser.Token) && isDotOperator(parser.NextToken)) ||
+		(isIdentifier(parser.Token) && isDotOperator(parser.NextToken)) ||
 		isDotOperator(parser.Token) ||
 		isArrowOperator(parser.Token) ||
 		isArrowOperator(parser.NextToken) ||
@@ -1342,6 +1343,13 @@ func canWrap(parser *Parser) bool {
 
 func (parser *Parser) alwaysOneLine() bool {
 	return isAbsent(parser.NextToken) || isComment(parser.Token)
+}
+
+func (parser *Parser) alwaysDefaultLines() bool {
+	return (isDirective(parser.NextToken) && !isAbsent(parser.PreviousToken)) ||
+		parser.IsEndOfDirective ||
+		isMultilineComment(parser.NextToken) ||
+		(isSemicolon(parser.Token) && !parser.IsParenthesis && !parser.hasTrailingComment())
 }
 
 func format(input string) string {
@@ -1380,10 +1388,7 @@ func format(input string) string {
 
 		if parser.alwaysOneLine() {
 			parser.writeNewLines(1)
-		} else if parser.IsEndOfDirective ||
-			isDirective(parser.NextToken) ||
-			isMultilineComment(parser.NextToken) ||
-			(isSemicolon(parser.Token) && !parser.IsParenthesis && !parser.hasTrailingComment()) {
+		} else if parser.IsEndOfDirective || parser.alwaysDefaultLines() {
 			parser.threeLinesOrEof()
 		} else if !neverWhitespace(parser) &&
 			!isRightBrace(parser.NextToken) &&
