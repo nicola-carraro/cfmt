@@ -1375,7 +1375,6 @@ func format(input string) string {
 				parser.threeLinesOrEof()
 				continue
 			}
-
 		}
 
 		if isStructUnionEnumKeyword(parser.Token) {
@@ -1384,10 +1383,11 @@ func format(input string) string {
 
 		const maxNewLines = 2
 
-		if (isAbsent(parser.NextToken)) || isComment(parser.Token) || isMultilineComment(parser.NextToken) {
+		if (isAbsent(parser.NextToken)) || isComment(parser.Token)  {
 			parser.writeNewLines(1)
 		} else if parser.IsEndOfDirective ||
 			isDirective(parser.NextToken) ||
+			isMultilineComment(parser.NextToken)||
 			(isSemicolon(parser.Token) && !parser.IsParenthesis && !parser.hasTrailingComment()) {
 			parser.threeLinesOrEof()
 		} else if !neverWhitespace(parser) &&
