@@ -193,6 +193,15 @@ func TestFormatOperators(t *testing.T) {
 	expected = "aa->bar = 3;\r\n"
 	_testFormat(t, input, expected)
 
+	input = "OPENFILENAME file_name = {.hwndOwner = state.window};\r\n"
+	expected = "OPENFILENAME file_name = {.hwndOwner = state.window};\r\n"
+	_testFormat(t, input, expected)
+
+
+	input = "	OPENFILENAME file_name = {.lStructSize = sizeof(file_name),.hwndOwner = state.window,.hInstance = state.instance,.lpstrFilter = \"Chip 8 rom (*.ch8)\\0*.ch8\\0All files (*.*)'\\0*.*\",.lpstrFile = path,.nMaxFile = C8_ARRCOUNT(path),.lpstrInitialDir = \"roms\"};"
+	expected = "OPENFILENAME file_name = {\r\n    .lStructSize = sizeof(file_name),\r\n    .hwndOwner = state.window,\r\n    .hInstance = state.instance,\r\n    .lpstrFilter = \"Chip 8 rom (*.ch8)\\0*.ch8\\0All files (*.*)'\\0*.*\",\r\n    .lpstrFile = path,\r\n    .nMaxFile = C8_ARRCOUNT(path),\r\n    .lpstrInitialDir = \"roms\"\r\n};\r\n"
+
+
 	input = "a . b = c . d;"
 	expected = "a.b = c.d;\r\n"
 	_testFormat(t, input, expected)
@@ -200,6 +209,11 @@ func TestFormatOperators(t *testing.T) {
 	input = "a\r\n.b = c\r\n.d;"
 	expected = "a.b = c.d;\r\n"
 	_testFormat(t, input, expected)
+
+	input = "c8_color_vertex(p1 .x, p1 .y);\r\n"
+	expected = "c8_color_vertex(p1.x, p1.y);\r\n"
+	_testFormat(t, input, expected)
+
 
 	input = "i = i ++ == i --;\r\n"
 	expected = "i = i++ == i--;\r\n"

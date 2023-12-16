@@ -1192,8 +1192,7 @@ func formatBlockBody(parser *Parser) {
 			parser.Indent--
 		} else if (isSemicolon(parser.Token) && !parser.IsParenthesis && !parser.hasTrailingComment()) || parser.IsEndOfDirective {
 			parser.oneOrTwoLines()
-		} else if !neverWhitespace(parser) &&
-			!isDotOperator(parser.NextToken) {
+		} else if !neverWhitespace(parser)  {
 			parser.writeString(" ")
 		}
 	}
@@ -1265,7 +1264,6 @@ func formatDeclarationBody(parser *Parser) {
 		if parser.alwaysOneLine() || parser.IsEndOfDirective || isDirective(parser.NextToken) || isSemicolon(parser.Token) && !parser.hasTrailingComment() {
 			parser.writeNewLines(1)
 		} else if !neverWhitespace(parser) &&
-			!isDotOperator(parser.NextToken) &&
 			!isSemicolon(parser.NextToken) {
 			parser.writeString(" ")
 		}
@@ -1317,6 +1315,7 @@ func neverWhitespace(parser *Parser) bool {
 		isFunctionName(parser) ||
 		hasPostfixIncrDecr(parser) ||
 		isPrefixIncrDecr(parser) ||
+        (isIdentifier(parser.Token) && isDotOperator(parser.NextToken)) ||
 		isDotOperator(parser.Token) ||
 		isArrowOperator(parser.Token) ||
 		isArrowOperator(parser.NextToken) ||
@@ -1388,7 +1387,6 @@ func format(input string) string {
 			parser.threeLinesOrEof()
 		} else if !neverWhitespace(parser) &&
 			!isRightBrace(parser.NextToken) &&
-			!isDotOperator(parser.NextToken) &&
 			!isLeftBrace(parser.Token) {
 			parser.writeString(" ")
 		}
