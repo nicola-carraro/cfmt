@@ -48,7 +48,7 @@ type Parser struct {
 	Input                 string
 	Output                strings.Builder
 	SavedInput            string
-	IsParenthesis         bool
+	OpenParenthesis       int
 	IsDirective           bool
 	IsIncludeDirective    bool
 	IsEndOfDirective      bool
@@ -653,14 +653,19 @@ func (parser *Parser) parseToken() bool {
 	//fmt.Printf("updateParser, PreviousToken:%s, Token:%s, NextToken:%s\n", parser.PreviousToken, parser.Token, parser.NextToken)
 
 	if isLeftParenthesis(parser.Token) {
-		parser.IsParenthesis = true
+		parser.OpenParenthesis ++
 	}
 
 	if isRightParenthesis(parser.Token) {
-		parser.IsParenthesis = false
+		parser.OpenParenthesis --
+
 	}
 
 	return !isAbsent(parser.Token)
+}
+
+func (parser *Parser)IsParenthesis()bool{
+	return parser.OpenParenthesis > 0
 }
 
 func isOneToNine(r rune) bool {
@@ -1340,6 +1345,10 @@ func isNegation(token Token) bool {
 	return token.Type == Punctuation && token.Content == "!"
 }
 
+func isSizeOf(token Token) bool {
+	return token.Type == Keyword && token.Content == "sizeof"
+}
+
 func neverWhitespace(parser *Parser) bool {
 
 	return isSemicolon(parser.NextToken) ||
@@ -1358,6 +1367,7 @@ func neverWhitespace(parser *Parser) bool {
 		isArrowOperator(parser.NextToken) ||
 		isComma(parser.NextToken) ||
 		isNegation(parser.Token) ||
+		isSizeOf(parser.Token) ||
 		(parser.IsIncludeDirective && (isGreaterThanSign(parser.NextToken) || isLessThanSign(parser.Token)))
 }
 
@@ -1385,7 +1395,7 @@ func (parser *Parser) alwaysDefaultLines() bool {
 	return (isDirective(parser.NextToken) && !isAbsent(parser.PreviousToken)) ||
 		parser.IsEndOfDirective ||
 		isMultilineComment(parser.NextToken) ||
-		(isSemicolon(parser.Token) && !parser.IsParenthesis && !parser.hasTrailingComment())
+		(isSemicolon(parser.Token) && !parser.IsParenthesis() && !parser.hasTrailingComment())
 }
 
 func format(input string) string {

@@ -182,6 +182,10 @@ func TestFormatForLoop(t *testing.T) {
 	expected = "Foo zz = {\r\n    123,\r\n    \"123\"\r\n};\r\n"
 	_testFormat(t, input, expected)
 
+	input = "int foo(){for (i16 i = 0; i < buf_size / sizeof(i16); i++) {return bar;}}"
+	expected = "int foo() {\r\n    for (i16 i = 0; i < buf_size / sizeof(i16); i++) {\r\n        return bar;\r\n    }\r\n}\r\n"
+	_testFormat(t, input, expected)
+
 }
 
 func TestFormatOperators(t *testing.T) {
@@ -492,3 +496,5 @@ func TestFormatFunctionCall(t *testing.T) {
 	expected = "{\r\n    int c = foo(\r\n        foo(1, 2),\r\n        foo(3, 4),\r\n        foo(5, 6),\r\n        foo(5, 6),\r\n        foo(5, 6),\r\n        foo(5, 6),\r\n        foo(5, 6)\r\n    );\r\n}\r\n"
 	_testFormat(t, input, expected)
 }
+
+
