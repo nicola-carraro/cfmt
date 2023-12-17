@@ -53,6 +53,7 @@ type Parser struct {
 	IsIncludeDirective    bool
 	IsEndOfDirective      bool
 	RightSideOfAssignment bool
+	wrapping               bool
 }
 
 type Whitespace struct {
@@ -892,6 +893,7 @@ func (parser *Parser) writeNewLines(lines int) {
 			parser.writeString("\\")
 		}
 		parser.writeString(newLine)
+		parser.wrapping = false
 		parser.OutputColumn = 0
 		parser.OutputLine++
 	}
@@ -1178,7 +1180,12 @@ func formatFunctionCallOrMacro(parser *Parser) {
 
 func formatBlockBody(parser *Parser) {
 
+
+
+
 	parser.Indent++
+
+
 
 	if isRightBrace(parser.NextToken) {
 
@@ -1188,6 +1195,8 @@ func formatBlockBody(parser *Parser) {
 	parser.writeNewLines(1)
 
 	structUnionOrEnum := false
+
+		saved := *parser
 
 	//fmt.Printf("start %s\n", parser.NextToken)
 
@@ -1228,9 +1237,16 @@ func formatBlockBody(parser *Parser) {
 			}
 		}
 
+		
+			if(parser.OutputColumn > 80 && !parser.wrapping){
+		*parser = saved
+		parser.wrapping = true
+		continue
+	}
+
 		if parser.alwaysOneLine() || isRightBrace(parser.NextToken) {
 			parser.writeNewLines(1)
-		} else if canWrap(parser) {
+		} else if parser.wrapping && hasNewLines(parser.Token) {
 			parser.wrap()
 		} else if parser.alwaysDefaultLines() {
 			parser.oneOrTwoLines()
