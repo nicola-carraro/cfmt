@@ -208,10 +208,6 @@ func TestFormatOperators(t *testing.T) {
 	expected = "a.b = c.d;\r\n"
 	_testFormat(t, input, expected)
 
-	input = "c8_color_vertex(p1 .x, p1 .y);\r\n"
-	expected = "c8_color_vertex(p1.x, p1.y);\r\n"
-	_testFormat(t, input, expected)
-
 	input = "i = i ++ == i --;\r\n"
 	expected = "i = i++ == i--;\r\n"
 	_testFormat(t, input, expected)
@@ -444,11 +440,11 @@ func TestFunctionArguments(t *testing.T) {
 	_testFormat(t, input, expected)
 
 	input = "bool c8_read_entire_file(const char *path, C8_Arena *arena, C8_File *read_result) {}"
-	expected = "bool c8_read_entire_file(const char *path, C8_Arena *arena, C8_File *read_result) {\r\n}\r\n"
+	expected = "bool c8_read_entire_file(\r\n    const char *path,\r\n    C8_Arena *arena,\r\n    C8_File *read_result\r\n) {\r\n}\r\n"
 	_testFormat(t, input, expected)
 
 	input = "bool foo(int a, int b, int c, int d, int e) {\r\n}\r\n"
-	expected = "bool foo(int a, int b, int c, int d, int e) {\r\n}\r\n"
+	expected = "bool foo(\r\n    int a,\r\n    int b,\r\n    int c,\r\n    int d,\r\n    int e\r\n) {\r\n}\r\n"
 	_testFormat(t, input, expected)
 
 	input = "bool foo(int a, int b, int c, int d, int e, int f) {\r\n}\r\n"
@@ -461,10 +457,6 @@ func TestFunctionArguments(t *testing.T) {
 
 	input = "void foo() {\r\n    bar();\r\n}\r\n"
 	expected = "void foo() {\r\n    bar();\r\n}\r\n"
-	_testFormat(t, input, expected)
-
-	input = "int c = foo(foo(1, 2), foo(3, 4), foo(5, 6), foo(5, 6), foo(5, 6), foo(5, 6) );"
-	expected = "int c = foo(\r\n    foo(1, 2),\r\n    foo(3, 4),\r\n    foo(5, 6),\r\n    foo(5, 6),\r\n    foo(5, 6),\r\n    foo(5, 6)\r\n);\r\n"
 	_testFormat(t, input, expected)
 
 }
@@ -480,7 +472,23 @@ func TestFormatFunctionCall(t *testing.T) {
 	expected := "{\r\n    bool c8_read_entire_file(\r\n        const char *path,\r\n        C8_Arena *arena,\r\n        C8_File *read_result\r\n    );\r\n}\r\n"
 	_testFormat(t, input, expected)
 
+	input = "{\r\n    foo();\r\n}\r\n"
+	expected = "{\r\n    foo();\r\n}\r\n"
+	_testFormat(t, input, expected)
+
+	input = "{\r\n    foo(bar);\r\n}\r\n"
+	expected = "{\r\n    foo(bar);\r\n}\r\n"
+	_testFormat(t, input, expected)
+
 	input = "{bool c8_read_entire_file(const char *path, C8_Arena *arena);}\r\n"
 	expected = "{\r\n    bool c8_read_entire_file(const char *path, C8_Arena *arena);\r\n}\r\n"
+	_testFormat(t, input, expected)
+
+	input = "{c8_color_vertex(p1 .x, p1 .y);}\r\n"
+	expected = "{\r\n    c8_color_vertex(p1.x, p1.y);\r\n}\r\n"
+	_testFormat(t, input, expected)
+
+	input = "{int c = foo(foo(1, 2), foo(3, 4), foo(5, 6), foo(5, 6), foo(5, 6), foo(5, 6), foo(5, 6) );}"
+	expected = "{\r\n    int c = foo(\r\n        foo(1, 2),\r\n        foo(3, 4),\r\n        foo(5, 6),\r\n        foo(5, 6),\r\n        foo(5, 6),\r\n        foo(5, 6),\r\n        foo(5, 6)\r\n    );\r\n}\r\n"
 	_testFormat(t, input, expected)
 }

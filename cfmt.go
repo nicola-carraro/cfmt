@@ -1040,52 +1040,11 @@ func tryFormatInlineFunctionDeclArguments(parser *Parser) bool {
 	panic("unreachable")
 }
 
-func formatMultilineFunctionDeclArguments(parser *Parser) {
-	parser.Indent++
-
-	openParenthesis := 1
-
-	parser.writeNewLines(1)
-
-	for parser.parseToken() {
-		parser.formatToken()
-
-		if isLeftParenthesis(parser.Token) {
-			openParenthesis++
-		}
-
-		if isRightParenthesis(parser.Token) {
-			openParenthesis--
-		}
-
-		if openParenthesis == 1 && isRightParenthesis(parser.NextToken) {
-			parser.Indent--
-
-		}
-
-		if openParenthesis == 0 {
-
-			return
-		}
-
-		if parser.alwaysOneLine() || parser.alwaysDefaultLines() || (isComma(parser.Token) && openParenthesis == 1) || (isRightParenthesis(parser.NextToken) && openParenthesis == 1) {
-			parser.writeNewLines(1)
-		} else if !neverWhitespace(parser) &&
-			!isRightBrace(parser.NextToken) &&
-			!isRightBrace(parser.Token) {
-			parser.writeString(" ")
-		}
-
-	}
-
-	log.Fatal("Unclosed function arguments")
-}
-
-func formatFunctionDeclArguments(parser *Parser) {
+func formatFunctionDecl(parser *Parser) {
 	saved := *parser
-	if !tryFormatInlineFunctionDeclArguments(parser) {
+	if !tryFormatFunctionArguments(parser, true, true) {
 		*parser = saved
-		formatMultilineFunctionDeclArguments(parser)
+		tryFormatFunctionArguments(parser, false, true)
 	}
 }
 
@@ -1139,7 +1098,9 @@ func (parser *Parser) wrap() {
 	parser.Indent--
 }
 
-func tryFormatFunctionCall(parser *Parser, inline bool) bool {
+func tryFormatFunctionArguments(parser *Parser, inline bool, isFunctionDecl bool) bool {
+	//fmt.Println(parser.Input)
+
 	commas := 0
 	openParenthesis := 1
 	if !inline {
@@ -1156,8 +1117,14 @@ func tryFormatFunctionCall(parser *Parser, inline bool) bool {
 			commas++
 		}
 
-		if parser.OutputColumn > 80 && commas > 0 {
-			return false
+		if isFunctionDecl {
+			if isComma(parser.Token) && openParenthesis == 1 && inline {
+				return false
+			}
+		} else {
+			if parser.OutputColumn > 80 && commas > 0 {
+				return false
+			}
 		}
 
 		parser.formatToken()
@@ -1194,13 +1161,13 @@ func tryFormatFunctionCall(parser *Parser, inline bool) bool {
 	panic("unreachable")
 }
 
-func formatFunctionCall(parser *Parser) {
+func formatFunctionCallOrMacro(parser *Parser) {
 	saved := *parser
-	succeess := tryFormatFunctionCall(parser, true)
+	succeess := tryFormatFunctionArguments(parser, true, false)
 
 	if !succeess {
 		*parser = saved
-		_ = tryFormatFunctionCall(parser, false)
+		_ = tryFormatFunctionArguments(parser, false, false)
 	}
 }
 
@@ -1232,7 +1199,7 @@ func formatBlockBody(parser *Parser) {
 		parser.formatToken()
 
 		if startsFunctionArguments(parser) {
-			formatFunctionCall(parser)
+			formatFunctionCallOrMacro(parser)
 		}
 
 		if isRightBrace(parser.Token) {
@@ -1431,7 +1398,12 @@ func format(input string) string {
 		parser.formatToken()
 
 		if startsFunctionArguments(parser) {
-			formatFunctionDeclArguments(parser)
+			if parser.IsDirective {
+				formatFunctionCallOrMacro(parser)
+			} else {
+				formatFunctionDecl(parser)
+
+			}
 		}
 
 		if isLeftBrace(parser.Token) {
