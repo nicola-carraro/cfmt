@@ -175,7 +175,7 @@ func TestFormatInitializerList(t *testing.T) {
 
 }
 
-func TestFormatForLoop(t *testing.T) {
+func TestFormatLoop(t *testing.T) {
 	input := " for (int i=0;i<3;i++) {printf(\"%d\\n\", i);}"
 
 	expected := "for (int i = 0; i < 3; i++) {\n" +
@@ -207,6 +207,10 @@ func TestFormatForLoop(t *testing.T) {
     }
 }
 `
+	_testFormat(t, input, expected)
+
+	input = "{do {foo();} while(bar);}"
+	expected = "{\n    do {\n        foo();\n    } while (bar);\n}\n"
 	_testFormat(t, input, expected)
 
 }
