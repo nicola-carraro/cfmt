@@ -100,6 +100,12 @@ func TestTokenizeInteger(t *testing.T) {
 
 }
 
+func TestTokenizePunctuation(t *testing.T) {
+	_testTokenizeSingleToken(t, "#", Punctuation)
+	_testTokenizeSingleToken(t, "#@", Punctuation)
+	_testTokenizeSingleToken(t, "##", Punctuation)
+}
+
 func TestFormatStructDecl(t *testing.T) {
 	input := `typedef struct {
 int bar;     char *baz;}Foo;`
@@ -443,6 +449,51 @@ func TestFormatMacro(t *testing.T) {
 	input = "#define MACRO(str) {\\\n    printf(\"%s\", str);\\\n}\\\n"
 	expected = "#define MACRO(str) {\\\n    printf(\"%s\", str);\\\n}\n"
 	_testFormat(t, input, expected)
+
+	input = `// stringizer.c
+#include <stdio.h>
+#define stringer( x ) printf_s( #x "\n" )
+int main() {
+   stringer( In quotes in the printf function call );
+   stringer( "In quotes when printed to the screen" );
+   stringer( "This: \"  prints an escaped double quote" );
+}`
+
+expected = `// stringizer.c
+#include <stdio.h>
+
+#define stringer(x) printf_s(#x "\n")
+
+int main() {
+    stringer(In quotes in the printf function call);
+    stringer("In quotes when printed to the screen");
+    stringer("This: \"  prints an escaped double quote");
+}
+`
+_testFormat(t, input, expected)
+
+input = `#define F abc
+
+#define B def
+
+#define FB(arg) #arg
+
+#define FB1(arg) FB(arg)
+`
+
+expected = `#define F abc
+
+#define B def
+
+#define FB(arg) #arg
+
+#define FB1(arg) FB(arg)
+`
+_testFormat(t, input, expected)
+
+input = "#define makechar(x)  #@x"
+expected = "#define makechar(x) #@x\n"
+_testFormat(t, input, expected)
 }
 
 func TestFormatDirective(t *testing.T) {
@@ -487,6 +538,12 @@ float fx,fdx,fdy;
 	input = "  #define STBTT_ifloor(x)    ((int) floor(x))\n"
 	expected = "#define STBTT_ifloor(x) ((int) floor(x))\n"
 	_testFormat(t, input, expected)
+
+	input = `#define paster(n) printf_s("token" #n " = %d", token##n)`
+	expected = `#define paster(n) printf_s("token" #n " = %d", token##n)
+`
+_testFormat(t, input, expected)
+
 }
 
 func TestFormatBrackets(t *testing.T) {

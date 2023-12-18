@@ -573,7 +573,7 @@ func isThreeCharsPunctuation(text string) bool {
 func isTwoCharsPunctuation(text string) bool {
 	twoChars := [...]string{"++", "--", "<<", ">>", "<=", ">=", "==",
 		"!=", "&&", "||", "->", "*=", "/=", "%=", "+=", "-=", "&=", "^=", "|=", "##",
-		"<:", ":>", "<%", "%>", "%:"}
+		"<:", ":>", "<%", "%>", "%:", "#@"}
 
 	for _, o := range twoChars {
 		if strings.HasPrefix(text, o) {
@@ -663,6 +663,18 @@ func (parser *Parser) parseToken() bool {
 	}
 
 	return !isAbsent(parser.Token)
+}
+
+func isStringizingOp(token Token)bool{
+	return token.Type == Punctuation && token.Content == "#"
+}
+
+func isCharizingOp(token Token)bool{
+	return token.Type == Punctuation && token.Content == "#@"
+}
+
+func isTokenPastingOp(token Token)bool{
+	return token.Type == Punctuation && token.Content == "##"
 }
 
 func (parser *Parser) IsParenthesis() bool {
@@ -1343,6 +1355,10 @@ func neverWhitespace(parser *Parser) bool {
 		isComma(parser.NextToken) ||
 		isNegation(parser.Token) ||
 		isSizeOf(parser.Token) ||
+		isStringizingOp(parser.Token)||
+		isCharizingOp(parser.Token) ||
+		isTokenPastingOp(parser.Token)||
+		isTokenPastingOp(parser.NextToken)||
 		(parser.IsIncludeDirective && (isGreaterThanSign(parser.NextToken) || isLessThanSign(parser.Token)))
 }
 
