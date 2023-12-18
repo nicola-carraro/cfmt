@@ -885,7 +885,7 @@ func (parser *Parser) writeString(str string) {
 }
 
 func (parser *Parser) writeNewLines(lines int) {
-	const newLine = "\r\n"
+	const newLine = "\n"
 
 	for line := 0; line < lines; line++ {
 
