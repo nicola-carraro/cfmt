@@ -378,6 +378,17 @@ func TestFormatOperators(t *testing.T) {
 	input = "i = ((i) --)-- != ((i) --) --;\n"
 	expected = "i = ((i)--)-- != ((i)--)--;\n"
 	_testFormat(t, input, expected)
+
+	input = `{
+		a = ~b; // ok
+	}
+	`
+	expected = `{
+    a = ~b; // ok
+}
+`
+	_testFormat(t, input, expected)
+
 }
 
 func TestFormatNewLines(t *testing.T) {

@@ -1191,13 +1191,14 @@ func formatBlockBody(parser *Parser) {
 
 			} else {
 				isDoWhileLoop := isDo(parser.PreviousToken)
+				parser.wrapping = false
 				formatBlockBody(parser)
 				if isDoWhileLoop {
 					parser.writeString(" ")
 				} else {
 					parser.oneOrTwoLines()
 				}
-				parser.wrapping = false
+
 				saved = *parser
 				continue
 			}
@@ -1329,7 +1330,7 @@ func isRightBracket(token Token) bool {
 }
 
 func isNegation(token Token) bool {
-	return token.Type == Punctuation && token.Content == "!"
+	return token.Type == Punctuation && (token.Content == "!" || token.Content == "~")
 }
 
 func isSizeOf(token Token) bool {
