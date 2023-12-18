@@ -101,6 +101,41 @@ func TestTokenizeInteger(t *testing.T) {
 }
 
 func TestTokenizePunctuation(t *testing.T) {
+	_testTokenizeSingleToken(t, "+", Punctuation)
+	_testTokenizeSingleToken(t, "-", Punctuation)
+	_testTokenizeSingleToken(t, "*", Punctuation)
+	_testTokenizeSingleToken(t, "/", Punctuation)
+	_testTokenizeSingleToken(t, "=", Punctuation)
+	_testTokenizeSingleToken(t, "+=", Punctuation)
+	_testTokenizeSingleToken(t, "-=", Punctuation)
+	_testTokenizeSingleToken(t, "*=", Punctuation)
+	_testTokenizeSingleToken(t, "/=", Punctuation)
+	_testTokenizeSingleToken(t, "++", Punctuation)
+	_testTokenizeSingleToken(t, "--", Punctuation)
+	_testTokenizeSingleToken(t, "==", Punctuation)
+	_testTokenizeSingleToken(t, "<", Punctuation)
+	_testTokenizeSingleToken(t, "<=", Punctuation)
+	_testTokenizeSingleToken(t, ">", Punctuation)
+	_testTokenizeSingleToken(t, ">=", Punctuation)
+	_testTokenizeSingleToken(t, "!=", Punctuation)
+	_testTokenizeSingleToken(t, "||", Punctuation)
+	_testTokenizeSingleToken(t, "&&", Punctuation)
+	_testTokenizeSingleToken(t, "!", Punctuation)
+	_testTokenizeSingleToken(t, "&", Punctuation)
+	_testTokenizeSingleToken(t, "|", Punctuation)
+	_testTokenizeSingleToken(t, "~", Punctuation)
+	_testTokenizeSingleToken(t, "^=", Punctuation)
+	_testTokenizeSingleToken(t, "&=", Punctuation)
+	_testTokenizeSingleToken(t, "|=", Punctuation)
+	_testTokenizeSingleToken(t, "^=", Punctuation)
+	_testTokenizeSingleToken(t, "<<", Punctuation)
+	_testTokenizeSingleToken(t, ">>", Punctuation)
+	_testTokenizeSingleToken(t, "<%", Punctuation)
+	_testTokenizeSingleToken(t, "%>", Punctuation)
+	_testTokenizeSingleToken(t, "<:", Punctuation)
+	_testTokenizeSingleToken(t, ":>", Punctuation)
+	_testTokenizeSingleToken(t, "%:", Punctuation)
+	_testTokenizeSingleToken(t, "%:%:", Punctuation)
 	_testTokenizeSingleToken(t, "#", Punctuation)
 	_testTokenizeSingleToken(t, "#@", Punctuation)
 	_testTokenizeSingleToken(t, "##", Punctuation)
@@ -459,7 +494,7 @@ int main() {
    stringer( "This: \"  prints an escaped double quote" );
 }`
 
-expected = `// stringizer.c
+	expected = `// stringizer.c
 #include <stdio.h>
 
 #define stringer(x) printf_s(#x "\n")
@@ -470,18 +505,9 @@ int main() {
     stringer("This: \"  prints an escaped double quote");
 }
 `
-_testFormat(t, input, expected)
+	_testFormat(t, input, expected)
 
-input = `#define F abc
-
-#define B def
-
-#define FB(arg) #arg
-
-#define FB1(arg) FB(arg)
-`
-
-expected = `#define F abc
+	input = `#define F abc
 
 #define B def
 
@@ -489,11 +515,20 @@ expected = `#define F abc
 
 #define FB1(arg) FB(arg)
 `
-_testFormat(t, input, expected)
 
-input = "#define makechar(x)  #@x"
-expected = "#define makechar(x) #@x\n"
-_testFormat(t, input, expected)
+	expected = `#define F abc
+
+#define B def
+
+#define FB(arg) #arg
+
+#define FB1(arg) FB(arg)
+`
+	_testFormat(t, input, expected)
+
+	input = "#define makechar(x)  #@x"
+	expected = "#define makechar(x) #@x\n"
+	_testFormat(t, input, expected)
 }
 
 func TestFormatDirective(t *testing.T) {
@@ -542,7 +577,7 @@ float fx,fdx,fdy;
 	input = `#define paster(n) printf_s("token" #n " = %d", token##n)`
 	expected = `#define paster(n) printf_s("token" #n " = %d", token##n)
 `
-_testFormat(t, input, expected)
+	_testFormat(t, input, expected)
 
 }
 
