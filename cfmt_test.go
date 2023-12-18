@@ -326,36 +326,36 @@ func TestFormatOperators(t *testing.T) {
 }
 
 func TestFormatNewLines(t *testing.T) {
-	input := "int foo() {\n    return 0;\n}\n\n\nint bar {\n    return 1;\n}\n"
-	expected := "int foo() {\n    return 0;\n}\n\n\nint bar {\n    return 1;\n}\n"
+	input := "int foo() {\n    return 0;\n}\n\nint bar {\n    return 1;\n}\n"
+	expected := "int foo() {\n    return 0;\n}\n\nint bar {\n    return 1;\n}\n"
 	_testFormat(t, input, expected)
 
 	input = "int foo() {\n    return 0;\n}int bar {\n    return 1;\n}\n"
-	expected = "int foo() {\n    return 0;\n}\n\n\nint bar {\n    return 1;\n}\n"
+	expected = "int foo() {\n    return 0;\n}\n\nint bar {\n    return 1;\n}\n"
 	_testFormat(t, input, expected)
 
 	input = "int foo() {\n    return 0;\n}\n\n\n\nint bar {\n    return 1;\n}\n"
-	expected = "int foo() {\n    return 0;\n}\n\n\nint bar {\n    return 1;\n}\n"
+	expected = "int foo() {\n    return 0;\n}\n\nint bar {\n    return 1;\n}\n"
 	_testFormat(t, input, expected)
 
 	input = "int foo() {\n    return 0;\n}\n\n\nint bar {\n    return 1;\n}\n\n\n"
-	expected = "int foo() {\n    return 0;\n}\n\n\nint bar {\n    return 1;\n}\n"
+	expected = "int foo() {\n    return 0;\n}\n\nint bar {\n    return 1;\n}\n"
 	_testFormat(t, input, expected)
 
 	input = "int foo() {\n    return 0;\n}\n\n\nint bar {\n    return 1;\n\n}\n"
-	expected = "int foo() {\n    return 0;\n}\n\n\nint bar {\n    return 1;\n}\n"
+	expected = "int foo() {\n    return 0;\n}\n\nint bar {\n    return 1;\n}\n"
 	_testFormat(t, input, expected)
 
 	input = "int foo() {\n    int i = 3;\n\n    return i;\n}\n\n\nint bar {\n    return 1;\n}\n"
-	expected = "int foo() {\n    int i = 3;\n\n    return i;\n}\n\n\nint bar {\n    return 1;\n}\n"
+	expected = "int foo() {\n    int i = 3;\n\n    return i;\n}\n\nint bar {\n    return 1;\n}\n"
 	_testFormat(t, input, expected)
 
 	input = "int foo() {\n    int i = 3;\n    return i;\n}\n\n\nint bar {\n    return 1;\n}\n"
-	expected = "int foo() {\n    int i = 3;\n    return i;\n}\n\n\nint bar {\n    return 1;\n}\n"
+	expected = "int foo() {\n    int i = 3;\n    return i;\n}\n\nint bar {\n    return 1;\n}\n"
 	_testFormat(t, input, expected)
 
 	input = "int foo() {\n    int i = 3;return i;\n}\n\n\nint bar {\n    return 1;\n}\n"
-	expected = "int foo() {\n    int i = 3;\n    return i;\n}\n\n\nint bar {\n    return 1;\n}\n"
+	expected = "int foo() {\n    int i = 3;\n    return i;\n}\n\nint bar {\n    return 1;\n}\n"
 	_testFormat(t, input, expected)
 }
 
@@ -365,7 +365,7 @@ func TestFormatSingleLineComment(t *testing.T) {
 	_testFormat(t, input, expected)
 
 	input = "int i = 3;\n//comment\n"
-	expected = "int i = 3;\n\n\n// comment\n"
+	expected = "int i = 3;\n\n// comment\n"
 	_testFormat(t, input, expected)
 
 	input = "void foo() {\n    int i = 3;//comment\n}\n"
@@ -433,7 +433,7 @@ func TestFormatMacro(t *testing.T) {
 
 func TestFormatDirective(t *testing.T) {
 	input := "#endif\nint i = 1;"
-	expected := "#endif\n\n\nint i = 1;\n"
+	expected := "#endif\n\nint i = 1;\n"
 	_testFormat(t, input, expected)
 
 	input = "#include <stdio.h>\n"
@@ -525,21 +525,15 @@ func TestFunctionArguments(t *testing.T) {
 	_testFormat(t, input, expected)
 
 	input = "bool c8_read_entire_file(const char *path, C8_Arena *arena, C8_File *read_result) {}"
-	expected = `bool c8_read_entire_file(
-    const char *path,
-    C8_Arena *arena,
-    C8_File *read_result
-) {
-}
-`
+	expected = "bool c8_read_entire_file(const char *path, C8_Arena *arena, C8_File *read_result) {\n}\n"
 	_testFormat(t, input, expected)
 
 	input = "bool foo(int a, int b, int c, int d, int e) {\n}\n"
-	expected = "bool foo(\n    int a,\n    int b,\n    int c,\n    int d,\n    int e\n) {\n}\n"
+	expected = "bool foo(int a, int b, int c, int d, int e) {\n}\n"
 	_testFormat(t, input, expected)
 
 	input = "bool foo(int a, int b, int c, int d, int e, int f) {\n}\n"
-	expected = "bool foo(\n    int a,\n    int b,\n    int c,\n    int d,\n    int e,\n    int f\n) {\n}\n"
+	expected = "bool foo(int a, int b, int c, int d, int e, int f) {\n}\n"
 	_testFormat(t, input, expected)
 
 	input = "int foo() {\n    return 0;\n}\n"

@@ -1001,51 +1001,6 @@ func formatMultilineInitialiserList(parser *Parser) {
 	log.Fatal("Unclosed initialiser list")
 }
 
-func tryFormatInlineFunctionDeclArguments(parser *Parser) bool {
-	commas := 0
-	openParenthesis := 1
-	for parser.parseToken() {
-
-		if isComma(parser.Token) {
-			commas++
-		}
-
-		if parser.OutputColumn > allowWrap {
-			return false
-		}
-
-		if commas >= maxInlineFunctionArgs {
-			return false
-		}
-
-		parser.formatToken()
-
-		if isRightParenthesis(parser.Token) {
-			openParenthesis--
-		}
-
-		if isLeftParenthesis(parser.Token) {
-			openParenthesis++
-		}
-
-		if openParenthesis == 0 {
-			return true
-		}
-
-		if parser.alwaysOneLine() || parser.alwaysDefaultLines() {
-			parser.writeNewLines(1)
-		} else if !neverWhitespace(parser) &&
-			!isRightBrace(parser.NextToken) &&
-			!isRightBrace(parser.Token) {
-			parser.writeString(" ")
-		}
-	}
-
-	log.Fatal("Unclosed function arguments")
-
-	panic("unreachable")
-}
-
 func formatFunctionDecl(parser *Parser) {
 	saved := *parser
 	if !tryFormatFunctionArguments(parser, true, true) {
@@ -1074,11 +1029,11 @@ func (parser *Parser) oneOrTwoLines() {
 	}
 }
 
-func (parser *Parser) threeLinesOrEof() {
+func (parser *Parser) twoLinesOrEof() {
 	if isAbsent(parser.NextToken) {
 		parser.writeNewLines(1)
 	} else {
-		parser.writeNewLines(3)
+		parser.writeNewLines(2)
 	}
 }
 
@@ -1123,14 +1078,8 @@ func tryFormatFunctionArguments(parser *Parser, inline bool, isFunctionDecl bool
 			commas++
 		}
 
-		if isFunctionDecl {
-			if isComma(parser.Token) && openParenthesis == 1 && inline {
-				return false
-			}
-		} else {
-			if parser.OutputColumn > 80 && commas > 0 {
-				return false
-			}
+		if parser.OutputColumn > 80 && commas > 0 {
+			return false
 		}
 
 		parser.formatToken()
@@ -1446,7 +1395,7 @@ func format(input string) string {
 
 			} else {
 				formatBlockBody(parser)
-				parser.threeLinesOrEof()
+				parser.twoLinesOrEof()
 				continue
 			}
 		}
@@ -1460,7 +1409,7 @@ func format(input string) string {
 		if parser.alwaysOneLine() {
 			parser.writeNewLines(1)
 		} else if parser.IsEndOfDirective || parser.alwaysDefaultLines() {
-			parser.threeLinesOrEof()
+			parser.twoLinesOrEof()
 		} else if !neverWhitespace(parser) &&
 			!isRightBrace(parser.NextToken) &&
 			!isLeftBrace(parser.Token) {
