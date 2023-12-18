@@ -1126,7 +1126,7 @@ func formatFunctionCallOrMacro(parser *Parser) {
 	}
 }
 
-func isDo(token Token)bool{
+func isDo(token Token) bool {
 	return token.Type == Keyword && token.Content == "do"
 }
 
@@ -1180,9 +1180,9 @@ func formatBlockBody(parser *Parser) {
 			} else {
 				isDoWhileLoop := isDo(parser.PreviousToken)
 				formatBlockBody(parser)
-				if(isDoWhileLoop){
+				if isDoWhileLoop {
 					parser.writeString(" ")
-				 }else{
+				} else {
 					parser.oneOrTwoLines()
 				}
 				parser.wrapping = false

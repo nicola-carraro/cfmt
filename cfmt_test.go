@@ -48,6 +48,16 @@ func TestTokenizeFloat(t *testing.T) {
 	_testTokenizeSingleToken(t, "55.0f", Float)
 	_testTokenizeSingleToken(t, "123.456e-67", Float)
 	_testTokenizeSingleToken(t, "123e+86", Float)
+	_testTokenizeSingleToken(t, "15.75", Float)
+	_testTokenizeSingleToken(t, "1.575E1", Float)
+	_testTokenizeSingleToken(t, "1575e-2", Float)
+	_testTokenizeSingleToken(t, "25E-4", Float)
+	_testTokenizeSingleToken(t, "10.0L", Float)
+	_testTokenizeSingleToken(t, "10.0", Float)
+	_testTokenizeSingleToken(t, ".0075e2", Float)
+	_testTokenizeSingleToken(t, "0.075e1", Float)
+	_testTokenizeSingleToken(t, ".075e1", Float)
+	_testTokenizeSingleToken(t, "75e-2", Float)
 }
 
 func TestTokenizeIdentifier(t *testing.T) {
