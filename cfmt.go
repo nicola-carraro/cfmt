@@ -53,7 +53,7 @@ type Parser struct {
 	IsIncludeDirective    bool
 	IsEndOfDirective      bool
 	RightSideOfAssignment bool
-	wrapping               bool
+	wrapping              bool
 }
 
 type Whitespace struct {
@@ -654,18 +654,18 @@ func (parser *Parser) parseToken() bool {
 	//fmt.Printf("updateParser, PreviousToken:%s, Token:%s, NextToken:%s\n", parser.PreviousToken, parser.Token, parser.NextToken)
 
 	if isLeftParenthesis(parser.Token) {
-		parser.OpenParenthesis ++
+		parser.OpenParenthesis++
 	}
 
 	if isRightParenthesis(parser.Token) {
-		parser.OpenParenthesis --
+		parser.OpenParenthesis--
 
 	}
 
 	return !isAbsent(parser.Token)
 }
 
-func (parser *Parser)IsParenthesis()bool{
+func (parser *Parser) IsParenthesis() bool {
 	return parser.OpenParenthesis > 0
 }
 
@@ -893,7 +893,6 @@ func (parser *Parser) writeNewLines(lines int) {
 			parser.writeString("\\")
 		}
 		parser.writeString(newLine)
-		parser.wrapping = false
 		parser.OutputColumn = 0
 		parser.OutputLine++
 	}
@@ -1180,12 +1179,7 @@ func formatFunctionCallOrMacro(parser *Parser) {
 
 func formatBlockBody(parser *Parser) {
 
-
-
-
 	parser.Indent++
-
-
 
 	if isRightBrace(parser.NextToken) {
 
@@ -1196,7 +1190,7 @@ func formatBlockBody(parser *Parser) {
 
 	structUnionOrEnum := false
 
-		saved := *parser
+	saved := *parser
 
 	//fmt.Printf("start %s\n", parser.NextToken)
 
@@ -1233,25 +1227,32 @@ func formatBlockBody(parser *Parser) {
 			} else {
 				formatBlockBody(parser)
 				parser.oneOrTwoLines()
+				parser.wrapping = false
+				saved = *parser
 				continue
 			}
 		}
 
-		
-			if(parser.OutputColumn > 80 && !parser.wrapping){
-		*parser = saved
-		parser.wrapping = true
-		continue
-	}
+		if parser.OutputColumn > 80 && !parser.wrapping {
+			*parser = saved
+			parser.wrapping = true
+			continue
+		}
 
 		if parser.alwaysOneLine() || isRightBrace(parser.NextToken) {
 			parser.writeNewLines(1)
 		} else if parser.wrapping && hasNewLines(parser.Token) {
 			parser.wrap()
 		} else if parser.alwaysDefaultLines() {
+
 			parser.oneOrTwoLines()
 		} else if !neverWhitespace(parser) {
 			parser.writeString(" ")
+		}
+
+		if isSemicolon(parser.Token) && !parser.IsParenthesis() {
+			parser.wrapping = false
+			saved = *parser
 		}
 	}
 
@@ -1408,6 +1409,8 @@ func (parser *Parser) alwaysOneLine() bool {
 }
 
 func (parser *Parser) alwaysDefaultLines() bool {
+
+	//fmt.Println(parser.Token.Content, " ", (isSemicolon(parser.Token) && !parser.IsParenthesis() && !parser.hasTrailingComment()))
 	return (isDirective(parser.NextToken) && !isAbsent(parser.PreviousToken)) ||
 		parser.IsEndOfDirective ||
 		isMultilineComment(parser.NextToken) ||
@@ -1421,6 +1424,7 @@ func format(input string) string {
 	structUnionOrEnum := false
 
 	for parser.parseToken() {
+
 		parser.formatToken()
 
 		if startsFunctionArguments(parser) {

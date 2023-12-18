@@ -497,4 +497,11 @@ func TestFormatFunctionCall(t *testing.T) {
 	_testFormat(t, input, expected)
 }
 
+func TestFormatWrapping(t *testing.T){
 
+		input := "{C8_Button load_button = state->load_button;\r\n state->load_button.is_mouse_over = state->mouse_position.x >= load_button.x\r\n&& state->mouse_position.x <= load_button.x + load_button.width\r\n&& state->mouse_position.y >= load_button.y\r\n&& state->mouse_position.y <= load_button.y + load_button.height;}"
+		expected := "{\r\n    C8_Button load_button = state->load_button;\r\n    state->load_button.is_mouse_over = state->mouse_position.x >= load_button.x\r\n        && state->mouse_position.x <= load_button.x + load_button.width\r\n        && state->mouse_position.y >= load_button.y\r\n        && state->mouse_position.y <= load_button.y + load_button.height;\r\n}\r\n"
+
+		_testFormat(t, input, expected)
+
+	}
