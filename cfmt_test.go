@@ -617,6 +617,14 @@ float fx,fdx,fdy;
 `
 	_testFormat(t, input, expected)
 
+	input = `#define SOME_MACRO(a1, a2) {foo(a1, a2); bar(a1, a2)}`
+	expected = `#define SOME_MACRO(a1, a2) {\
+    foo(a1, a2);\
+    bar(a1, a2)\
+}
+`
+	_testFormat(t, input, expected)
+
 }
 
 func TestFormatBrackets(t *testing.T) {

@@ -127,10 +127,6 @@ func formatBlockBody(f *Formatter) {
 
 	for f.parseToken() {
 
-		if f.NextToken.isRightBrace() {
-			f.Indent--
-		}
-
 		if f.Token.isStructUnionEnumKeyword() {
 			structUnionOrEnum = true
 		}
@@ -139,6 +135,10 @@ func formatBlockBody(f *Formatter) {
 
 		if f.startsFunctionArguments() {
 			f.formatFunctionCallOrMacro()
+		}
+
+		if f.NextToken.isRightBrace() {
+			f.Indent--
 		}
 
 		if f.Token.isRightBrace() {
