@@ -613,7 +613,7 @@ func TestFormatPointerTypes(t *testing.T) {
 	_testFormat(t, input, expected)
 }
 
-func TestFunctionArguments(t *testing.T) {
+func TestFunctionDecl(t *testing.T) {
 	input := "void c8_glyph(C8_State *state, C8_Glyph glyph, float x, float y, float width, float height, C8_Rgba rgb)"
 	expected := `void c8_glyph(
     C8_State *state,
@@ -659,6 +659,25 @@ func TestFunctionArguments(t *testing.T) {
 
 	input = "void foo() {\n    bar();\n}\n"
 	expected = "void foo() {\n    bar();\n}\n"
+	_testFormat(t, input, expected)
+
+	// The closing parenthesis of WindowProc is exactly on the 80th character
+	input = `
+{
+
+}
+	
+LRESULT CALLBACK WindowProc(HWND window, UINT msg, WPARAM wparam, LPARAM lparam)
+{
+		
+}`
+
+	expected = `{
+}
+
+LRESULT CALLBACK WindowProc(HWND window, UINT msg, WPARAM wparam, LPARAM lparam) {
+}
+`
 	_testFormat(t, input, expected)
 
 }

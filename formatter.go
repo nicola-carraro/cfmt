@@ -23,7 +23,6 @@ type Formatter struct {
 	IsIncludeDirective    bool
 	IsEndOfDirective      bool
 	RightSideOfAssignment bool
-	wrapping              bool
 }
 
 type StructUnionEnum struct {
@@ -37,12 +36,14 @@ func format(input string) string {
 	saved := *f
 
 	structUnionOrEnum := false
+	wrapping := false
+	nomorewrap := false
 
 	for f.parseToken() {
 
-		if f.OutputColumn > 80 && !f.wrapping {
+		if f.OutputColumn > 80 && !wrapping && !nomorewrap {
 			*f = saved
-			f.wrapping = true
+			wrapping = true
 			continue
 		}
 
@@ -53,6 +54,7 @@ func format(input string) string {
 				f.formatFunctionCallOrMacro()
 			} else {
 				f.formatFunctionDecl()
+				nomorewrap = true
 			}
 		}
 
@@ -61,11 +63,11 @@ func format(input string) string {
 				f.formatInitialiserList()
 				continue
 			} else if structUnionOrEnum {
-				f.wrapping = false
+				wrapping = false
 				f.formatDeclarationBody()
 				structUnionOrEnum = false
 			} else {
-				f.wrapping = false
+				wrapping = false
 				formatBlockBody(f)
 				f.twoLinesOrEof()
 				continue
@@ -80,7 +82,7 @@ func format(input string) string {
 			f.writeNewLines(1)
 		} else if f.IsEndOfDirective || f.alwaysDefaultLines() {
 			f.twoLinesOrEof()
-		} else if f.wrapping && f.Token.hasNewLines() {
+		} else if wrapping && f.Token.hasNewLines() {
 			f.wrap()
 		} else if !f.neverWhitespace() &&
 			!f.NextToken.isRightBrace() &&
@@ -90,7 +92,8 @@ func format(input string) string {
 
 		if f.Token.isSemicolon() && !f.IsParenthesis() {
 			saved = *f
-			f.wrapping = false
+			wrapping = false
+			nomorewrap = false
 			continue
 		}
 	}
@@ -105,6 +108,7 @@ func newFormatter(input string) *Formatter {
 }
 
 func formatBlockBody(f *Formatter) {
+	wrapping := false
 	f.Indent++
 
 	if f.NextToken.isRightBrace() {
@@ -148,7 +152,7 @@ func formatBlockBody(f *Formatter) {
 				structUnionOrEnum = false
 			} else {
 				isDoWhileLoop := f.PreviousToken.isDo()
-				f.wrapping = false
+				wrapping = false
 				formatBlockBody(f)
 				if isDoWhileLoop {
 					f.writeString(" ")
@@ -161,9 +165,9 @@ func formatBlockBody(f *Formatter) {
 			}
 		}
 
-		if f.OutputColumn > 80 && !f.wrapping {
+		if f.OutputColumn > 80 && !wrapping {
 			*f = saved
-			f.wrapping = true
+			wrapping = true
 			continue
 		}
 
@@ -171,14 +175,14 @@ func formatBlockBody(f *Formatter) {
 			f.writeNewLines(1)
 		} else if f.alwaysDefaultLines() {
 			f.oneOrTwoLines()
-		} else if f.wrapping && f.Token.hasNewLines() {
+		} else if wrapping && f.Token.hasNewLines() {
 			f.wrap()
 		} else if !f.neverWhitespace() {
 			f.writeString(" ")
 		}
 
 		if f.Token.isSemicolon() && !f.IsParenthesis() {
-			f.wrapping = false
+			wrapping = false
 			saved = *f
 		}
 	}
@@ -346,7 +350,7 @@ func (f *Formatter) tryFormatFunctionArguments(inline bool, isFunctionDecl bool)
 			commas++
 		}
 
-		if f.OutputColumn > 80 && commas > 0 {
+		if f.OutputColumn > 80 && commas > 0 && inline {
 			return false
 		}
 
