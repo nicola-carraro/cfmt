@@ -1396,9 +1396,17 @@ func format(input string) string {
 
 	parser := newParser(input)
 
+	saved := *parser
+
 	structUnionOrEnum := false
 
 	for parser.parseToken() {
+
+		if parser.OutputColumn > 80 && !parser.wrapping {
+			*parser = saved
+			parser.wrapping = true
+			continue
+		}
 
 		parser.formatToken()
 
@@ -1416,10 +1424,13 @@ func format(input string) string {
 				formatInitialiserList(parser)
 				continue
 			} else if structUnionOrEnum {
+				parser.wrapping = false
 				formatDeclarationBody(parser)
 				structUnionOrEnum = false
 
 			} else {
+				parser.wrapping = false
+
 				formatBlockBody(parser)
 				parser.twoLinesOrEof()
 				continue
@@ -1436,10 +1447,18 @@ func format(input string) string {
 			parser.writeNewLines(1)
 		} else if parser.IsEndOfDirective || parser.alwaysDefaultLines() {
 			parser.twoLinesOrEof()
+		} else if parser.wrapping && hasNewLines(parser.Token) {
+			parser.wrap()
 		} else if !neverWhitespace(parser) &&
 			!isRightBrace(parser.NextToken) &&
 			!isLeftBrace(parser.Token) {
 			parser.writeString(" ")
+		}
+
+		if isSemicolon(parser.Token) && !parser.IsParenthesis() {
+			saved = *parser
+			parser.wrapping = false
+			continue
 		}
 	}
 
