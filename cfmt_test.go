@@ -454,6 +454,22 @@ func TestFormatSingleLineComment(t *testing.T) {
 	expected = "// Shift left\n"
 	_testFormat(t, input, expected)
 
+	input = `struct *Foo foo() {
+    int a = b + c; // No blank line at the beginning and end of a block
+
+    printf("%d\n", a); // A single optional, line between statements
+    struct *Foo result = malloc(sizeof(Foo)) return result;
+}
+`
+	expected = `struct *Foo foo() {
+    int a = b + c; // No blank line at the beginning and end of a block
+
+    printf("%d\n", a); // A single optional, line between statements
+    struct *Foo result = malloc(sizeof(Foo)) return result;
+}
+`
+	_testFormat(t, input, expected)
+
 }
 
 func TestFormatMultilineLineComment(t *testing.T) {

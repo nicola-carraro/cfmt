@@ -651,12 +651,15 @@ func (f *Formatter) neverWhitespace() bool {
 }
 
 func (f *Formatter) alwaysOneLine() bool {
-	return f.NextToken.isAbsent() || f.Token.isComment() || (f.IsEndOfInclude && f.NextToken.isIncludeDirective())
+	return f.NextToken.isAbsent() ||
+		(f.Token.isComment() && (f.PreviousToken.hasNewLines() || f.PreviousToken.isAbsent())) ||
+		(f.IsEndOfInclude && f.NextToken.isIncludeDirective())
 }
 
 func (f *Formatter) alwaysDefaultLines() bool {
 	return (f.NextToken.isDirective() && !f.PreviousToken.isAbsent()) ||
 		f.IsEndOfDirective ||
+		(f.Token.isComment() && !f.PreviousToken.hasNewLines() && !f.PreviousToken.isAbsent()) ||
 		f.NextToken.isMultilineComment() ||
 		(f.Token.isSemicolon() && !f.IsParenthesis() && !f.hasTrailingComment())
 }
