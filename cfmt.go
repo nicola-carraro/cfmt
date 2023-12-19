@@ -5,25 +5,30 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 )
 
+func usage() {
+	fmt.Fprintf(os.Stderr, "Usage: %s [-stdout] path1 [path2 ...]\n", filepath.Base(os.Args[0]))
+	flag.PrintDefaults()
+}
+
 func main() {
-
 	var stdout bool = false
-
-	flag.BoolVar(&stdout, "stdout", false, "print to std out")
-
+	flag.BoolVar(&stdout, "stdout", false, "print to standard output instead of overwriting files")
+	flag.Usage = usage
 	flag.Parse()
 
 	if flag.NArg() == 0 {
-		log.Fatalf("Usage: %s [-stdout] <path>[...]>\n", os.Args[0])
+		usage()
 	}
 
 	for _, path := range flag.Args() {
 		data, err := os.ReadFile(path)
 
 		if err != nil {
-			log.Fatalf("Error reading %s: %s", path, err)
+			usage()
+			flag.PrintDefaults()
 		}
 
 		text := string(data)
