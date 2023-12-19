@@ -27,6 +27,8 @@ Here is an example of how output looks like:
     #ifndef SOME_DEFINE
     
     #define SOME_DEFINE
+
+    #endif
     
     // Function-like macros are formatted more or less like functions
     #define SOME_MACRO(a1, a2) {\
