@@ -691,6 +691,32 @@ LRESULT CALLBACK WindowProc(HWND window, UINT msg, WPARAM wparam, LPARAM lparam)
 `
 	_testFormat(t, input, expected)
 
+	input = `struct *Foo foo() {
+    int a = b + c; // No blank line at the beginning and end of a block
+    printf("%d\n", a) // A single optional, line between statements
+    struct *Foo result = malloc(sizeof(Foo)) return result;
+}
+
+struct *Baz baz(int a, int b, int c, char d, char e, char f, char d) {
+    int a = b + c; // No blank line at the beginning and end of a block
+    printf("%d\n", a) // A single optional, line between statements
+    struct *Foo result = malloc(sizeof(Foo)) return result;
+}
+`
+	expected = `struct *Foo foo() {
+    int a = b + c; // No blank line at the beginning and end of a block
+    printf("%d\n", a) // A single optional, line between statements
+    struct *Foo result = malloc(sizeof(Foo)) return result;
+}
+
+struct *Baz baz(int a, int b, int c, char d, char e, char f, char d) {
+    int a = b + c; // No blank line at the beginning and end of a block
+    printf("%d\n", a) // A single optional, line between statements
+    struct *Foo result = malloc(sizeof(Foo)) return result;
+}
+`
+	_testFormat(t, input, expected)
+
 }
 
 func TestFormatFunctionCall(t *testing.T) {

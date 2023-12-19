@@ -51,6 +51,8 @@ func format(input string) string {
 		f.formatToken()
 
 		if f.startsFunctionArguments() {
+
+			structUnionOrEnum = false
 			if f.IsDirective {
 				f.formatFunctionCallOrMacro()
 			} else {
