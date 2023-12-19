@@ -39,6 +39,7 @@ Here is an example of how output looks like:
         char *bazz;
     } Baz;
 
+    // Exactly one line between top-level declarations
     struct Foo {
         int baz;
         char *bazz;
