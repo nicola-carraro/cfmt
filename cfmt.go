@@ -1181,11 +1181,10 @@ func formatBlockBody(parser *Parser) {
 
 		if parser.alwaysOneLine() || isRightBrace(parser.NextToken) {
 			parser.writeNewLines(1)
+		} else if parser.alwaysDefaultLines() {
+			parser.oneOrTwoLines()
 		} else if parser.wrapping && hasNewLines(parser.Token) {
 			parser.wrap()
-		} else if parser.alwaysDefaultLines() {
-
-			parser.oneOrTwoLines()
 		} else if !neverWhitespace(parser) {
 			parser.writeString(" ")
 		}
@@ -1194,6 +1193,7 @@ func formatBlockBody(parser *Parser) {
 			parser.wrapping = false
 			saved = *parser
 		}
+
 	}
 
 	log.Fatal("Unclosed block")

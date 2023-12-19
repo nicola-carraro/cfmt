@@ -758,4 +758,113 @@ typedef struct {
 `
 	_testFormat(t, input, expected)
 
+	input = ` int i = 1 + 2 + 3 + 4 + 5 + 1 + 2 + 3 + 4 + 5+ 2 + 3 + 4 + 5 + 1 + 2 + 3 + 4 + 5+ 2 + 3 + 4 + 5 + 1 + 2 + 3 + 4 + 5+ 2 + 3 + 4 + 5 
++ 1 + 2 + 3 + 4 + 5+ 2 + 3 + 4 + 5 + 1 + 2 + 3 + 4 + 5+ 2 + 3 + 4 + 5 + 1 + 2 + 3 + 4 + 5;
+
+void c8_glyph(C8_State *state, C8_Glyph glyph, float x, float y, float width, float height, C8_Rgba rgb)
+{
+
+ state->load_button.is_mouse_over = state->mouse_position.x >= load_button.x 
+ && state->mouse_position.x <= load_button.x + load_button.width 
+ && state->mouse_position.y >= load_button.y 
+ && state->mouse_position.y <= load_button.y + load_button.height;
+
+
+   c8_text_vertex(state, x, y, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_left, glyph.v_top);
+   c8_text_vertex(state, x + width, y, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_right, glyph.v_top);
+   c8_text_vertex(state, x + width, y + height, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_right, glyph.v_bottom);
+
+   c8_text_vertex(state, x, y, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_left, glyph.v_top);
+   c8_text_vertex(state, x + width, y + height, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_right, glyph.v_bottom);
+   c8_text_vertex(state, x, y + height, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_left, glyph.v_bottom);
+}`
+
+	expected = `int i = 1 + 2 + 3 + 4 + 5 + 1 + 2 + 3 + 4 + 5 + 2 + 3 + 4 + 5 + 1 + 2 + 3 + 4 + 5 + 2 + 3 + 4 + 5 + 1 + 2 + 3 + 4 + 5 + 2 + 3 + 4 + 5
+    + 1 + 2 + 3 + 4 + 5 + 2 + 3 + 4 + 5 + 1 + 2 + 3 + 4 + 5 + 2 + 3 + 4 + 5 + 1 + 2 + 3 + 4 + 5;
+
+void c8_glyph(
+    C8_State *state,
+    C8_Glyph glyph,
+    float x,
+    float y,
+    float width,
+    float height,
+    C8_Rgba rgb
+) {
+    state->load_button.is_mouse_over = state->mouse_position.x >= load_button.x
+        && state->mouse_position.x <= load_button.x + load_button.width
+        && state->mouse_position.y >= load_button.y
+        && state->mouse_position.y <= load_button.y + load_button.height;
+
+    c8_text_vertex(
+        state,
+        x,
+        y,
+        rgb.r,
+        rgb.g,
+        rgb.b,
+        rgb.a,
+        glyph.u_left,
+        glyph.v_top
+    );
+    c8_text_vertex(
+        state,
+        x + width,
+        y,
+        rgb.r,
+        rgb.g,
+        rgb.b,
+        rgb.a,
+        glyph.u_right,
+        glyph.v_top
+    );
+    c8_text_vertex(
+        state,
+        x + width,
+        y + height,
+        rgb.r,
+        rgb.g,
+        rgb.b,
+        rgb.a,
+        glyph.u_right,
+        glyph.v_bottom
+    );
+
+    c8_text_vertex(
+        state,
+        x,
+        y,
+        rgb.r,
+        rgb.g,
+        rgb.b,
+        rgb.a,
+        glyph.u_left,
+        glyph.v_top
+    );
+    c8_text_vertex(
+        state,
+        x + width,
+        y + height,
+        rgb.r,
+        rgb.g,
+        rgb.b,
+        rgb.a,
+        glyph.u_right,
+        glyph.v_bottom
+    );
+    c8_text_vertex(
+        state,
+        x,
+        y + height,
+        rgb.r,
+        rgb.g,
+        rgb.b,
+        rgb.a,
+        glyph.u_left,
+        glyph.v_bottom
+    );
+}
+`
+	_testFormat(t, input, expected)
+
 }
