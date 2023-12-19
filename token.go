@@ -623,9 +623,12 @@ func (t Token) isArrowOperator() bool {
 	return t.Type == TokenTypePunctuation && (t.Content == "->")
 }
 
-func (t Token) isStructUnionEnumKeyword() bool {
-	return t.Type == TokenTypeKeyword && (t.Content == "struct" || t.Content == "union" || t.Content == "enum")
+func (t Token) isStructOrUnion() bool {
+	return t.Type == TokenTypeKeyword && (t.Content == "struct" || t.Content == "union")
+}
 
+func (t Token) isEnum() bool {
+	return t.Type == TokenTypeKeyword && t.Content == "enum"
 }
 
 func (t Token) isAssignment() bool {

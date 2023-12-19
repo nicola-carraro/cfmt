@@ -36,7 +36,8 @@ func format(input string) string {
 
 	saved := *f
 
-	structUnionOrEnum := false
+	structOrUnion := false
+	enum := false
 	wrapping := false
 	nomorewrap := false
 
@@ -52,7 +53,8 @@ func format(input string) string {
 
 		if f.startsFunctionArguments() {
 
-			structUnionOrEnum = false
+			structOrUnion = false
+			enum = false
 			if f.IsDirective {
 				f.formatFunctionCallOrMacro()
 			} else {
@@ -65,10 +67,14 @@ func format(input string) string {
 			if f.PreviousToken.isAssignment() {
 				f.formatInitialiserList()
 				continue
-			} else if structUnionOrEnum {
+			} else if structOrUnion {
 				wrapping = false
-				f.formatDeclarationBody()
-				structUnionOrEnum = false
+				f.formatStructOrUnion()
+				structOrUnion = false
+			} else if enum {
+				wrapping = false
+				f.formatEnum()
+				enum = false
 			} else {
 				wrapping = false
 				formatBlockBody(f)
@@ -77,8 +83,12 @@ func format(input string) string {
 			}
 		}
 
-		if f.Token.isStructUnionEnumKeyword() {
-			structUnionOrEnum = true
+		if f.Token.isStructOrUnion() {
+			structOrUnion = true
+		}
+
+		if f.Token.isEnum() {
+			enum = true
 		}
 
 		if f.alwaysOneLine() {
@@ -127,7 +137,7 @@ func formatBlockBody(f *Formatter) {
 
 	for f.parseToken() {
 
-		if f.Token.isStructUnionEnumKeyword() {
+		if f.Token.isStructOrUnion() {
 			structUnionOrEnum = true
 		}
 
@@ -151,7 +161,7 @@ func formatBlockBody(f *Formatter) {
 				f.formatInitialiserList()
 				continue
 			} else if structUnionOrEnum {
-				f.formatDeclarationBody()
+				f.formatStructOrUnion()
 				structUnionOrEnum = false
 			} else {
 				isDoWhileLoop := f.PreviousToken.isDo()
@@ -222,7 +232,7 @@ func (f *Formatter) formatInitialiserList() {
 
 }
 
-func (f *Formatter) formatDeclarationBody() {
+func (f *Formatter) formatStructOrUnion() {
 	f.Indent++
 
 	f.writeNewLines(1)
@@ -239,10 +249,37 @@ func (f *Formatter) formatDeclarationBody() {
 		}
 
 		if f.Token.isLeftBrace() {
-			f.formatDeclarationBody()
+			f.formatStructOrUnion()
 		}
 
 		if f.alwaysOneLine() || f.alwaysDefaultLines() {
+			f.writeNewLines(1)
+		} else if !f.neverWhitespace() &&
+			!f.NextToken.isSemicolon() {
+			f.writeString(" ")
+		}
+	}
+
+	log.Fatal("Unclosed declaration braces")
+}
+
+func (f *Formatter) formatEnum() {
+	f.Indent++
+
+	f.writeNewLines(1)
+
+	for f.parseToken() {
+		f.formatToken()
+
+		if f.NextToken.isRightBrace() {
+			f.Indent--
+		}
+
+		if f.Token.isRightBrace() {
+			return
+		}
+
+		if f.alwaysOneLine() || f.alwaysDefaultLines() || f.Token.isComma() || f.NextToken.isRightBrace() {
 			f.writeNewLines(1)
 		} else if !f.neverWhitespace() &&
 			!f.NextToken.isSemicolon() {

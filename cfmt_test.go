@@ -196,6 +196,20 @@ int bar;     char *baz;}Foo;`
 
 }
 
+func TestFormatEnum(t *testing.T) {
+	input := `typedef enum {
+    Alloc_None, Alloc_Malloc, Alloc_VirtualAlloc, Alloc_Large } Alloc;`
+	expected := `typedef enum {
+    Alloc_None,
+    Alloc_Malloc,
+    Alloc_VirtualAlloc,
+    Alloc_Large
+} Alloc;
+`
+	_testFormat(t, input, expected)
+
+}
+
 func TestFormatInitializerList(t *testing.T) {
 	input := `Foo foo = {
 		0    }
