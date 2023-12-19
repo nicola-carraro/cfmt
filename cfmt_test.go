@@ -743,4 +743,19 @@ func TestFormatWrapping(t *testing.T) {
 `
 	_testFormat(t, input, expected)
 
+	input = ` int i = 1 + 2 + 3 + 4 + 5 + 1 + 2 + 3 + 4 + 5+ 2 + 3 + 4 + 5 + 1 + 2 + 3 + 4 + 5+ 2 + 3 + 4 + 5 + 1 + 2 + 3 + 4 + 5+ 2 + 3 + 4 + 5 
+	+ 1 + 2 + 3 + 4 + 5+ 2 + 3 + 4 + 5 + 1 + 2 + 3 + 4 + 5+ 2 + 3 + 4 + 5 + 1 + 2 + 3 + 4 + 5;
+   
+	typedef struct { struct {C8_Key kp_0;} keypad;} C8_Keypad;`
+	expected = `int i = 1 + 2 + 3 + 4 + 5 + 1 + 2 + 3 + 4 + 5 + 2 + 3 + 4 + 5 + 1 + 2 + 3 + 4 + 5 + 2 + 3 + 4 + 5 + 1 + 2 + 3 + 4 + 5 + 2 + 3 + 4 + 5
+    + 1 + 2 + 3 + 4 + 5 + 2 + 3 + 4 + 5 + 1 + 2 + 3 + 4 + 5 + 2 + 3 + 4 + 5 + 1 + 2 + 3 + 4 + 5;
+
+typedef struct {
+    struct {
+        C8_Key kp_0;
+    } keypad;
+} C8_Keypad;
+`
+	_testFormat(t, input, expected)
+
 }
