@@ -69,7 +69,8 @@ Here is an example of how output looks like:
         char d,
         char e,
         char f,
-        char d char e,
+        char d,
+        char e,
         char f
     ) {
         // Same with function calls
