@@ -6,11 +6,11 @@ A formatter for C code.
 
 ## Usage
     cfmt [-stdout] path1 [path2 ...]
-You must provide at least one path. They must all contain valid C. The file contents are overwritten
+You must provide at least one path. They must all contain valid C. File contents are overwritten
 with formatted text.
 
-If you provide the -stdout flag, the files are not overwritten, and the formatted text is printed to
-standard output
+If you provide the -stdout flag, files are not overwritten, and the formatted text is printed to
+standard output.
 
 ## Features
 Cfmt is "opinionated", as they say. In other words, it supports only one style and is not configurable.
