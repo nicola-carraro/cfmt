@@ -62,12 +62,6 @@ type Whitespace struct {
 	HasUnescapedLines bool
 }
 
-const indentation = "    "
-
-const allowWrap = 90
-
-const maxInlineFunctionArgs = 5
-
 func isIdentifierStart(r rune) bool {
 	return (r >= 'A' && r <= 'Z') || (r >= 'a' && r <= 'z') || (r == '_')
 }
@@ -78,10 +72,6 @@ func isIdentifierChar(r rune) bool {
 
 func isDigit(r rune) bool {
 	return r >= '0' && r <= '9'
-}
-
-func isSpace(r rune) bool {
-	return r == ' ' || r == '\t' || r == '\r' || r == '\n' || r == '\v' || r == '\f'
 }
 
 func (parser *Parser) consumeSpace(Whitespace *Whitespace) bool {
@@ -169,11 +159,6 @@ func (t Token) String() string {
 	} else {
 		return fmt.Sprintf("Token{Type: %s, Content: \"%s\"}", t.Type, t.Content)
 	}
-}
-
-func tryParseKeyword(s string) (Token, bool) {
-
-	return Token{}, false
 }
 
 func tryParseDirective(s string) (Token, bool) {
@@ -320,7 +305,7 @@ func parseString(text string) Token {
 
 	next := text[tokenSize:]
 
-	for true {
+	for {
 		r, size := peakRune(next)
 		tokenSize += size
 		next = next[size:]
@@ -335,8 +320,6 @@ func parseString(text string) Token {
 			log.Fatal("Unclosed string literal")
 		}
 	}
-
-	panic("unreachable")
 }
 
 // TODO: handle wide chars
@@ -344,7 +327,7 @@ func parseChar(text string) Token {
 	tokenSize := 1
 	next := text[1:]
 
-	for true {
+	for {
 		r, size := peakRune(next)
 		tokenSize += size
 		next = next[size:]
@@ -360,8 +343,6 @@ func parseChar(text string) Token {
 			log.Fatal("Unclosed character literal")
 		}
 	}
-
-	panic("unreachable")
 }
 
 func longSuffixLength(text string) int {
@@ -792,14 +773,6 @@ func skipSpaceAndCountNewLines(parser *Parser) Whitespace {
 
 }
 
-func isHash(t Token) bool {
-	return t.Type == Punctuation && t.Content == "#"
-}
-
-func containsNewLine(t Token) bool {
-	return t.Type == Punctuation && t.Content == "#"
-}
-
 func isLeftParenthesis(token Token) bool {
 	return token.Type == Punctuation && token.Content == "("
 }
@@ -861,10 +834,6 @@ func isArrowOperator(token Token) bool {
 	return token.Type == Punctuation && (token.Content == "->")
 }
 
-func isKeyword(token Token) bool {
-	return token.Type == Keyword
-}
-
 func isStructUnionEnumKeyword(token Token) bool {
 	return token.Type == Keyword && (token.Content == "struct" || token.Content == "union" || token.Content == "enum")
 
@@ -908,7 +877,7 @@ func (parser *Parser) writeNewLines(lines int) {
 		parser.OutputColumn = 0
 		parser.OutputLine++
 	}
-
+	const indentation = "    "
 	if !isDirective(parser.NextToken) {
 		for indentLevel := 0; indentLevel < parser.Indent; indentLevel++ {
 			parser.writeString(indentation)
@@ -1317,10 +1286,6 @@ func isFunctionName(parser *Parser) bool {
 	return parser.Token.Type == Identifier && isLeftParenthesis(parser.NextToken) && (!parser.IsDirective || !parser.Token.Whitespace.HasSpace)
 }
 
-func isInclude(token Token) bool {
-	return token.Type == Directive && token.Content == "#include"
-}
-
 func isLeftBracket(token Token) bool {
 	return token.Type == Punctuation && token.Content == "["
 }
@@ -1369,14 +1334,6 @@ func isGreaterThanSign(token Token) bool {
 
 func isLessThanSign(token Token) bool {
 	return token.Type == Punctuation && token.Content == "<"
-}
-
-func canWrap(parser *Parser) bool {
-	result := parser.NextToken.Type == Punctuation &&
-		(parser.NextToken.Content == "&&" || parser.NextToken.Content == "||") &&
-		parser.OutputColumn > allowWrap
-
-	return result
 }
 
 func (parser *Parser) alwaysOneLine() bool {
@@ -1441,8 +1398,6 @@ func format(input string) string {
 			structUnionOrEnum = true
 		}
 
-		const maxNewLines = 2
-
 		if parser.alwaysOneLine() {
 			parser.writeNewLines(1)
 		} else if parser.IsEndOfDirective || parser.alwaysDefaultLines() {
@@ -1480,7 +1435,7 @@ func main() {
 			log.Fatalf("Error reading %s: %s", path, err)
 		}
 
-		text := fmt.Sprintf("%s", data)
+		text := string(data)
 
 		formattedText := format(text)
 
