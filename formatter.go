@@ -22,6 +22,7 @@ type Formatter struct {
 	IsDirective           bool
 	IsIncludeDirective    bool
 	IsEndOfDirective      bool
+	IsEndOfInclude        bool
 	RightSideOfAssignment bool
 }
 
@@ -401,11 +402,12 @@ func (f *Formatter) parseToken() bool {
 	}
 
 	f.IsEndOfDirective = false
+	f.IsEndOfInclude = false
 
 	if f.Token.isDirective() {
 		f.IsDirective = true
 	}
-
+	wasInclude := f.IsIncludeDirective
 	wasDirective := f.IsDirective
 
 	if f.Token.isIncludeDirective() {
@@ -432,6 +434,10 @@ func (f *Formatter) parseToken() bool {
 
 	if wasDirective && !f.IsDirective {
 		f.IsEndOfDirective = true
+	}
+
+	if wasInclude && !f.IsIncludeDirective {
+		f.IsEndOfInclude = true
 	}
 
 	if f.Token.isLeftParenthesis() {
@@ -643,7 +649,7 @@ func (f *Formatter) neverWhitespace() bool {
 }
 
 func (f *Formatter) alwaysOneLine() bool {
-	return f.NextToken.isAbsent() || f.Token.isComment()
+	return f.NextToken.isAbsent() || f.Token.isComment() || (f.IsEndOfInclude && f.NextToken.isIncludeDirective())
 }
 
 func (f *Formatter) alwaysDefaultLines() bool {

@@ -551,6 +551,17 @@ func TestFormatDirective(t *testing.T) {
 	expected = "#include <stdio.h>\n"
 	_testFormat(t, input, expected)
 
+	input = `#include <stdio.h>
+
+#include "something.h"
+#define CHIP8_C`
+	expected = `#include <stdio.h>
+#include "something.h"
+
+#define CHIP8_C
+`
+	_testFormat(t, input, expected)
+
 	input = "{#ifdef FOO\n foo(); #else\nbar(); #endif\n}"
 	expected = "{\n#ifdef FOO\n    foo();\n#else\n    bar();\n#endif\n}\n"
 	_testFormat(t, input, expected)
