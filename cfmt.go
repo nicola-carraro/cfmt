@@ -6,37 +6,13 @@ import (
 	"os"
 	"slices"
 	"strings"
-	"unicode/utf8"
 )
-
-type TokenType uint32
-
-const (
-	NoTokenType TokenType = iota
-	Space
-	Keyword
-	Identifier
-	Integer
-	Float
-	Char
-	String
-	Punctuation
-	Directive
-	SingleLineComment
-	MultilineComment
-)
-
-type Token struct {
-	Type       TokenType
-	Content    string
-	Whitespace Whitespace
-}
 
 type StructUnionEnum struct {
 	Indent int
 }
 
-type Parser struct {
+type Formatter struct {
 	PreviousToken         Token
 	Token                 Token
 	NextToken             Token
@@ -56,32 +32,14 @@ type Parser struct {
 	wrapping              bool
 }
 
-type Whitespace struct {
-	HasSpace          bool
-	NewLines          int
-	HasUnescapedLines bool
-}
-
-func isIdentifierStart(r rune) bool {
-	return (r >= 'A' && r <= 'Z') || (r >= 'a' && r <= 'z') || (r == '_')
-}
-
-func isIdentifierChar(r rune) bool {
-	return isIdentifierStart(r) || isDigit(r)
-}
-
-func isDigit(r rune) bool {
-	return r >= '0' && r <= '9'
-}
-
-func (parser *Parser) consumeSpace(Whitespace *Whitespace) bool {
+func (formatter *Formatter) consumeSpace(Whitespace *Whitespace) bool {
 
 	newLineInDirective := []string{"\\\r\n", "\\\n"}
 
-	if parser.IsDirective {
+	if formatter.IsDirective {
 		for _, nl := range newLineInDirective {
-			if parser.IsDirective && strings.HasPrefix(parser.Input, nl) {
-				parser.Input = parser.Input[len(nl):]
+			if formatter.IsDirective && strings.HasPrefix(formatter.Input, nl) {
+				formatter.Input = formatter.Input[len(nl):]
 				Whitespace.NewLines++
 				return true
 			}
@@ -89,16 +47,16 @@ func (parser *Parser) consumeSpace(Whitespace *Whitespace) bool {
 
 	}
 
-	r, size := peakRune(parser.Input)
+	r, size := peakRune(formatter.Input)
 
 	if r == '\n' {
-		parser.Input = parser.Input[size:]
+		formatter.Input = formatter.Input[size:]
 		Whitespace.NewLines++
 		Whitespace.HasUnescapedLines = true
 
-		if parser.IsDirective {
-			parser.IsDirective = false
-			parser.IsIncludeDirective = false
+		if formatter.IsDirective {
+			formatter.IsDirective = false
+			formatter.IsIncludeDirective = false
 		}
 		return true
 	}
@@ -106,7 +64,7 @@ func (parser *Parser) consumeSpace(Whitespace *Whitespace) bool {
 	otherSpaces := []rune{' ', '\t', '\r', '\v', '\f'}
 
 	if slices.Contains(otherSpaces, r) {
-		parser.Input = parser.Input[size:]
+		formatter.Input = formatter.Input[size:]
 		return true
 
 	}
@@ -114,658 +72,73 @@ func (parser *Parser) consumeSpace(Whitespace *Whitespace) bool {
 	return false
 }
 
-func isDoubleQuote(r rune) bool {
-	return r == '"'
-}
+func (formatter *Formatter) parseToken() bool {
 
-func isSingleQuote(r rune) bool {
-	return r == '\''
-}
+	if formatter.Token.isAbsent() {
+		_ = skipSpaceAndCountNewLines(formatter)
 
-func (t TokenType) String() string {
-	switch t {
-	case NoTokenType:
-		return "None"
-	case Identifier:
-		return "Identifier"
-	case Keyword:
-		return "Keyword"
-	case Integer:
-		return "Integer"
-	case Float:
-		return "Float"
-	case Char:
-		return "Char"
-	case String:
-		return "String"
-	case Punctuation:
-		return "Punctuation"
-	case Directive:
-		return "Directive"
-	case SingleLineComment:
-		return "SingleLineComment"
-	case MultilineComment:
-		return "MultilineComment"
-	default:
-		panic("Invalid TokenType")
-	}
-}
-
-func (t Token) String() string {
-	if t.Type == Space {
-		return fmt.Sprintf("Token{Type: %s, len: %d}", t.Type, len(t.Content))
-	} else if t.Type == NoTokenType {
-		return fmt.Sprintf("Token{Type: %s}", t.Type)
+		formatter.Token = parseToken(formatter.Input)
+		formatter.Input = formatter.Input[len(formatter.Token.Content):]
 	} else {
-		return fmt.Sprintf("Token{Type: %s, Content: \"%s\"}", t.Type, t.Content)
+		formatter.PreviousToken = formatter.Token
+		formatter.Token = formatter.NextToken
 	}
+
+	formatter.IsEndOfDirective = false
+
+	if formatter.Token.isDirective() {
+		formatter.IsDirective = true
+	}
+
+	wasDirective := formatter.IsDirective
+
+	if formatter.Token.isIncludeDirective() {
+		formatter.IsIncludeDirective = true
+	}
+
+	if formatter.Token.isAssignment() {
+		formatter.RightSideOfAssignment = true
+	}
+
+	if formatter.Token.isSemicolon() {
+		formatter.RightSideOfAssignment = false
+	}
+
+	formatter.Token.Whitespace = skipSpaceAndCountNewLines(formatter)
+
+	formatter.NextToken = parseToken(formatter.Input)
+	formatter.Input = formatter.Input[len(formatter.NextToken.Content):]
+
+	if formatter.Token.Whitespace.HasUnescapedLines || formatter.NextToken.isAbsent() {
+		formatter.IsDirective = false
+		formatter.IsIncludeDirective = false
+	}
+
+	if wasDirective && !formatter.IsDirective {
+		formatter.IsEndOfDirective = true
+	}
+
+	if formatter.Token.isLeftParenthesis() {
+		formatter.OpenParenthesis++
+	}
+
+	if formatter.Token.isRightParenthesis() {
+		formatter.OpenParenthesis--
+
+	}
+
+	return !formatter.Token.isAbsent()
 }
 
-func tryParseDirective(s string) (Token, bool) {
-	directives := [...]string{
-		"#define", "#elif", "#else", "#endif",
-		"#error", "#ifndef", "#ifdef", "#if",
-		"#import", "#include", "#line", "#pragma",
-		"#undef", "#using"}
-
-	for _, directive := range directives {
-		if strings.HasPrefix(s, directive) {
-			return Token{Type: Directive, Content: directive}, true
-		}
-	}
-
-	return Token{}, false
+func (formatter *Formatter) IsParenthesis() bool {
+	return formatter.OpenParenthesis > 0
 }
 
-func peakRune(text string) (rune, int) {
-	r, size := utf8.DecodeRuneInString(text)
-
-	if r == utf8.RuneError && size == 1 {
-		log.Fatal("Invalid character")
-	}
-
-	return r, size
-}
-
-func parseMultilineComment(text string) Token {
-	tokenSize := 0
-	next := text
-
-	_, size := peakRune(next)
-
-	for !strings.HasPrefix(next, "*/") {
-		if len(next) == 0 {
-			log.Fatalln("Unclosed comment")
-		}
-		tokenSize += size
-		next = next[size:]
-		_, size = peakRune(next)
-	}
-
-	tokenSize += 2
-
-	token := Token{Type: MultilineComment, Content: text[:tokenSize]}
-	return token
-}
-
-func parseSingleLineComment(text string) Token {
-	tokenSize := 0
-	next := text
-
-	_, size := peakRune(next)
-
-	for len(next) > 0 && !startsWithNewLine(next) {
-		tokenSize += size
-		next = next[size:]
-		_, size = peakRune(next)
-	}
-
-	token := Token{Type: SingleLineComment, Content: text[:tokenSize]}
-	//fmt.Println(token)
-	return token
-}
-
-func parseIdentifierOrKeyword(text string) Token {
-
-	tokenSize := 0
-	next := text
-
-	r, size := peakRune(next)
-
-	for isIdentifierChar(r) {
-		tokenSize += size
-		next = next[size:]
-		r, size = peakRune(next)
-	}
-
-	content := text[:tokenSize]
-
-	keywords := [...]string{
-		"auto",
-		"break",
-		"case",
-		"char",
-		"const",
-		"continue",
-		"default",
-		"double",
-		"do",
-		"else",
-		"enum",
-		"extern",
-		"float",
-		"for",
-		"goto",
-		"if",
-		"inline",
-		"int",
-		"long",
-		"register",
-		"return",
-		"short",
-		"signed",
-		"sizeof",
-		"static",
-		"struct",
-		"switch",
-		"typedef",
-		"union",
-		"unsigned",
-		"void",
-		"volatile",
-		"while",
-		"_Alignof",
-		"_Atomic",
-		"_Bool",
-		"_Complex",
-		"_Generic",
-		"_Imaginary",
-		"_Noreturn",
-		"_Static_assert",
-		"_Thread_local",
-	}
-
-	for _, keyword := range keywords {
-		if content == keyword {
-			return Token{Type: Keyword, Content: content}
-		}
-	}
-
-	return Token{Type: Identifier, Content: content}
-}
-
-// TODO: handle wide strings
-func parseString(text string) Token {
-	var tokenSize int
-	if text[0] == 'L' {
-		tokenSize = 2
-	} else {
-		tokenSize = 1
-	}
-
-	next := text[tokenSize:]
-
-	for {
-		r, size := peakRune(next)
-		tokenSize += size
-		next = next[size:]
-		if r == '"' {
-			token := Token{Type: String, Content: text[:tokenSize]}
-			return token
-		} else if r == '\\' {
-			_, size := peakRune(next)
-			tokenSize += size
-			next = next[size:]
-		} else if r == utf8.RuneError && size == 0 {
-			log.Fatal("Unclosed string literal")
-		}
-	}
-}
-
-// TODO: handle wide chars
-func parseChar(text string) Token {
-	tokenSize := 1
-	next := text[1:]
-
-	for {
-		r, size := peakRune(next)
-		tokenSize += size
-		next = next[size:]
-		if r == '\'' {
-			token := Token{Type: Char, Content: text[:tokenSize]}
-			return token
-		} else if r == '\\' {
-			_, size := peakRune(next)
-			next = next[size:]
-			tokenSize += size
-
-		} else if r == utf8.RuneError && size == 0 {
-			log.Fatal("Unclosed character literal")
-		}
-	}
-}
-
-func longSuffixLength(text string) int {
-	suffixes := []string{"i64", "ll", "l"}
-
-	for _, s := range suffixes {
-		if strings.HasPrefix(text, s) || strings.HasPrefix(text, strings.ToUpper(s)) {
-			return len(s)
-		}
-	}
-
-	return 0
-}
-
-func suffixLength(text string) int {
-	next := text
-	result := 0
-	if isUnsignedSuffix(text) {
-		result++
-		next = next[1:]
-		result += longSuffixLength(next)
-	} else {
-		lSuffixLength := longSuffixLength(next)
-		next = next[lSuffixLength:]
-		result += lSuffixLength
-		if isUnsignedSuffix(next) {
-			result++
-		}
-	}
-
-	return result
-}
-
-func isUnsignedSuffix(text string) bool {
-	return strings.HasPrefix(text, "u") || strings.HasPrefix(text, "U")
-}
-
-func isOctalDigit(r rune) bool {
-	return (r >= '0' && r <= '7')
-}
-
-func isHexDigit(r rune) bool {
-	return (r >= '0' && r <= '9') || (r >= 'a' && r <= 'f') || (r >= 'A' && r <= 'F')
-}
-
-func parseHex(text string) Token {
-	tokenSize := 2
-
-	next := text[2:]
-
-	r, size := peakRune(next)
-
-	for isHexDigit(r) {
-		tokenSize += size
-		next = next[size:]
-		r, size = peakRune(next)
-	}
-
-	tokenSize += suffixLength(next)
-
-	token := Token{Type: Integer, Content: text[:tokenSize]}
-	return token
-}
-
-func parseOctal(text string) Token {
-	tokenSize := 0
-
-	next := text
-
-	r, size := peakRune(next)
-
-	for isOctalDigit(r) {
-		tokenSize += size
-		next = next[size:]
-		r, size = peakRune(next)
-	}
-
-	tokenSize += suffixLength(next)
-
-	token := Token{Type: Integer, Content: text[:tokenSize]}
-	return token
-}
-
-func parseDecimal(text string) Token {
-	tokenSize := 0
-
-	next := text
-
-	r, size := peakRune(next)
-
-	for isDigit(r) {
-		tokenSize += size
-		next = next[size:]
-		r, size = peakRune(next)
-	}
-
-	tokenSize += suffixLength(next)
-
-	token := Token{Type: Integer, Content: text[:tokenSize]}
-	return token
-
-}
-
-func isExponentStart(r rune) bool {
-	return r == 'e' || r == 'E'
-}
-
-func isFloatSuffix(r rune) bool {
-	return r == 'f' || r == 'l' || r == 'F' || r == 'L'
-}
-
-func isSignStart(r rune) bool {
-	return r == '+' || r == '-'
-}
-
-func tryParseFloat(text string) (Token, bool) {
-
-	tokenSize := 0
-	next := text
-
-	hasDigit := false
-
-	r, size := peakRune(next)
-
-	if !isDigit(r) && r != '.' {
-		return Token{}, false
-	}
-
-	for isDigit(r) {
-		tokenSize += size
-		next = next[size:]
-		r, size = peakRune(next)
-		hasDigit = true
-	}
-
-	hasDot := false
-
-	if r == '.' {
-		tokenSize += size
-		next = next[size:]
-		r, size = peakRune(next)
-		hasDot = true
-	}
-
-	for isDigit(r) {
-
-		tokenSize += size
-		next = next[size:]
-		r, size = peakRune(next)
-		hasDigit = true
-	}
-
-	hasExponent := false
-
-	if isExponentStart(r) {
-		tokenSize += size
-		next = next[size:]
-		r, size = peakRune(next)
-
-		if isSignStart(r) {
-			tokenSize += size
-			next = next[size:]
-			r, size = peakRune(next)
-		}
-
-		for isDigit(r) {
-			hasExponent = true
-			tokenSize += size
-			next = next[size:]
-			r, size = peakRune(next)
-		}
-	}
-
-	if !hasDigit {
-		return Token{}, false
-	}
-
-	if !hasExponent && !hasDot {
-		return Token{}, false
-	}
-
-	if isFloatSuffix(r) {
-		tokenSize += size
-	}
-
-	token := Token{Type: Float, Content: text[:tokenSize]}
-
-	return token, true
-
-}
-
-func isFourCharsPunctuation(text string) bool {
-	return strings.HasPrefix(text, "%:%:")
-}
-
-func isThreeCharsPunctuation(text string) bool {
-	threeChars := [...]string{"<<=", ">>=", "..."}
-
-	for _, o := range threeChars {
-		if strings.HasPrefix(text, o) {
-			return true
-
-		}
-	}
-
-	return false
-}
-
-func isTwoCharsPunctuation(text string) bool {
-	twoChars := [...]string{"++", "--", "<<", ">>", "<=", ">=", "==",
-		"!=", "&&", "||", "->", "*=", "/=", "%=", "+=", "-=", "&=", "^=", "|=", "##",
-		"<:", ":>", "<%", "%>", "%:", "#@"}
-
-	for _, o := range twoChars {
-		if strings.HasPrefix(text, o) {
-			return true
-
-		}
-	}
-
-	return false
-}
-
-func isIncludeDirective(token Token) bool {
-	return isDirective(token) && token.Content == "#include"
-}
-
-func isOneCharPunctuation(text string) bool {
-	oneChar := [...]string{"~", "*", "/", "%", "+", "-", "<", ">",
-		"&", "|", "^", ",", "=", "[", "]", "(", ")", "{",
-		"}", ".", "!", "?", ":", ";", "#"}
-
-	for _, o := range oneChar {
-		if strings.HasPrefix(text, o) {
-			return true
-
-		}
-	}
-
-	return false
-}
-
-func (parser *Parser) parseToken() bool {
-
-	if isAbsent(parser.Token) {
-		_ = skipSpaceAndCountNewLines(parser)
-
-		parser.Token = parseToken(parser.Input)
-		parser.Input = parser.Input[len(parser.Token.Content):]
-	} else {
-		parser.PreviousToken = parser.Token
-		parser.Token = parser.NextToken
-	}
-
-	parser.IsEndOfDirective = false
-
-	if isDirective(parser.Token) {
-		parser.IsDirective = true
-	}
-
-	wasDirective := parser.IsDirective
-
-	if isIncludeDirective(parser.Token) {
-		parser.IsIncludeDirective = true
-	}
-
-	if isAssignment(parser.Token) {
-		parser.RightSideOfAssignment = true
-	}
-
-	if isSemicolon(parser.Token) {
-		parser.RightSideOfAssignment = false
-	}
-
-	parser.Token.Whitespace = skipSpaceAndCountNewLines(parser)
-
-	parser.NextToken = parseToken(parser.Input)
-	parser.Input = parser.Input[len(parser.NextToken.Content):]
-
-	if parser.Token.Whitespace.HasUnescapedLines || isAbsent(parser.NextToken) {
-		parser.IsDirective = false
-		parser.IsIncludeDirective = false
-	}
-
-	if wasDirective && !parser.IsDirective {
-		parser.IsEndOfDirective = true
-		//fmt.Printf("END OF DIRECTIVE %s\n", parser.Token)
-	}
-
-	//fmt.Printf("updateParser, PreviousToken:%s, Token:%s, NextToken:%s\n", parser.PreviousToken, parser.Token, parser.NextToken)
-
-	if isLeftParenthesis(parser.Token) {
-		parser.OpenParenthesis++
-	}
-
-	if isRightParenthesis(parser.Token) {
-		parser.OpenParenthesis--
-
-	}
-
-	return !isAbsent(parser.Token)
-}
-
-func isStringizingOp(token Token) bool {
-	return token.Type == Punctuation && token.Content == "#"
-}
-
-func isCharizingOp(token Token) bool {
-	return token.Type == Punctuation && token.Content == "#@"
-}
-
-func isTokenPastingOp(token Token) bool {
-	return token.Type == Punctuation && token.Content == "##"
-}
-
-func (parser *Parser) IsParenthesis() bool {
-	return parser.OpenParenthesis > 0
-}
-
-func isOneToNine(r rune) bool {
-	return r >= '1' && r <= '9'
-}
-
-func parseToken(input string) Token {
-
-	//fmt.Printf("parseToken, current token %s\n", parser.Token)
-
-	if len(input) == 0 {
-		return Token{}
-	}
-
-	r, _ := peakRune(input)
-
-	token, isFloat := tryParseFloat(input)
-	if isFloat {
-		return token
-	}
-
-	token, directive := tryParseDirective(input)
-	if directive {
-		return token
-	}
-
-	if isDoubleQuote(r) || strings.HasPrefix(input, "L\"") {
-		return parseString(input)
-	}
-
-	if isIdentifierStart(r) {
-		return parseIdentifierOrKeyword(input)
-	}
-
-	if strings.HasPrefix(input, "//") {
-		return parseSingleLineComment(input)
-	}
-
-	if strings.HasPrefix(input, "/*") {
-		return parseMultilineComment(input)
-	}
-
-	if isSingleQuote(r) {
-		return parseChar(input)
-	}
-
-	if isFourCharsPunctuation(input) {
-		token.Type = Punctuation
-		token.Content = input[:4]
-		return token
-	}
-
-	if isThreeCharsPunctuation(input) {
-		token.Type = Punctuation
-		token.Content = input[:3]
-
-		return token
-	}
-
-	if isTwoCharsPunctuation(input) {
-		token.Type = Punctuation
-		token.Content = input[:2]
-
-		return token
-	}
-
-	if isOneCharPunctuation(input) {
-		token.Type = Punctuation
-		token.Content = input[:1]
-
-		return token
-	}
-
-	if strings.HasPrefix(input, "0x") || strings.HasPrefix(input, "0X") {
-		return parseHex(input)
-
-	}
-
-	if isOneToNine(r) {
-		//TODO: handle octal and hex
-		return parseDecimal(input)
-	}
-
-	if r == '0' {
-		return parseOctal(input)
-	}
-
-	max := 20
-	start := input
-	if len(start) > max {
-		start = start[:max]
-	}
-	log.Fatalf("Unrecognised token, starts with %s", start)
-
-	panic("Unreachable")
-}
-
-func startsWithNewLine(input string) bool {
-	return strings.HasPrefix(input, "\r\n") || strings.HasPrefix(input, "\n")
-}
-
-func skipSpaceAndCountNewLines(parser *Parser) Whitespace {
+func skipSpaceAndCountNewLines(formatter *Formatter) Whitespace {
 
 	result := Whitespace{}
 
-	for parser.consumeSpace(&result) {
+	for formatter.consumeSpace(&result) {
 		result.HasSpace = true
 	}
 
@@ -773,162 +146,70 @@ func skipSpaceAndCountNewLines(parser *Parser) Whitespace {
 
 }
 
-func isLeftParenthesis(token Token) bool {
-	return token.Type == Punctuation && token.Content == "("
+func newParser(input string) *Formatter {
+	formatter := Formatter{Input: input, Output: strings.Builder{}}
+
+	return &formatter
 }
 
-func isRightParenthesis(token Token) bool {
-	return token.Type == Punctuation && token.Content == ")"
+func (formatter *Formatter) writeString(str string) {
+	formatter.Output.WriteString(str)
+	formatter.OutputColumn += len(str)
 }
 
-func isLeftBrace(token Token) bool {
-	return token.Type == Punctuation && token.Content == "{"
-}
-
-func isSingleLineComment(token Token) bool {
-	return token.Type == SingleLineComment
-}
-
-func isMultilineComment(token Token) bool {
-	return token.Type == MultilineComment
-}
-
-func isRightBrace(token Token) bool {
-	return token.Type == Punctuation && token.Content == "}"
-}
-
-func isSemicolon(token Token) bool {
-	return token.Type == Punctuation && token.Content == ";"
-}
-
-func isDirective(token Token) bool {
-	return token.Type == Directive
-}
-
-func isIdentifier(token Token) bool {
-	return token.Type == Identifier
-}
-
-func canBeLeftOperand(token Token) bool {
-	return token.Type == Identifier ||
-		token.Type == String ||
-		token.Type == Integer ||
-		token.Type == Float ||
-		token.Type == Char ||
-		(token.Type == Punctuation && token.Content == ")")
-}
-
-func canBePointerOperator(token Token) bool {
-	return token.Type == Punctuation && (token.Content == "&" || token.Content == "*")
-}
-
-func isIncrDecrOperator(token Token) bool {
-	return token.Type == Punctuation && (token.Content == "++" || token.Content == "--")
-}
-
-func isDotOperator(token Token) bool {
-	return token.Type == Punctuation && (token.Content == ".")
-}
-
-func isArrowOperator(token Token) bool {
-	return token.Type == Punctuation && (token.Content == "->")
-}
-
-func isStructUnionEnumKeyword(token Token) bool {
-	return token.Type == Keyword && (token.Content == "struct" || token.Content == "union" || token.Content == "enum")
-
-}
-
-func isAssignment(token Token) bool {
-	assignmentOps := []string{"=", "*=", "/=", "%=", "+=", "-=", "<<=", ">>=", "&=", "^=", "|="}
-
-	return token.Type == Punctuation && slices.Contains(assignmentOps, token.Content)
-}
-
-func isComma(token Token) bool {
-
-	return token.Type == Punctuation && token.Content == ","
-}
-
-func newParser(input string) *Parser {
-	parser := Parser{Input: input, Output: strings.Builder{}}
-
-	return &parser
-}
-
-func isAbsent(token Token) bool {
-	return token.Type == NoTokenType
-}
-
-func (parser *Parser) writeString(str string) {
-	parser.Output.WriteString(str)
-	parser.OutputColumn += len(str)
-}
-
-func (parser *Parser) writeNewLines(lines int) {
+func (formatter *Formatter) writeNewLines(lines int) {
 	const newLine = "\n"
 
 	for line := 0; line < lines; line++ {
 
-		if parser.IsDirective {
-			parser.writeString("\\")
+		if formatter.IsDirective {
+			formatter.writeString("\\")
 		}
-		parser.writeString(newLine)
-		parser.OutputColumn = 0
-		parser.OutputLine++
+		formatter.writeString(newLine)
+		formatter.OutputColumn = 0
+		formatter.OutputLine++
 	}
 	const indentation = "    "
-	if !isDirective(parser.NextToken) {
-		for indentLevel := 0; indentLevel < parser.Indent; indentLevel++ {
-			parser.writeString(indentation)
+	if !formatter.NextToken.isDirective() {
+		for indentLevel := 0; indentLevel < formatter.Indent; indentLevel++ {
+			formatter.writeString(indentation)
 		}
 	}
 
 }
 
-func hasNewLines(token Token) bool {
-	return token.Whitespace.NewLines > 0
-}
-
-func isComment(token Token) bool {
-	return isSingleLineComment(token) || isMultilineComment(token)
-}
-
-func tryFormatInlineInitialiserList(parser *Parser) bool {
+func tryFormatInlineInitialiserList(formatter *Formatter) bool {
 	openBraces := 1
 
-	//fmt.Println(parser.Input)
+	for formatter.parseToken() {
+		formatter.formatToken()
 
-	for parser.parseToken() {
-
-		parser.formatToken()
-
-		if isRightBrace(parser.Token) {
+		if formatter.Token.isRightBrace() {
 			openBraces--
 		}
 
-		if isComma(parser.Token) && hasNewLines(parser.Token) {
+		if formatter.Token.isComma() && formatter.Token.hasNewLines() {
 			return false
 		}
 
-		if isComment(parser.Token) {
+		if formatter.Token.isComment() {
 			return false
 		}
 
-		if isLeftBrace(parser.Token) {
+		if formatter.Token.isLeftBrace() {
 
-			if !tryFormatInlineInitialiserList(parser) {
+			if !tryFormatInlineInitialiserList(formatter) {
 				return false
 			}
 			continue
 		}
 
-		if parser.alwaysOneLine() || parser.alwaysDefaultLines() {
-			parser.writeNewLines(1)
-		} else if !neverWhitespace(parser) &&
-			!isRightBrace(parser.NextToken) &&
-			!isRightBrace(parser.Token) {
-			parser.writeString(" ")
+		if formatter.alwaysOneLine() || formatter.alwaysDefaultLines() {
+			formatter.writeNewLines(1)
+		} else if !neverWhitespace(formatter) &&
+			!formatter.NextToken.isRightBrace() &&
+			!formatter.Token.isRightBrace() {
+			formatter.writeString(" ")
 		}
 
 		if openBraces == 0 {
@@ -940,38 +221,38 @@ func tryFormatInlineInitialiserList(parser *Parser) bool {
 	panic("unreachable")
 }
 
-func formatMultilineInitialiserList(parser *Parser) {
+func formatMultilineInitialiserList(formatter *Formatter) {
 	openBraces := 1
 
-	parser.Indent++
+	formatter.Indent++
 
-	parser.writeNewLines(1)
+	formatter.writeNewLines(1)
 
-	for parser.parseToken() {
+	for formatter.parseToken() {
 
-		parser.formatToken()
-		if isRightBrace(parser.NextToken) {
-			parser.Indent--
+		formatter.formatToken()
+		if formatter.NextToken.isRightBrace() {
+			formatter.Indent--
 		}
 
-		if isRightBrace(parser.Token) {
+		if formatter.Token.isRightBrace() {
 			openBraces--
 		}
 
-		if isLeftBrace(parser.Token) {
+		if formatter.Token.isLeftBrace() {
 
-			formatMultilineInitialiserList(parser)
+			formatMultilineInitialiserList(formatter)
 
 			continue
 		}
 
-		if parser.alwaysOneLine() || isRightBrace(parser.NextToken) ||
-			(isComma(parser.Token) && hasNewLines(parser.Token)) || parser.alwaysDefaultLines() {
-			parser.writeNewLines(1)
-		} else if !neverWhitespace(parser) &&
-			!isRightBrace(parser.NextToken) &&
-			!isRightBrace(parser.Token) {
-			parser.writeString(" ")
+		if formatter.alwaysOneLine() || formatter.NextToken.isRightBrace() ||
+			(formatter.Token.isComma() && formatter.Token.hasNewLines()) || formatter.alwaysDefaultLines() {
+			formatter.writeNewLines(1)
+		} else if !neverWhitespace(formatter) &&
+			!formatter.NextToken.isRightBrace() &&
+			!formatter.Token.isRightBrace() {
+			formatter.writeString(" ")
 		}
 
 		if openBraces == 0 {
@@ -982,94 +263,92 @@ func formatMultilineInitialiserList(parser *Parser) {
 	log.Fatal("Unclosed initialiser list")
 }
 
-func formatFunctionDecl(parser *Parser) {
-	saved := *parser
-	if !tryFormatFunctionArguments(parser, true, true) {
-		*parser = saved
-		tryFormatFunctionArguments(parser, false, true)
+func formatFunctionDecl(formatter *Formatter) {
+	saved := *formatter
+	if !tryFormatFunctionArguments(formatter, true, true) {
+		*formatter = saved
+		tryFormatFunctionArguments(formatter, false, true)
 	}
 }
 
-func formatInitialiserList(parser *Parser) {
+func formatInitialiserList(formatter *Formatter) {
 
-	initialState := *parser
+	initialState := *formatter
 
-	if !tryFormatInlineInitialiserList(parser) {
-		*parser = initialState
-		formatMultilineInitialiserList(parser)
+	if !tryFormatInlineInitialiserList(formatter) {
+		*formatter = initialState
+		formatMultilineInitialiserList(formatter)
 	}
 
 }
 
-func (parser *Parser) oneOrTwoLines() {
-	if parser.Token.Whitespace.NewLines <= 1 || isRightBrace(parser.NextToken) {
-		parser.writeNewLines(1)
+func (formatter *Formatter) oneOrTwoLines() {
+	if formatter.Token.Whitespace.NewLines <= 1 || formatter.NextToken.isRightBrace() {
+		formatter.writeNewLines(1)
 
 	} else {
-		parser.writeNewLines(2)
+		formatter.writeNewLines(2)
 	}
 }
 
-func (parser *Parser) twoLinesOrEof() {
-	if isAbsent(parser.NextToken) {
-		parser.writeNewLines(1)
+func (formatter *Formatter) twoLinesOrEof() {
+	if formatter.NextToken.isAbsent() {
+		formatter.writeNewLines(1)
 	} else {
-		parser.writeNewLines(2)
+		formatter.writeNewLines(2)
 	}
 }
 
-func isPointerOperator(parser *Parser) bool {
-	return canBePointerOperator(parser.Token) && (!canBeLeftOperand(parser.PreviousToken) || !parser.RightSideOfAssignment)
+func isPointerOperator(formatter *Formatter) bool {
+	return formatter.Token.canBePointerOperator() && (!formatter.PreviousToken.canBeLeftOperand() || !formatter.RightSideOfAssignment)
 }
 
-func hasPostfixIncrDecr(parser *Parser) bool {
-	return isIncrDecrOperator(parser.NextToken) && (isIdentifier(parser.Token) || isRightParenthesis(parser.Token))
+func hasPostfixIncrDecr(formatter *Formatter) bool {
+	return formatter.NextToken.isIncrDecrOperator() && (formatter.Token.isIdentifier() || formatter.Token.isRightParenthesis())
 }
 
-func isPrefixIncrDecr(parser *Parser) bool {
-	return isIncrDecrOperator(parser.Token) && (isIdentifier(parser.NextToken) || isLeftParenthesis(parser.NextToken))
+func isPrefixIncrDecr(formatter *Formatter) bool {
+	return formatter.Token.isIncrDecrOperator() && (formatter.NextToken.isIdentifier() || formatter.NextToken.isLeftParenthesis())
 }
 
-func (parser *Parser) hasTrailingComment() bool {
-	return isSingleLineComment(parser.NextToken) && parser.Token.Whitespace.NewLines == 0
+func (formatter *Formatter) hasTrailingComment() bool {
+	return formatter.NextToken.isSingleLineComment() && formatter.Token.Whitespace.NewLines == 0
 }
 
-func (parser *Parser) wrap() {
-	parser.Indent++
-	parser.writeNewLines(1)
-	parser.Indent--
+func (formatter *Formatter) wrap() {
+	formatter.Indent++
+	formatter.writeNewLines(1)
+	formatter.Indent--
 }
 
-func tryFormatFunctionArguments(parser *Parser, inline bool, isFunctionDecl bool) bool {
-	//fmt.Println(parser.Input)
-
+func tryFormatFunctionArguments(formatter *Formatter, inline bool, isFunctionDecl bool) bool {
 	commas := 0
 	openParenthesis := 1
 	if !inline {
-		parser.Indent++
-		parser.writeNewLines(1)
+		formatter.Indent++
+		formatter.writeNewLines(1)
 	}
 
-	for parser.parseToken() {
+	for formatter.parseToken() {
 
 		topLevelComma := false
 
-		if isComma(parser.Token) && openParenthesis == 1 {
+		if formatter.Token.isComma() && openParenthesis == 1 {
 			topLevelComma = true
 			commas++
 		}
 
-		if parser.OutputColumn > 80 && commas > 0 {
+		if formatter.OutputColumn > 80 && commas > 0 {
 			return false
 		}
 
-		parser.formatToken()
+		formatter.formatToken()
 
-		if isRightParenthesis(parser.Token) {
+		if formatter.Token.isRightParenthesis() {
 			openParenthesis--
 		}
 
-		if isLeftParenthesis(parser.Token) {
+		if formatter.Token.isLeftParenthesis() {
 			openParenthesis++
 		}
 
@@ -1077,18 +356,18 @@ func tryFormatFunctionArguments(parser *Parser, inline bool, isFunctionDecl bool
 			return true
 		}
 
-		beforeLastParenthesis := openParenthesis == 1 && isRightParenthesis(parser.NextToken) && !inline
+		beforeLastParenthesis := openParenthesis == 1 && formatter.NextToken.isRightParenthesis() && !inline
 
 		if beforeLastParenthesis {
-			parser.Indent--
+			formatter.Indent--
 		}
 
-		if parser.alwaysOneLine() || parser.alwaysDefaultLines() || (topLevelComma && !inline) || beforeLastParenthesis {
-			parser.writeNewLines(1)
-		} else if !neverWhitespace(parser) &&
-			!isRightBrace(parser.NextToken) &&
-			!isRightBrace(parser.Token) {
-			parser.writeString(" ")
+		if formatter.alwaysOneLine() || formatter.alwaysDefaultLines() || (topLevelComma && !inline) || beforeLastParenthesis {
+			formatter.writeNewLines(1)
+		} else if !neverWhitespace(formatter) &&
+			!formatter.NextToken.isRightBrace() &&
+			!formatter.Token.isRightBrace() {
+			formatter.writeString(" ")
 		}
 	}
 
@@ -1097,327 +376,289 @@ func tryFormatFunctionArguments(parser *Parser, inline bool, isFunctionDecl bool
 	panic("unreachable")
 }
 
-func formatFunctionCallOrMacro(parser *Parser) {
-	saved := *parser
-	succeess := tryFormatFunctionArguments(parser, true, false)
+func formatFunctionCallOrMacro(formatter *Formatter) {
+	saved := *formatter
+	succeess := tryFormatFunctionArguments(formatter, true, false)
 
 	if !succeess {
-		*parser = saved
-		_ = tryFormatFunctionArguments(parser, false, false)
+		*formatter = saved
+		_ = tryFormatFunctionArguments(formatter, false, false)
 	}
 }
 
 func isDo(token Token) bool {
-	return token.Type == Keyword && token.Content == "do"
+	return token.Type == TokenTypeKeyword && token.Content == "do"
 }
 
-func formatBlockBody(parser *Parser) {
+func formatBlockBody(formatter *Formatter) {
+	formatter.Indent++
 
-	parser.Indent++
+	if formatter.NextToken.isRightBrace() {
 
-	if isRightBrace(parser.NextToken) {
-
-		parser.Indent--
+		formatter.Indent--
 	}
 
-	parser.writeNewLines(1)
+	formatter.writeNewLines(1)
 
 	structUnionOrEnum := false
 
-	saved := *parser
+	saved := *formatter
 
-	//fmt.Printf("start %s\n", parser.NextToken)
+	for formatter.parseToken() {
 
-	for parser.parseToken() {
-
-		if isRightBrace(parser.NextToken) {
-			parser.Indent--
+		if formatter.NextToken.isRightBrace() {
+			formatter.Indent--
 		}
 
-		if isStructUnionEnumKeyword(parser.Token) {
+		if formatter.Token.isStructUnionEnumKeyword() {
 			structUnionOrEnum = true
 		}
 
-		parser.formatToken()
+		formatter.formatToken()
 
-		if startsFunctionArguments(parser) {
-			formatFunctionCallOrMacro(parser)
+		if startsFunctionArguments(formatter) {
+			formatFunctionCallOrMacro(formatter)
 		}
 
-		if isRightBrace(parser.Token) {
+		if formatter.Token.isRightBrace() {
 			return
 		}
 
-		if isLeftBrace(parser.Token) {
+		if formatter.Token.isLeftBrace() {
 
-			if isAssignment(parser.PreviousToken) {
-				formatInitialiserList(parser)
+			if formatter.PreviousToken.isAssignment() {
+				formatInitialiserList(formatter)
 				continue
 			} else if structUnionOrEnum {
-				formatDeclarationBody(parser)
+				formatDeclarationBody(formatter)
 				structUnionOrEnum = false
-				//fmt.Println(parser.Token)
-
 			} else {
-				isDoWhileLoop := isDo(parser.PreviousToken)
-				parser.wrapping = false
-				formatBlockBody(parser)
+				isDoWhileLoop := isDo(formatter.PreviousToken)
+				formatter.wrapping = false
+				formatBlockBody(formatter)
 				if isDoWhileLoop {
-					parser.writeString(" ")
+					formatter.writeString(" ")
 				} else {
-					parser.oneOrTwoLines()
+					formatter.oneOrTwoLines()
 				}
 
-				saved = *parser
+				saved = *formatter
 				continue
 			}
 		}
 
-		if parser.OutputColumn > 80 && !parser.wrapping {
-			*parser = saved
-			parser.wrapping = true
+		if formatter.OutputColumn > 80 && !formatter.wrapping {
+			*formatter = saved
+			formatter.wrapping = true
 			continue
 		}
 
-		if parser.alwaysOneLine() || isRightBrace(parser.NextToken) {
-			parser.writeNewLines(1)
-		} else if parser.alwaysDefaultLines() {
-			parser.oneOrTwoLines()
-		} else if parser.wrapping && hasNewLines(parser.Token) {
-			parser.wrap()
-		} else if !neverWhitespace(parser) {
-			parser.writeString(" ")
+		if formatter.alwaysOneLine() || formatter.NextToken.isRightBrace() {
+			formatter.writeNewLines(1)
+		} else if formatter.alwaysDefaultLines() {
+			formatter.oneOrTwoLines()
+		} else if formatter.wrapping && formatter.Token.hasNewLines() {
+			formatter.wrap()
+		} else if !neverWhitespace(formatter) {
+			formatter.writeString(" ")
 		}
 
-		if isSemicolon(parser.Token) && !parser.IsParenthesis() {
-			parser.wrapping = false
-			saved = *parser
+		if formatter.Token.isSemicolon() && !formatter.IsParenthesis() {
+			formatter.wrapping = false
+			saved = *formatter
 		}
-
 	}
 
 	log.Fatal("Unclosed block")
 }
 
-func (parser *Parser) formatMultilineComment() {
-	text := strings.TrimSpace(parser.Token.Content[2 : len(parser.Token.Content)-2])
+func (formatter *Formatter) formatMultilineComment() {
+	text := strings.TrimSpace(formatter.Token.Content[2 : len(formatter.Token.Content)-2])
 
 	lines := strings.Split(text, "\n")
-	parser.writeString("/*")
+	formatter.writeString("/*")
 
 	for _, line := range lines {
 		trimmed := strings.TrimSpace(line)
 
-		parser.writeNewLines(1)
+		formatter.writeNewLines(1)
 		if len(trimmed) > 0 {
-			parser.writeString("   ")
-			parser.writeString(trimmed)
+			formatter.writeString("   ")
+			formatter.writeString(trimmed)
 		}
 	}
-	parser.writeNewLines(1)
-	parser.writeString("*/")
+
+	formatter.writeNewLines(1)
+	formatter.writeString("*/")
 }
 
-func (parser *Parser) formatSingleLineComment() {
-	text := strings.TrimSpace(parser.Token.Content[2:])
-	parser.writeString("// ")
-	parser.writeString(text)
+func (formatter *Formatter) formatSingleLineComment() {
+	text := strings.TrimSpace(formatter.Token.Content[2:])
+	formatter.writeString("// ")
+	formatter.writeString(text)
 }
 
-func (parser *Parser) formatToken() {
+func (formatter *Formatter) formatToken() {
 
-	if isMultilineComment(parser.Token) {
-		parser.formatMultilineComment()
-	} else if isSingleLineComment(parser.Token) {
-		parser.formatSingleLineComment()
+	if formatter.Token.isMultilineComment() {
+		formatter.formatMultilineComment()
+	} else if formatter.Token.isSingleLineComment() {
+		formatter.formatSingleLineComment()
 	} else {
-		parser.writeString(parser.Token.Content)
+		formatter.writeString(formatter.Token.Content)
 	}
 }
 
-func formatDeclarationBody(parser *Parser) {
+func formatDeclarationBody(formatter *Formatter) {
+	formatter.Indent++
 
-	//fmt.Printf("DECLARATION: %s\n", parser.Input)
+	formatter.writeNewLines(1)
 
-	parser.Indent++
+	for formatter.parseToken() {
+		formatter.formatToken()
 
-	parser.writeNewLines(1)
-
-	for parser.parseToken() {
-
-		parser.formatToken()
-
-		if isRightBrace(parser.NextToken) {
-			parser.Indent--
-
+		if formatter.NextToken.isRightBrace() {
+			formatter.Indent--
 		}
 
-		if isRightBrace(parser.Token) {
+		if formatter.Token.isRightBrace() {
 			return
 		}
 
-		if isLeftBrace(parser.Token) {
-			formatDeclarationBody(parser)
+		if formatter.Token.isLeftBrace() {
+			formatDeclarationBody(formatter)
 		}
 
-		if parser.alwaysOneLine() || parser.alwaysDefaultLines() {
-			parser.writeNewLines(1)
-		} else if !neverWhitespace(parser) &&
-			!isSemicolon(parser.NextToken) {
-			parser.writeString(" ")
+		if formatter.alwaysOneLine() || formatter.alwaysDefaultLines() {
+			formatter.writeNewLines(1)
+		} else if !neverWhitespace(formatter) &&
+			!formatter.NextToken.isSemicolon() {
+			formatter.writeString(" ")
 		}
-
 	}
 
 	log.Fatal("Unclosed declaration braces")
 }
 
-func startsFunctionArguments(parser *Parser) bool {
-
-	if !parser.IsDirective {
-		return parser.PreviousToken.Type == Identifier && isLeftParenthesis(parser.Token)
+func startsFunctionArguments(formatter *Formatter) bool {
+	if !formatter.IsDirective {
+		return formatter.PreviousToken.Type == TokenTypeIdentifier && formatter.Token.isLeftParenthesis()
 
 	} else {
-		return parser.PreviousToken.Type == Identifier && isLeftParenthesis(parser.Token) && !parser.PreviousToken.Whitespace.HasSpace
+		return formatter.PreviousToken.Type == TokenTypeIdentifier && formatter.Token.isLeftParenthesis() && !formatter.PreviousToken.Whitespace.HasSpace
 	}
 }
 
-func isFunctionName(parser *Parser) bool {
-	return parser.Token.Type == Identifier && isLeftParenthesis(parser.NextToken) && (!parser.IsDirective || !parser.Token.Whitespace.HasSpace)
+func isFunctionName(formatter *Formatter) bool {
+	return formatter.Token.Type == TokenTypeIdentifier && formatter.NextToken.isLeftParenthesis() && (!formatter.IsDirective || !formatter.Token.Whitespace.HasSpace)
 }
 
-func isLeftBracket(token Token) bool {
-	return token.Type == Punctuation && token.Content == "["
+func neverWhitespace(formatter *Formatter) bool {
+
+	return formatter.NextToken.isSemicolon() ||
+		formatter.Token.isLeftParenthesis() ||
+		formatter.NextToken.isRightParenthesis() ||
+		formatter.Token.isLeftBracket() ||
+		formatter.NextToken.isLeftBracket() ||
+		formatter.NextToken.isRightBracket() ||
+		isPointerOperator(formatter) ||
+		isFunctionName(formatter) ||
+		hasPostfixIncrDecr(formatter) ||
+		isPrefixIncrDecr(formatter) ||
+		(formatter.Token.isIdentifier() && formatter.NextToken.isDotOperator()) ||
+		formatter.Token.isDotOperator() ||
+		formatter.Token.isArrowOperator() ||
+		formatter.NextToken.isArrowOperator() ||
+		formatter.NextToken.isComma() ||
+		formatter.Token.isNegation() ||
+		formatter.Token.isSizeOf() ||
+		formatter.Token.isStringizingOp() ||
+		formatter.Token.isCharizingOp() ||
+		formatter.Token.isTokenPastingOp() ||
+		formatter.NextToken.isTokenPastingOp() ||
+		(formatter.IsIncludeDirective && ((formatter.NextToken.isGreaterThanSign()) || formatter.Token.isLessThanSign()))
 }
 
-func isRightBracket(token Token) bool {
-	return token.Type == Punctuation && token.Content == "]"
+func (formatter *Formatter) alwaysOneLine() bool {
+	return formatter.NextToken.isAbsent() || formatter.Token.isComment()
 }
 
-func isNegation(token Token) bool {
-	return token.Type == Punctuation && (token.Content == "!" || token.Content == "~")
-}
-
-func isSizeOf(token Token) bool {
-	return token.Type == Keyword && token.Content == "sizeof"
-}
-
-func neverWhitespace(parser *Parser) bool {
-
-	return isSemicolon(parser.NextToken) ||
-		isLeftParenthesis(parser.Token) ||
-		isRightParenthesis(parser.NextToken) ||
-		isLeftBracket(parser.Token) ||
-		isLeftBracket(parser.NextToken) ||
-		isRightBracket(parser.NextToken) ||
-		isPointerOperator(parser) ||
-		isFunctionName(parser) ||
-		hasPostfixIncrDecr(parser) ||
-		isPrefixIncrDecr(parser) ||
-		(isIdentifier(parser.Token) && isDotOperator(parser.NextToken)) ||
-		isDotOperator(parser.Token) ||
-		isArrowOperator(parser.Token) ||
-		isArrowOperator(parser.NextToken) ||
-		isComma(parser.NextToken) ||
-		isNegation(parser.Token) ||
-		isSizeOf(parser.Token) ||
-		isStringizingOp(parser.Token) ||
-		isCharizingOp(parser.Token) ||
-		isTokenPastingOp(parser.Token) ||
-		isTokenPastingOp(parser.NextToken) ||
-		(parser.IsIncludeDirective && (isGreaterThanSign(parser.NextToken) || isLessThanSign(parser.Token)))
-}
-
-func isGreaterThanSign(token Token) bool {
-	return token.Type == Punctuation && token.Content == ">"
-}
-
-func isLessThanSign(token Token) bool {
-	return token.Type == Punctuation && token.Content == "<"
-}
-
-func (parser *Parser) alwaysOneLine() bool {
-	return isAbsent(parser.NextToken) || isComment(parser.Token)
-}
-
-func (parser *Parser) alwaysDefaultLines() bool {
-
-	//fmt.Println(parser.Token.Content, " ", (isSemicolon(parser.Token) && !parser.IsParenthesis() && !parser.hasTrailingComment()))
-	return (isDirective(parser.NextToken) && !isAbsent(parser.PreviousToken)) ||
-		parser.IsEndOfDirective ||
-		isMultilineComment(parser.NextToken) ||
-		(isSemicolon(parser.Token) && !parser.IsParenthesis() && !parser.hasTrailingComment())
+func (formatter *Formatter) alwaysDefaultLines() bool {
+	return (formatter.NextToken.isDirective() && !formatter.PreviousToken.isAbsent()) ||
+		formatter.IsEndOfDirective ||
+		formatter.NextToken.isMultilineComment() ||
+		(formatter.Token.isSemicolon() && !formatter.IsParenthesis() && !formatter.hasTrailingComment())
 }
 
 func format(input string) string {
 
-	parser := newParser(input)
+	formatter := newParser(input)
 
-	saved := *parser
+	saved := *formatter
 
 	structUnionOrEnum := false
 
-	for parser.parseToken() {
+	for formatter.parseToken() {
 
-		if parser.OutputColumn > 80 && !parser.wrapping {
-			*parser = saved
-			parser.wrapping = true
+		if formatter.OutputColumn > 80 && !formatter.wrapping {
+			*formatter = saved
+			formatter.wrapping = true
 			continue
 		}
 
-		parser.formatToken()
+		formatter.formatToken()
 
-		if startsFunctionArguments(parser) {
-			if parser.IsDirective {
-				formatFunctionCallOrMacro(parser)
+		if startsFunctionArguments(formatter) {
+			if formatter.IsDirective {
+				formatFunctionCallOrMacro(formatter)
 			} else {
-				formatFunctionDecl(parser)
+				formatFunctionDecl(formatter)
 
 			}
 		}
 
-		if isLeftBrace(parser.Token) {
-			if isAssignment(parser.PreviousToken) {
-				formatInitialiserList(parser)
+		if formatter.Token.isLeftBrace() {
+			if formatter.PreviousToken.isAssignment() {
+				formatInitialiserList(formatter)
 				continue
 			} else if structUnionOrEnum {
-				parser.wrapping = false
-				formatDeclarationBody(parser)
+				formatter.wrapping = false
+				formatDeclarationBody(formatter)
 				structUnionOrEnum = false
 
 			} else {
-				parser.wrapping = false
+				formatter.wrapping = false
 
-				formatBlockBody(parser)
-				parser.twoLinesOrEof()
+				formatBlockBody(formatter)
+				formatter.twoLinesOrEof()
 				continue
 			}
 		}
 
-		if isStructUnionEnumKeyword(parser.Token) {
+		if formatter.Token.isStructUnionEnumKeyword() {
 			structUnionOrEnum = true
 		}
 
-		if parser.alwaysOneLine() {
-			parser.writeNewLines(1)
-		} else if parser.IsEndOfDirective || parser.alwaysDefaultLines() {
-			parser.twoLinesOrEof()
-		} else if parser.wrapping && hasNewLines(parser.Token) {
-			parser.wrap()
-		} else if !neverWhitespace(parser) &&
-			!isRightBrace(parser.NextToken) &&
-			!isLeftBrace(parser.Token) {
-			parser.writeString(" ")
+		if formatter.alwaysOneLine() {
+			formatter.writeNewLines(1)
+		} else if formatter.IsEndOfDirective || formatter.alwaysDefaultLines() {
+			formatter.twoLinesOrEof()
+		} else if formatter.wrapping && formatter.Token.hasNewLines() {
+			formatter.wrap()
+		} else if !neverWhitespace(formatter) &&
+			!formatter.NextToken.isRightBrace() &&
+			!formatter.Token.isLeftBrace() {
+			formatter.writeString(" ")
 		}
 
-		if isSemicolon(parser.Token) && !parser.IsParenthesis() {
-			saved = *parser
-			parser.wrapping = false
+		if formatter.Token.isSemicolon() && !formatter.IsParenthesis() {
+			saved = *formatter
+			formatter.wrapping = false
 			continue
 		}
 	}
 
-	return parser.Output.String()
+	return formatter.Output.String()
 }
 
 func main() {
