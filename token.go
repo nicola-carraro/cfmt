@@ -683,6 +683,10 @@ func (t Token) isLessThanSign() bool {
 	return t.Type == TokenTypePunctuation && t.Content == "<"
 }
 
+func (t Token) isDo() bool {
+	return t.Type == TokenTypeKeyword && t.Content == "do"
+}
+
 func (t TokenType) String() string {
 	switch t {
 	case TokenTypeNone:
