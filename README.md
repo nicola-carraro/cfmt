@@ -56,6 +56,7 @@ Here is an example of how output looks like:
     struct *Foo foo() {
         int a = b + c; // No blank line at the beginning and end of a block
         printf("%d\n", a); // A single, optional line between statements
+        
         struct *Foo result = malloc(sizeof(Foo));
         return result;
     }
