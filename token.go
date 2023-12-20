@@ -34,6 +34,7 @@ type Whitespace struct {
 	HasSpace          bool
 	NewLines          int
 	HasUnescapedLines bool
+	HasEscapedLines   bool
 }
 
 type IsDigitFunction func(r rune) bool
@@ -688,6 +689,14 @@ func (t Token) isLessThanSign() bool {
 
 func (t Token) isDo() bool {
 	return t.Type == TokenTypeKeyword && t.Content == "do"
+}
+
+func (t Token) isDefineDirective() bool {
+	return t.Type == TokenTypeDirective && t.Content == "#define"
+}
+
+func (t Token) hasEscapedLines() bool {
+	return t.Whitespace.HasEscapedLines
 }
 
 func (t TokenType) String() string {

@@ -541,7 +541,7 @@ func TestFormatMultilineLineComment(t *testing.T) {
 }
 
 func TestFormatMacro(t *testing.T) {
-	input := "#define MACRO(num, str) {printf(\"%d\", num);printf(\" is\");printf(\" %s number\", str);printf(\"\\n\");}\n"
+	input := "#define MACRO(num, str) {\\\nprintf(\"%d\", num);\\\nprintf(\" is\");\\\nprintf(\" %s number\", str);\\\nprintf(\"\\n\");\\\n}\n"
 	expected := "#define MACRO(num, str) {\\\n    printf(\"%d\", num);\\\n    printf(\" is\");\\\n    printf(\" %s number\", str);\\\n    printf(\"\\n\");\\\n}\n"
 	_testFormat(t, input, expected)
 
@@ -561,7 +561,7 @@ func TestFormatMacro(t *testing.T) {
 `
 	_testFormat(t, input, expected)
 
-	input = "#define MACRO(str) {\\\n    printf(\"%s\", str);\\\n}\\\n"
+	input = "#define MACRO(str) {\\\n    printf(\"%s\", str);\\\n}\n"
 	expected = "#define MACRO(str) {\\\n    printf(\"%s\", str);\\\n}\n"
 	_testFormat(t, input, expected)
 
@@ -606,13 +606,13 @@ int main() {
 `
 	_testFormat(t, input, expected)
 
-	input = "#define makechar(x)  #@x"
+	input = "#define makechar(x)  #@x\n"
 	expected = "#define makechar(x) #@x\n"
 	_testFormat(t, input, expected)
 }
 
 func TestFormatDirective(t *testing.T) {
-	input := "#endif\nint i = 1;"
+	input := "#endif\nint i = 1;\n"
 	expected := "#endif\n\nint i = 1;\n"
 	_testFormat(t, input, expected)
 
@@ -623,7 +623,8 @@ func TestFormatDirective(t *testing.T) {
 	input = `#include <stdio.h>
 
 #include "something.h"
-#define CHIP8_C`
+#define CHIP8_C
+`
 	expected = `#include <stdio.h>
 #include "something.h"
 
@@ -657,7 +658,7 @@ float fx,fdx,fdy;
 `
 	_testFormat(t, input, expected)
 
-	input = "#define STBTT__OVER_MASK (STBTT_MAX_OVERSAMPLE - 1)"
+	input = "#define STBTT__OVER_MASK (STBTT_MAX_OVERSAMPLE - 1)\n"
 	expected = "#define STBTT__OVER_MASK (STBTT_MAX_OVERSAMPLE - 1)\n"
 	_testFormat(t, input, expected)
 
@@ -665,17 +666,26 @@ float fx,fdx,fdy;
 	expected = "#define STBTT_ifloor(x) ((int) floor(x))\n"
 	_testFormat(t, input, expected)
 
-	input = `#define paster(n) printf_s("token" #n " = %d", token##n)`
+	input = `#define paster(n) printf_s("token" #n " = %d", token##n)
+    `
 	expected = `#define paster(n) printf_s("token" #n " = %d", token##n)
 `
 	_testFormat(t, input, expected)
 
-	input = `#define SOME_MACRO(a1, a2) {foo(a1, a2); bar(a1, a2)}`
+	input = `#define SOME_MACRO(a1, a2) {\
+    foo(a1, a2);\
+    bar(a1, a2)\
+}
+`
 	expected = `#define SOME_MACRO(a1, a2) {\
     foo(a1, a2);\
     bar(a1, a2)\
 }
 `
+	_testFormat(t, input, expected)
+
+	input = "#define MAKE_STRING(s){.text = s,.len=sizeof(s)}\n"
+	expected = "#define MAKE_STRING(s) {.text = s, .len = sizeof(s)}\n"
 	_testFormat(t, input, expected)
 
 }

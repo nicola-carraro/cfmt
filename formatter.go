@@ -51,17 +51,16 @@ func format(input string) string {
 
 		f.formatToken()
 
-		if f.startsFunctionArguments() {
-
+		if f.Token.isDefineDirective() {
+			f.formatMacro()
+		} else if f.startsFunctionArguments() {
 			if f.IsDirective {
-				f.formatFunctionCallOrMacro()
+				f.formatFunctionCall()
 			} else {
 				f.formatFunctionDecl()
 				nomorewrap = true
 			}
-		}
-
-		if f.Token.isLeftBrace() {
+		} else if f.Token.isLeftBrace() {
 			if f.PreviousToken.isAssignment() {
 				f.formatInitialiserList()
 				continue
@@ -85,7 +84,7 @@ func format(input string) string {
 			f.twoLinesOrEof()
 		} else if wrapping && f.Token.hasNewLines() {
 			f.wrap()
-		} else if !f.neverWhitespace() &&
+		} else if !f.neverSpace() &&
 			!f.NextToken.isRightBrace() &&
 			!f.Token.isLeftBrace() {
 			f.writeString(" ")
@@ -126,7 +125,7 @@ func formatBlockBody(f *Formatter) {
 		f.formatToken()
 
 		if f.startsFunctionArguments() {
-			f.formatFunctionCallOrMacro()
+			f.formatFunctionCall()
 		}
 
 		if f.NextToken.isRightBrace() {
@@ -173,7 +172,7 @@ func formatBlockBody(f *Formatter) {
 			f.oneOrTwoLines()
 		} else if wrapping && f.Token.hasNewLines() {
 			f.wrap()
-		} else if !f.neverWhitespace() {
+		} else if !f.neverSpace() {
 			f.writeString(" ")
 		}
 
@@ -186,7 +185,38 @@ func formatBlockBody(f *Formatter) {
 	log.Fatal("Unclosed block")
 }
 
-func (f *Formatter) formatFunctionCallOrMacro() {
+func (f *Formatter) formatMacro() {
+
+	f.writeString(" ")
+
+	for f.parseToken() {
+
+		f.formatToken()
+
+		if f.Token.hasEscapedLines() {
+			if f.Token.isLeftBrace() || f.Token.isLeftParenthesis() {
+				f.Indent++
+			}
+
+			if f.NextToken.isRightBrace() || f.NextToken.isRightParenthesis() {
+				f.Indent--
+			}
+		} else if f.Token.hasNewLines() {
+			return
+		}
+
+		if f.alwaysOneLine() || f.Token.hasEscapedLines() {
+			f.writeNewLines(1)
+		} else if f.alwaysDefaultLines() {
+			f.oneOrTwoLines()
+		} else if !f.neverSpace() {
+			f.writeString(" ")
+		}
+
+	}
+}
+
+func (f *Formatter) formatFunctionCall() {
 	saved := *f
 	succeess := f.tryFormatFunctionArguments(true, false)
 
@@ -238,7 +268,7 @@ func (f *Formatter) formatStructOrUnion() {
 
 		if f.alwaysOneLine() || f.alwaysDefaultLines() {
 			f.writeNewLines(1)
-		} else if !f.neverWhitespace() &&
+		} else if !f.neverSpace() &&
 			!f.NextToken.isSemicolon() {
 			f.writeString(" ")
 		}
@@ -266,7 +296,7 @@ func (f *Formatter) formatEnum() {
 
 		if f.alwaysOneLine() || f.alwaysDefaultLines() || f.Token.isComma() || f.NextToken.isRightBrace() {
 			f.writeNewLines(1)
-		} else if !f.neverWhitespace() &&
+		} else if !f.neverSpace() &&
 			!f.NextToken.isSemicolon() {
 			f.writeString(" ")
 		}
@@ -303,7 +333,7 @@ func (f *Formatter) tryFormatInlineInitialiserList() bool {
 
 		if f.alwaysOneLine() || f.alwaysDefaultLines() {
 			f.writeNewLines(1)
-		} else if !f.neverWhitespace() &&
+		} else if !f.neverSpace() &&
 			!f.NextToken.isRightBrace() &&
 			!f.Token.isRightBrace() {
 			f.writeString(" ")
@@ -344,7 +374,7 @@ func (f *Formatter) formatMultilineInitialiserList() {
 		if f.alwaysOneLine() || f.NextToken.isRightBrace() ||
 			(f.Token.isComma() && f.Token.hasNewLines()) || f.alwaysDefaultLines() {
 			f.writeNewLines(1)
-		} else if !f.neverWhitespace() &&
+		} else if !f.neverSpace() &&
 			!f.NextToken.isRightBrace() &&
 			!f.Token.isRightBrace() {
 			f.writeString(" ")
@@ -401,7 +431,7 @@ func (f *Formatter) tryFormatFunctionArguments(inline bool, isFunctionDecl bool)
 
 		if f.alwaysOneLine() || f.alwaysDefaultLines() || (topLevelComma && !inline) || beforeLastParenthesis {
 			f.writeNewLines(1)
-		} else if !f.neverWhitespace() &&
+		} else if !f.neverSpace() &&
 			!f.NextToken.isRightBrace() &&
 			!f.Token.isRightBrace() {
 			f.writeString(" ")
@@ -509,6 +539,7 @@ func (formatter *Formatter) consumeSpace(Whitespace *Whitespace) bool {
 			if formatter.IsDirective && strings.HasPrefix(formatter.Input, nl) {
 				formatter.Input = formatter.Input[len(nl):]
 				Whitespace.NewLines++
+				Whitespace.HasEscapedLines = true
 				return true
 			}
 		}
@@ -659,11 +690,13 @@ func (f *Formatter) isFunctionName() bool {
 	return f.Token.Type == TokenTypeIdentifier && f.NextToken.isLeftParenthesis() && (!f.IsDirective || !f.Token.Whitespace.HasSpace)
 }
 
-func (f *Formatter) neverWhitespace() bool {
+func (f *Formatter) neverSpace() bool {
 
 	return f.NextToken.isSemicolon() ||
 		f.Token.isLeftParenthesis() ||
 		f.NextToken.isRightParenthesis() ||
+		f.Token.isLeftBrace() ||
+		f.NextToken.isRightBrace() ||
 		f.Token.isLeftBracket() ||
 		f.NextToken.isLeftBracket() ||
 		f.NextToken.isRightBracket() ||
