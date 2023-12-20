@@ -1,4 +1,4 @@
-# CFMT
+# cfmt
 A formatter for C code.
 
 ## Build
@@ -13,7 +13,7 @@ If you provide the -stdout flag, files are not overwritten, and the formatted te
 standard output.
 
 ## Features
-Cfmt is "opinionated", as they say. In other words, it supports only one style and is not configurable.
+cfmt is "opinionated", as they say. In other words, it supports only one style and is not configurable.
 
 Here is an example of how output looks like:
 
@@ -65,7 +65,7 @@ Here is an example of how output looks like:
     } Foo;
     
     /*
-       We allow initialiser lists to wrap anywhere, if they hit the 80 columns threshold.
+       We allow initialiser lists to wrap anywhere, if they hit the 80 columns threshold
     */
     const u8 FONT_SPRITES[] = {
         0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
@@ -88,7 +88,7 @@ Here is an example of how output looks like:
     
     /*
        Multiline comments are formatted like this,
-       with /* on separate lines and indented text.
+       with /* on separate lines and indented text
     */
     struct *Foo foo() {
         // No blank line at the beginning and end of a block
