@@ -729,6 +729,37 @@ float fx,fdx,fdy;
 	expected = "#define MAKE_STRING(s) {.text = s, .len = sizeof(s)}\n"
 	_testFormat(t, input, expected)
 
+	input = `void foo() {
+		baz();
+#define MACRO(num, str) {\
+	printf("%d", num);\
+	printf(" is");\
+	printf(" %s number", str);\
+	printf("\n");\
+}
+
+	#define MAKE_STRING(s) {.text = s, .len = sizeof(s)}
+	
+		bar();
+	}
+	`
+
+	expected = `void foo() {
+    baz();
+#define MACRO(num, str) {\
+    printf("%d", num);\
+    printf(" is");\
+    printf(" %s number", str);\
+    printf("\n");\
+}
+
+#define MAKE_STRING(s) {.text = s, .len = sizeof(s)}
+
+    bar();
+}
+`
+	_testFormat(t, input, expected)
+
 }
 
 func TestFormatBrackets(t *testing.T) {

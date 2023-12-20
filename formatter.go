@@ -136,7 +136,9 @@ func formatBlockBody(f *Formatter) {
 			return
 		}
 
-		if f.Token.isLeftBrace() {
+		if f.Token.isDefineDirective() {
+			f.formatMacro()
+		} else if f.Token.isLeftBrace() {
 
 			if f.PreviousToken.isAssignment() {
 				f.formatInitialiserList()
@@ -187,12 +189,13 @@ func formatBlockBody(f *Formatter) {
 
 func (f *Formatter) formatMacro() {
 
+	oldIndent := f.Indent
+
+	f.Indent = 0
+
 	f.writeString(" ")
 
 	for f.parseToken() {
-
-		f.formatToken()
-
 		if f.Token.hasEscapedLines() {
 			if f.Token.isLeftBrace() || f.Token.isLeftParenthesis() {
 				f.Indent++
@@ -201,7 +204,14 @@ func (f *Formatter) formatMacro() {
 			if f.NextToken.isRightBrace() || f.NextToken.isRightParenthesis() {
 				f.Indent--
 			}
-		} else if f.Token.hasNewLines() {
+		}
+
+		f.formatToken()
+
+		if f.Token.hasUnescapedLines() {
+			f.Indent = oldIndent
+			f.IsDirective = false
+
 			return
 		}
 

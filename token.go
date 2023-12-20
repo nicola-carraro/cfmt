@@ -698,6 +698,9 @@ func (t Token) isDefineDirective() bool {
 func (t Token) hasEscapedLines() bool {
 	return t.Whitespace.HasEscapedLines
 }
+func (t Token) hasUnescapedLines() bool {
+	return t.Whitespace.HasUnescapedLines
+}
 
 func (t TokenType) String() string {
 	switch t {
