@@ -881,6 +881,85 @@ float fx,fdx,fdy;
 `
 	_testFormat(t, input, expected)
 
+	input = `struct Foo {
+    int bar;
+#define MAKE_STRING(s) {.text = s, .len = sizeof(s)}
+    struct Baz;
+}`
+	expected = `struct Foo {
+    int bar;
+#define MAKE_STRING(s) {.text = s, .len = sizeof(s)}
+    struct Baz;
+}
+`
+	_testFormat(t, input, expected)
+
+	input = `struct Foo {
+    int bar;
+#define MACRO(num, str) {\
+    printf("%d", num);\
+    printf(" is");\
+    printf(" %s number", str);\
+    printf("\n");\
+}
+    struct Baz;
+}
+`
+	expected = `struct Foo {
+    int bar;
+#define MACRO(num, str) {\
+    printf("%d", num);\
+    printf(" is");\
+    printf(" %s number", str);\
+    printf("\n");\
+}
+    struct Baz;
+}
+`
+	_testFormat(t, input, expected)
+
+	input = `enum Color {
+    RED,
+    GREEN,
+#define MAKE_STRING(s) {.text = s, .len = sizeof(s)}
+    BLUE
+}`
+	expected = `enum Color {
+    RED,
+    GREEN,
+#define MAKE_STRING(s) {.text = s, .len = sizeof(s)}
+    BLUE
+}
+`
+	_testFormat(t, input, expected)
+
+	input = `enum Color {
+    RED,
+    GREEN,
+#define MACRO(num, str) {\
+    printf("%d", num);\
+    printf(" is");\
+    printf(" %s number", str);\
+    printf("\n");\
+}
+    BLUE
+}
+`
+	expected = `enum Color {
+    RED,
+    GREEN,
+#define MACRO(num, str) {\
+    printf("%d", num);\
+    printf(" is");\
+    printf(" %s number", str);\
+    printf("\n");\
+}
+    BLUE
+}
+`
+
+	_testFormat(t, input, expected)
+
 }
 
 func TestFormatBrackets(t *testing.T) {

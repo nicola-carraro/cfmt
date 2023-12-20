@@ -276,6 +276,8 @@ func (f *Formatter) formatStructOrUnion() {
 
 		if f.Token.isLeftBrace() {
 			f.formatStructOrUnion()
+		} else if f.Token.isDefineDirective() {
+			f.formatMacro()
 		}
 
 		if f.alwaysOneLine() || f.alwaysDefaultLines() {
@@ -304,6 +306,10 @@ func (f *Formatter) formatEnum() {
 
 		if f.Token.isRightBrace() {
 			return
+		}
+
+		if f.Token.isDefineDirective() {
+			f.formatMacro()
 		}
 
 		if f.alwaysOneLine() || f.alwaysDefaultLines() || f.Token.isComma() || f.NextToken.isRightBrace() {
