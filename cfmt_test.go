@@ -208,6 +208,45 @@ func TestFormatEnum(t *testing.T) {
 `
 	_testFormat(t, input, expected)
 
+	input = `struct *Foo foo() {
+	
+		int a = b + c; // No blank line at the beginning and end of a block
+		
+    enum Color {red, green, blue};
+	
+    
+	
+    printf("%d\n", a); // A single, optional line between statements
+    struct *Foo result = malloc(sizeof(Foo)) return result;
+}`
+	expected = `struct *Foo foo() {
+    int a = b + c; // No blank line at the beginning and end of a block
+
+    enum Color {
+        red,
+        green,
+        blue
+    };
+
+    printf("%d\n", a); // A single, optional line between statements
+    struct *Foo result = malloc(sizeof(Foo)) return result;
+}
+`
+	_testFormat(t, input, expected)
+
+	input = `enum Foo { a, b, c = 10, d, e = 1, f, g = f + c };`
+	expected = `enum Foo {
+    a,
+    b,
+    c = 10,
+    d,
+    e = 1,
+    f,
+    g = f + c
+};
+`
+	_testFormat(t, input, expected)
+
 }
 
 func TestFormatInitializerList(t *testing.T) {

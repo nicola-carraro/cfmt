@@ -24,6 +24,8 @@ type Formatter struct {
 	IsEndOfDirective      bool
 	IsEndOfInclude        bool
 	RightSideOfAssignment bool
+	AcceptStructOrUnion   bool
+	AcceptEnum            bool
 }
 
 type StructUnionEnum struct {
@@ -36,8 +38,6 @@ func format(input string) string {
 
 	saved := *f
 
-	structOrUnion := false
-	enum := false
 	wrapping := false
 	nomorewrap := false
 
@@ -53,8 +53,6 @@ func format(input string) string {
 
 		if f.startsFunctionArguments() {
 
-			structOrUnion = false
-			enum = false
 			if f.IsDirective {
 				f.formatFunctionCallOrMacro()
 			} else {
@@ -67,28 +65,18 @@ func format(input string) string {
 			if f.PreviousToken.isAssignment() {
 				f.formatInitialiserList()
 				continue
-			} else if structOrUnion {
+			} else if f.AcceptStructOrUnion {
 				wrapping = false
 				f.formatStructOrUnion()
-				structOrUnion = false
-			} else if enum {
+			} else if f.AcceptEnum {
 				wrapping = false
 				f.formatEnum()
-				enum = false
 			} else {
 				wrapping = false
 				formatBlockBody(f)
 				f.twoLinesOrEof()
 				continue
 			}
-		}
-
-		if f.Token.isStructOrUnion() {
-			structOrUnion = true
-		}
-
-		if f.Token.isEnum() {
-			enum = true
 		}
 
 		if f.alwaysOneLine() {
@@ -131,15 +119,9 @@ func formatBlockBody(f *Formatter) {
 
 	f.writeNewLines(1)
 
-	structUnionOrEnum := false
-
 	saved := *f
 
 	for f.parseToken() {
-
-		if f.Token.isStructOrUnion() {
-			structUnionOrEnum = true
-		}
 
 		f.formatToken()
 
@@ -160,9 +142,10 @@ func formatBlockBody(f *Formatter) {
 			if f.PreviousToken.isAssignment() {
 				f.formatInitialiserList()
 				continue
-			} else if structUnionOrEnum {
+			} else if f.AcceptStructOrUnion {
 				f.formatStructOrUnion()
-				structUnionOrEnum = false
+			} else if f.AcceptEnum {
+				f.formatEnum()
 			} else {
 				isDoWhileLoop := f.PreviousToken.isDo()
 				wrapping = false
@@ -233,6 +216,7 @@ func (f *Formatter) formatInitialiserList() {
 }
 
 func (f *Formatter) formatStructOrUnion() {
+	f.AcceptStructOrUnion = false
 	f.Indent++
 
 	f.writeNewLines(1)
@@ -264,6 +248,7 @@ func (f *Formatter) formatStructOrUnion() {
 }
 
 func (f *Formatter) formatEnum() {
+	f.AcceptEnum = false
 	f.Indent++
 
 	f.writeNewLines(1)
@@ -451,6 +436,19 @@ func (f *Formatter) parseToken() bool {
 
 	if f.Token.isIncludeDirective() {
 		f.IsIncludeDirective = true
+	}
+
+	if f.Token.isStructOrUnion() {
+		f.AcceptStructOrUnion = true
+	}
+
+	if f.Token.isEnum() {
+		f.AcceptEnum = true
+	}
+
+	if f.startsFunctionArguments() {
+		f.AcceptStructOrUnion = false
+		f.AcceptEnum = false
 	}
 
 	if f.Token.isAssignment() {
