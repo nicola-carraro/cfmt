@@ -23,6 +23,15 @@ Here is an example of how output looks like:
     #include "something.h"
     #include "stdlib.h"
     
+    // No blank lines between pragmas
+    #pragma comment(lib, "kernel32.lib")
+    #pragma comment(lib, "user32.lib")
+    #pragma comment(lib, "D3d9.lib")
+    #pragma comment(lib, "Dsound.lib")
+    #pragma comment(lib, "Dsound.lib")
+    #pragma comment(lib, "ole32.lib")
+    #pragma comment(lib, "Comdlg32.lib")
+    
     // Otherwise exactly one blank line between preprocessor directives
     #ifndef SOME_DEFINE
     

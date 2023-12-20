@@ -583,6 +583,10 @@ func (t Token) isIncludeDirective() bool {
 	return t.isDirective() && t.Content == "#include"
 }
 
+func (t Token) isPragmaDirective() bool {
+	return t.isDirective() && t.Content == "#pragma"
+}
+
 func (t Token) isLeftParenthesis() bool {
 	return t.Type == TokenTypePunctuation && t.Content == "("
 }

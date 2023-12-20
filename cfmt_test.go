@@ -849,6 +849,38 @@ float fx,fdx,fdy;
 `
 	_testFormat(t, input, expected)
 
+	input = `#define COBJMACROS
+
+#include "chip8.h"
+	
+    #pragma comment(lib, "kernel32.lib")
+	    #pragma comment(lib, "user32.lib")
+	 #pragma comment(lib, "D3d9.lib")
+	#pragma comment(lib, "Dsound.lib")
+	    #pragma comment(lib, "Dsound.lib")
+
+	    #pragma comment(lib, "ole32.lib")
+
+	     #pragma comment(lib, "Comdlg32.lib")
+	
+	#undef COBJMACROS`
+
+	expected = `#define COBJMACROS
+
+#include "chip8.h"
+
+#pragma comment(lib, "kernel32.lib")
+#pragma comment(lib, "user32.lib")
+#pragma comment(lib, "D3d9.lib")
+#pragma comment(lib, "Dsound.lib")
+#pragma comment(lib, "Dsound.lib")
+#pragma comment(lib, "ole32.lib")
+#pragma comment(lib, "Comdlg32.lib")
+
+#undef COBJMACROS
+`
+	_testFormat(t, input, expected)
+
 }
 
 func TestFormatBrackets(t *testing.T) {

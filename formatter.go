@@ -21,8 +21,10 @@ type Formatter struct {
 	OpenParenthesis       int
 	IsDirective           bool
 	IsIncludeDirective    bool
+	IsPragmaDirective     bool
 	IsEndOfDirective      bool
 	IsEndOfInclude        bool
+	IsEndOfPragma         bool
 	RightSideOfAssignment bool
 	AcceptStructOrUnion   bool
 	AcceptEnum            bool
@@ -476,15 +478,21 @@ func (f *Formatter) parseToken() bool {
 
 	f.IsEndOfDirective = false
 	f.IsEndOfInclude = false
+	f.IsEndOfPragma = false
 
 	if f.Token.isDirective() {
 		f.IsDirective = true
 	}
 	wasInclude := f.IsIncludeDirective
+	wasPragma := f.IsPragmaDirective
 	wasDirective := f.IsDirective
 
 	if f.Token.isIncludeDirective() {
 		f.IsIncludeDirective = true
+	}
+
+	if f.Token.isPragmaDirective() {
+		f.IsPragmaDirective = true
 	}
 
 	if f.Token.isStructOrUnion() {
@@ -516,6 +524,7 @@ func (f *Formatter) parseToken() bool {
 	if f.Token.Whitespace.HasUnescapedLines || f.NextToken.isAbsent() {
 		f.IsDirective = false
 		f.IsIncludeDirective = false
+		f.IsPragmaDirective = false
 	}
 
 	if wasDirective && !f.IsDirective {
@@ -524,6 +533,10 @@ func (f *Formatter) parseToken() bool {
 
 	if wasInclude && !f.IsIncludeDirective {
 		f.IsEndOfInclude = true
+	}
+
+	if wasPragma && !f.IsPragmaDirective {
+		f.IsEndOfPragma = true
 	}
 
 	if f.Token.isLeftParenthesis() {
@@ -575,6 +588,7 @@ func (formatter *Formatter) consumeSpace(Whitespace *Whitespace) bool {
 		if formatter.IsDirective {
 			formatter.IsDirective = false
 			formatter.IsIncludeDirective = false
+			formatter.IsPragmaDirective = false
 		}
 		return true
 	}
@@ -740,7 +754,8 @@ func (f *Formatter) neverSpace() bool {
 func (f *Formatter) alwaysOneLine() bool {
 	return f.NextToken.isAbsent() ||
 		(f.Token.isComment() && (f.PreviousToken.hasNewLines() || f.PreviousToken.isAbsent())) ||
-		(f.IsEndOfInclude && f.NextToken.isIncludeDirective())
+		(f.IsEndOfInclude && f.NextToken.isIncludeDirective()) ||
+		(f.IsEndOfPragma && f.NextToken.isPragmaDirective())
 }
 
 func (f *Formatter) alwaysDefaultLines() bool {
