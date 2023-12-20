@@ -760,6 +760,95 @@ float fx,fdx,fdy;
 `
 	_testFormat(t, input, expected)
 
+	input = `int p = {
+    .x,
+		#define MACRO(num, str) {\
+    		printf("%d", num);\
+   				printf(" is");\
+   					 printf(" %s number", str);\
+   						 printf("\n");\
+}
+    .y,
+#define MAKE_STRING(s) {.text = s, .len = sizeof(s)}
+    z
+};
+`
+	expected = `int p = {
+    .x,
+#define MACRO(num, str) {\
+    printf("%d", num);\
+    printf(" is");\
+    printf(" %s number", str);\
+    printf("\n");\
+}
+    .y,
+#define MAKE_STRING(s) {.text = s, .len = sizeof(s)}
+    z
+};
+`
+	_testFormat(t, input, expected)
+
+	input = `bool c8_read_entire_file(
+		const char *path,
+	#define MACRO(num, str) {\
+		printf("%d", num);\
+		printf(" is");\
+		printf(" %s number", str);\
+		printf("\n");\
+	}
+		C8_Arena *arena,
+	#define MAKE_STRING(s) {.text = s, .len = sizeof(s)}
+		C8_File * read_result
+	) {
+	}`
+
+	expected = `bool c8_read_entire_file(
+    const char *path,
+#define MACRO(num, str) {\
+    printf("%d", num);\
+    printf(" is");\
+    printf(" %s number", str);\
+    printf("\n");\
+}
+    C8_Arena *arena,
+#define MAKE_STRING(s) {.text = s, .len = sizeof(s)}
+    C8_File * read_result
+) {
+}
+`
+	_testFormat(t, input, expected)
+
+	input = `void foo() {
+		bar(
+			a,
+	#define MAKE_STRING(s) {.text = s, .len = sizeof(s)}
+			b,
+	#define MACRO(num, str) {\
+		printf("%d", num);\
+		printf(" is");\
+		printf(" %s number", str);\
+		printf("\n");\
+	}
+			c
+		);
+	}`
+	expected = `void foo() {
+    bar(
+        a,
+#define MAKE_STRING(s) {.text = s, .len = sizeof(s)}
+        b,
+#define MACRO(num, str) {\
+    printf("%d", num);\
+    printf(" is");\
+    printf(" %s number", str);\
+    printf("\n");\
+}
+        c
+    );
+}
+`
+	_testFormat(t, input, expected)
+
 }
 
 func TestFormatBrackets(t *testing.T) {

@@ -339,6 +339,8 @@ func (f *Formatter) tryFormatInlineInitialiserList() bool {
 				return false
 			}
 			continue
+		} else if f.Token.isDefineDirective() {
+			f.formatMacro()
 		}
 
 		if f.alwaysOneLine() || f.alwaysDefaultLines() {
@@ -379,6 +381,8 @@ func (f *Formatter) formatMultilineInitialiserList() {
 		if f.Token.isLeftBrace() {
 			f.formatMultilineInitialiserList()
 			continue
+		} else if f.Token.isDefineDirective() {
+			f.formatMacro()
 		}
 
 		if f.alwaysOneLine() || f.NextToken.isRightBrace() ||
@@ -415,11 +419,16 @@ func (f *Formatter) tryFormatFunctionArguments(inline bool, isFunctionDecl bool)
 			commas++
 		}
 
-		if f.OutputColumn > 80 && commas > 0 && inline {
+		if inline &&
+			((f.OutputColumn > 80 && commas > 0) || f.Token.isComment() || f.Token.isDirective()) {
 			return false
 		}
 
 		f.formatToken()
+
+		if f.Token.isDefineDirective() {
+			f.formatMacro()
+		}
 
 		if f.Token.isRightParenthesis() {
 			openParenthesis--
