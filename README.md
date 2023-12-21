@@ -44,7 +44,7 @@ Here is an example of how output looks like:
     #define MAKE_STRING(s) {.text = s, .len = sizeof(s)}
     
     /*
-       If you want to format a macro like a function, you have to do so explictly,
+       If you want to format a macro like a function, you have to do so explicitly,
        by adding escaped lines where appropriate
     */
     #define SOME_MACRO(a1, a2) {\
@@ -74,7 +74,7 @@ Here is an example of how output looks like:
     } Foo;
     
     /*
-       We allow initialiser lists to wrap anywhere, if they hit the 80 columns threshold
+       We allow initializer lists to wrap anywhere, if they hit the 80 columns threshold
     */
     const u8 FONT_SPRITES[] = {
         0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
@@ -140,7 +140,7 @@ Here is an example of how output looks like:
             eta,
             iota,
             kappa,
-            lamba,
+            lambda,
             mu,
             nu
         );
