@@ -41,11 +41,11 @@ func format(input string) string {
 	saved := *f
 
 	wrapping := false
-	nomorewrap := false
+	noMoreWrap := false
 
 	for f.parseToken() {
 
-		if f.OutputColumn > 80 && !wrapping && !nomorewrap {
+		if f.OutputColumn > 80 && !wrapping && !noMoreWrap {
 			*f = saved
 			wrapping = true
 			continue
@@ -60,11 +60,11 @@ func format(input string) string {
 				f.formatFunctionCall()
 			} else {
 				f.formatFunctionDecl()
-				nomorewrap = true
+				noMoreWrap = true
 			}
 		} else if f.Token.isLeftBrace() {
 			if f.PreviousToken.isAssignment() {
-				f.formatInitialiserList()
+				f.formatInitializerList()
 				continue
 			} else if f.AcceptStructOrUnion {
 				wrapping = false
@@ -95,7 +95,7 @@ func format(input string) string {
 		if f.Token.isSemicolon() && !f.IsParenthesis() {
 			saved = *f
 			wrapping = false
-			nomorewrap = false
+			noMoreWrap = false
 			continue
 		}
 	}
@@ -143,7 +143,7 @@ func formatBlockBody(f *Formatter) {
 		} else if f.Token.isLeftBrace() {
 
 			if f.PreviousToken.isAssignment() {
-				f.formatInitialiserList()
+				f.formatInitializerList()
 				continue
 			} else if f.AcceptStructOrUnion {
 				f.formatStructOrUnion()
@@ -230,9 +230,9 @@ func (f *Formatter) formatMacro() {
 
 func (f *Formatter) formatFunctionCall() {
 	saved := *f
-	succeess := f.tryFormatFunctionArguments(true, false)
+	success := f.tryFormatFunctionArguments(true, false)
 
-	if !succeess {
+	if !success {
 		*f = saved
 		_ = f.tryFormatFunctionArguments(false, false)
 	}
@@ -246,13 +246,13 @@ func (f *Formatter) formatFunctionDecl() {
 	}
 }
 
-func (f *Formatter) formatInitialiserList() {
+func (f *Formatter) formatInitializerList() {
 
 	initialState := *f
 
-	if !f.tryFormatInlineInitialiserList() {
+	if !f.tryFormatInlineInitializerList() {
 		*f = initialState
-		f.formatMultilineInitialiserList()
+		f.formatMultilineInitializerList()
 	}
 
 }
@@ -323,7 +323,7 @@ func (f *Formatter) formatEnum() {
 	log.Fatal("Unclosed declaration braces")
 }
 
-func (f *Formatter) tryFormatInlineInitialiserList() bool {
+func (f *Formatter) tryFormatInlineInitializerList() bool {
 	openBraces := 1
 
 	for f.parseToken() {
@@ -343,7 +343,7 @@ func (f *Formatter) tryFormatInlineInitialiserList() bool {
 
 		if f.Token.isLeftBrace() {
 
-			if !f.tryFormatInlineInitialiserList() {
+			if !f.tryFormatInlineInitializerList() {
 				return false
 			}
 			continue
@@ -364,11 +364,11 @@ func (f *Formatter) tryFormatInlineInitialiserList() bool {
 		}
 	}
 
-	log.Fatal("Unclosed initialiser list")
+	log.Fatal("Unclosed initializer list")
 	panic("unreachable")
 }
 
-func (f *Formatter) formatMultilineInitialiserList() {
+func (f *Formatter) formatMultilineInitializerList() {
 	openBraces := 1
 
 	f.Indent++
@@ -387,7 +387,7 @@ func (f *Formatter) formatMultilineInitialiserList() {
 		}
 
 		if f.Token.isLeftBrace() {
-			f.formatMultilineInitialiserList()
+			f.formatMultilineInitializerList()
 			continue
 		} else if f.Token.isDefineDirective() {
 			f.formatMacro()
@@ -407,7 +407,7 @@ func (f *Formatter) formatMultilineInitialiserList() {
 		}
 	}
 
-	log.Fatal("Unclosed initialiser list")
+	log.Fatal("Unclosed initializer list")
 }
 
 func (f *Formatter) tryFormatFunctionArguments(inline bool, isFunctionDecl bool) bool {
