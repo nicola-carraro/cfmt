@@ -141,6 +141,10 @@ func TestTokenizePunctuation(t *testing.T) {
 	_testTokenizeSingleToken(t, "##", TokenTypePunctuation)
 }
 
+func TestTokenizeSingleLineComment(t *testing.T) {
+	_testTokenizeSingleToken(t, "/*/ comment /*/", TokenTypeMultilineComment)
+}
+
 func TestFormatStructDecl(t *testing.T) {
 	input := `typedef struct {
 int bar;     char *baz;}Foo;`

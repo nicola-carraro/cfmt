@@ -355,8 +355,8 @@ func parseInt(text string, prefixLen int, isDigit IsDigitFunction) Token {
 }
 
 func parseMultilineComment(text string) Token {
-	tokenSize := 0
-	next := text
+	tokenSize := 2
+	next := text[2:]
 
 	_, size := peakRune(next)
 
