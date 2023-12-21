@@ -389,7 +389,7 @@ func (f *Formatter) formatMultilineInitializerList() {
 		}
 
 		if f.Token.isLeftBrace() {
-			f.formatMultilineInitializerList()
+			f.formatInitializerList()
 			continue
 		} else if f.Token.isDefineDirective() {
 			f.formatMacro()

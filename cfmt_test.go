@@ -322,6 +322,21 @@ func TestFormatInitializerList(t *testing.T) {
 `
 	_testFormat(t, input, expected)
 
+	input = `
+	static const unsigned char list[][3] = { { 1, 2, 3 }, { 4, 5, 6 }, {7, 8, 9},
+		  {1, 2, 3}, {4, 5, 6}, {7, 8, 9},
+{1, 2, 3}, {4, 5, 6}, {7, 8, 9},
+	};
+`
+
+	expected = `static const unsigned char list[][3] = {
+    {1, 2, 3}, {4, 5, 6}, {7, 8, 9},
+    {1, 2, 3}, {4, 5, 6}, {7, 8, 9},
+    {1, 2, 3}, {4, 5, 6}, {7, 8, 9},
+};
+`
+	_testFormat(t, input, expected)
+
 }
 
 func TestFormatLoop(t *testing.T) {
