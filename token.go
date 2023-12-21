@@ -125,7 +125,7 @@ func parseToken(input string) Token {
 	if len(start) > max {
 		start = start[:max]
 	}
-	log.Fatalf("Unrecognised token, starts with %s", start)
+	log.Fatalf("Unrecognized token, starts with %s", start)
 
 	panic("Unreachable")
 }
