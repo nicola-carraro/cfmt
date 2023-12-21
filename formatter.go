@@ -76,7 +76,7 @@ func format(input string) string {
 				f.formatEnum()
 			} else {
 				wrapping = false
-				formatBlockBody(f)
+				f.formatBlockBody()
 				f.twoLinesOrEof()
 				continue
 			}
@@ -111,7 +111,7 @@ func newFormatter(input string) *Formatter {
 	return &formatter
 }
 
-func formatBlockBody(f *Formatter) {
+func (f *Formatter) formatBlockBody() {
 	wrapping := false
 	f.Indent++
 
@@ -154,7 +154,7 @@ func formatBlockBody(f *Formatter) {
 			} else {
 				isDoWhileLoop := f.PreviousToken.isDo()
 				wrapping = false
-				formatBlockBody(f)
+				f.formatBlockBody()
 				if isDoWhileLoop {
 					f.writeString(" ")
 				} else {
@@ -421,7 +421,6 @@ func (f *Formatter) tryFormatFunctionArguments(inline bool, isFunctionDecl bool)
 	}
 
 	for f.parseToken() {
-
 		topLevelComma := false
 
 		if f.Token.isComma() && openParenthesis == 1 {
@@ -436,16 +435,22 @@ func (f *Formatter) tryFormatFunctionArguments(inline bool, isFunctionDecl bool)
 
 		f.formatToken()
 
-		if f.Token.isDefineDirective() {
-			f.formatMacro()
-		}
-
 		if f.Token.isRightParenthesis() {
 			openParenthesis--
 		}
 
 		if f.Token.isLeftParenthesis() {
 			openParenthesis++
+		}
+
+		if f.Token.isDefineDirective() {
+			f.formatMacro()
+		} else if f.Token.isLeftBrace() {
+			if inline {
+				return false
+			}
+			f.formatBlockBody()
+
 		}
 
 		if openParenthesis == 0 {

@@ -964,6 +964,44 @@ float fx,fdx,fdy;
 
 	_testFormat(t, input, expected)
 
+	input = `#define MACRO(a) a
+void foo() {MACRO(for (int i = 0; i < 3; i++) {foo();})}
+`
+	expected = `#define MACRO(a) a
+
+void foo() {
+    MACRO(
+        for (int i = 0; i < 3; i++) {
+            foo();
+        }
+    )
+}
+`
+	_testFormat(t, input, expected)
+	input = `
+int stb_c_lexer_get_token(stb_lexer *lexer) {for (;;) {
+        char *p = lexer->parse_point;
+        STB_C_LEX_CPP_COMMENTS(
+            if (p != lexer->eof && p[0] == '/' && p[1] == '/') {
+                				while (p != lexer->eof && *p != '\r' && *p != '\n')++p;
+    continue;}
+        )
+    }
+}`
+	expected = `int stb_c_lexer_get_token(stb_lexer *lexer) {
+    for (;;) {
+        char *p = lexer->parse_point;
+        STB_C_LEX_CPP_COMMENTS(
+            if (p != lexer->eof && p[0] == '/' && p[1] == '/') {
+                while (p != lexer->eof && *p != '\r' && *p != '\n')++p;
+                continue;
+            }
+        )
+    }
+}
+`
+	_testFormat(t, input, expected)
+
 }
 
 func TestFormatBrackets(t *testing.T) {
