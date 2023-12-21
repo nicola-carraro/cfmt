@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 )
@@ -11,6 +10,10 @@ import (
 func usage() {
 	fmt.Fprintf(os.Stderr, "Usage: %s [-stdout] path1 [path2 ...]\n", filepath.Base(os.Args[0]))
 	flag.PrintDefaults()
+}
+
+func printError(err error) {
+	_, _ = fmt.Fprintf(os.Stderr, "Error: %s\n", err)
 }
 
 func main() {
@@ -27,8 +30,8 @@ func main() {
 		data, err := os.ReadFile(path)
 
 		if err != nil {
-			usage()
-			flag.PrintDefaults()
+			printError(err)
+			continue
 		}
 
 		text := string(data)
@@ -41,7 +44,7 @@ func main() {
 			os.WriteFile(path, []byte(formattedText), 0600)
 
 			if err != nil {
-				log.Fatalf("Error writing %s: %s", path, err)
+				printError(err)
 			}
 		}
 	}
