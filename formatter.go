@@ -28,6 +28,8 @@ type Formatter struct {
 	RightSideOfAssignment bool
 	AcceptStructOrUnion   bool
 	AcceptEnum            bool
+	IsForLoop             bool
+	ForOpenParenthesis    int
 }
 
 type StructUnionEnum struct {
@@ -554,6 +556,14 @@ func (f *Formatter) parseToken() bool {
 
 	}
 
+	if f.Token.isFor() && f.NextToken.isLeftParenthesis() {
+		f.IsForLoop = true
+		f.ForOpenParenthesis = f.OpenParenthesis
+	} else if f.ForOpenParenthesis == f.OpenParenthesis {
+		f.IsForLoop = false
+		f.ForOpenParenthesis = 0
+	}
+
 	return !f.Token.isAbsent()
 }
 
@@ -769,5 +779,5 @@ func (f *Formatter) alwaysDefaultLines() bool {
 		f.IsEndOfDirective ||
 		(f.Token.isComment() && !f.PreviousToken.hasNewLines() && !f.PreviousToken.isAbsent()) ||
 		f.NextToken.isMultilineComment() ||
-		(f.Token.isSemicolon() && !f.IsParenthesis() && !f.hasTrailingComment())
+		(f.Token.isSemicolon() && !f.IsForLoop && !f.hasTrailingComment())
 }

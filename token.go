@@ -695,6 +695,10 @@ func (t Token) isDo() bool {
 	return t.Type == TokenTypeKeyword && t.Content == "do"
 }
 
+func (t Token) isFor() bool {
+	return t.Type == TokenTypeKeyword && t.Content == "for"
+}
+
 func (t Token) isDefineDirective() bool {
 	return t.Type == TokenTypeDirective && t.Content == "#define"
 }
