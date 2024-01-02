@@ -420,7 +420,10 @@ func (f *Formatter) tryFormatFunctionArguments(inline bool, isFunctionDecl bool)
 		f.writeNewLines(1)
 	}
 
+	newLines := f.Token.Whitespace.NewLines
+
 	for f.parseToken() {
+		newLines += f.Token.Whitespace.NewLines
 		topLevelComma := false
 
 		if f.Token.isComma() && openParenthesis == 1 {
@@ -429,7 +432,8 @@ func (f *Formatter) tryFormatFunctionArguments(inline bool, isFunctionDecl bool)
 		}
 
 		if inline &&
-			((f.OutputColumn > 80 && commas > 0) || f.Token.isComment() || f.Token.isDirective()) {
+			((f.OutputColumn > 80 && commas > 0 && (isFunctionDecl || newLines > 0)) ||
+				(f.Token.isComment() || f.Token.isDirective())) {
 			return false
 		}
 

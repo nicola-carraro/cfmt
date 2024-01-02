@@ -1068,7 +1068,8 @@ func TestFunctionDecl(t *testing.T) {
 `
 	_testFormat(t, input, expected)
 
-	input = "bool c8_read_entire_file(const char *path, C8_Arena *arena, C8_File *read_result) {}"
+	input = `bool c8_read_entire_file(const char *path, 
+		C8_Arena *arena, C8_File *read_result) {}`
 	expected = "bool c8_read_entire_file(const char *path, C8_Arena *arena, C8_File *read_result) {\n}\n"
 	_testFormat(t, input, expected)
 
@@ -1136,7 +1137,8 @@ struct *Baz baz(int a, int b, int c, char d, char e, char f, char d) {
 }
 
 func TestFormatFunctionCall(t *testing.T) {
-	input := "{bool c8_read_entire_file(const char *path, C8_Arena *arena, C8_File *read_result);}\n"
+	input := `{bool c8_read_entire_file(const char *path,
+		 C8_Arena *arena, C8_File *read_result);}`
 	expected := `{
     bool c8_read_entire_file(
         const char *path,
@@ -1163,7 +1165,8 @@ func TestFormatFunctionCall(t *testing.T) {
 	expected = "{\n    c8_color_vertex(p1.x, p1.y);\n}\n"
 	_testFormat(t, input, expected)
 
-	input = "{int c = foo(foo(1, 2), foo(3, 4), foo(5, 6), foo(5, 6), foo(5, 6), foo(5, 6), foo(5, 6) );}"
+	input = `{int c = foo(
+		foo(1, 2), foo(3, 4), foo(5, 6), foo(5, 6), foo(5, 6), foo(5, 6), foo(5, 6) );}`
 	expected = `{
     int c = foo(
         foo(1, 2),
@@ -1177,6 +1180,33 @@ func TestFormatFunctionCall(t *testing.T) {
 }
 `
 	_testFormat(t, input, expected)
+
+	input = `void foo() {
+    int i = baz(1, 2, 3, 4, 5) + baz(1, 2, 3, 4, 5) + baz(1, 2, 3, 4, 5) + baz(1, 2, 3, 4, 5);
+}
+`
+	expected = `void foo() {
+    int i = baz(1, 2, 3, 4, 5) + baz(1, 2, 3, 4, 5) + baz(1, 2, 3, 4, 5) + baz(1, 2, 3, 4, 5);
+}
+`
+	_testFormat(t, input, expected)
+
+	input = `void foo() {
+    int i = baz(1, 2, 3, 4, 5) + baz(1, 2, 3, 4, 5) + baz(1, 2, 3, 4, 5) + baz(
+		1, 2, 3, 4, 5);
+}`
+	expected = `void foo() {
+    int i = baz(1, 2, 3, 4, 5) + baz(1, 2, 3, 4, 5) + baz(1, 2, 3, 4, 5) + baz(
+        1,
+        2,
+        3,
+        4,
+        5
+    );
+}
+`
+	_testFormat(t, input, expected)
+
 }
 
 func TestFormatWrapping(t *testing.T) {
@@ -1242,13 +1272,19 @@ void c8_glyph(C8_State *state, C8_Glyph glyph, float x, float y, float width, fl
  && state->mouse_position.y <= load_button.y + load_button.height;
 
 
-   c8_text_vertex(state, x, y, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_left, glyph.v_top);
-   c8_text_vertex(state, x + width, y, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_right, glyph.v_top);
-   c8_text_vertex(state, x + width, y + height, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_right, glyph.v_bottom);
+   c8_text_vertex(state, 
+	x, y, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_left, glyph.v_top);
+   c8_text_vertex(state,
+	 x + width, y, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_right, glyph.v_top);
+   c8_text_vertex(
+	state, x + width, y + height, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_right, glyph.v_bottom);
 
-   c8_text_vertex(state, x, y, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_left, glyph.v_top);
-   c8_text_vertex(state, x + width, y + height, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_right, glyph.v_bottom);
-   c8_text_vertex(state, x, y + height, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_left, glyph.v_bottom);
+   c8_text_vertex(
+	state, x, y, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_left, glyph.v_top);
+   c8_text_vertex(
+	state, x + width, y + height, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_right, glyph.v_bottom);
+   c8_text_vertex(
+	state, x, y + height, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_left, glyph.v_bottom);
 }`
 
 	expected = `int i = 1 + 2 + 3 + 4 + 5 + 1 + 2 + 3 + 4 + 5 + 2 + 3 + 4 + 5 + 1 + 2 + 3 + 4 + 5 + 2 + 3 + 4 + 5 + 1 + 2 + 3 + 4 + 5 + 2 + 3 + 4 + 5

@@ -70,7 +70,7 @@ Here is an example of how output looks like:
         struct {
             int lucy;
             int mary;
-        } Toto;
+        } toto;
     } Foo;
     
     /*
@@ -129,7 +129,11 @@ Here is an example of how output looks like:
         char d char e,
         char f
     ) {
-        // Same with function calls
+        // Function calls do not automatically wrap
+        something(alpha, beta, gamma, delta, epsilon, zeta, eta, iota, kappa, lambda, mu, nu);
+    
+        // But you can make a function call wrap, if it hits the 80 columns threshold,
+        // by inserting a new line anywhere
         something(
             alpha,
             beta,
