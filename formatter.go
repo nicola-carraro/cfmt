@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"slices"
 	"strings"
 )
@@ -35,6 +34,7 @@ type Formatter struct {
 	LastNodeId            int
 	PreviousNode          Node
 	WrappingNode          int
+	OpenBraces            int
 }
 
 type NodeType int
@@ -53,11 +53,13 @@ const (
 )
 
 type Node struct {
-	Type          NodeType
-	Id            int
-	FirstToken    int
-	LastToken     int
-	InitialIndent int
+	Type               NodeType
+	Id                 int
+	FirstToken         int
+	LastToken          int
+	InitialIndent      int
+	InitialParenthesis int
+	InitialBraces      int
 }
 
 type StructUnionEnum struct {
@@ -66,26 +68,6 @@ type StructUnionEnum struct {
 
 func (f *Formatter) wrapping() bool {
 	return f.WrappingNode != 0
-}
-
-func (f *Formatter) insideFunctionParenthesis() bool {
-	for _, n := range f.Nodes {
-		if n.Type == NodeTypeFunctionDef || n.Type == NodeTypeInvokation {
-			return true
-		}
-	}
-
-	return false
-}
-
-func (f *Formatter) outermostFunction() Node {
-	for _, n := range f.Nodes {
-		if n.Type == NodeTypeFunctionDef || n.Type == NodeTypeInvokation {
-			return n
-		}
-	}
-
-	return Node{}
 }
 
 func format(input string) string {
@@ -102,30 +84,6 @@ func format(input string) string {
 		// fmt.Println("comment or directive ", f.Token.isComment() || f.Token.isDirective())
 
 		f.formatToken()
-
-		if !f.Node().isDirective() {
-			if f.Token.isLeftBrace() {
-				if f.PreviousToken.isAssignment() {
-					f.formatInitializerList()
-					continue
-				} else if f.AcceptStructOrUnion {
-					f.WrappingNode = 0
-					//fmt.Println("struct")
-					f.formatStructOrUnion()
-				} else if f.AcceptEnum {
-					f.WrappingNode = 0
-					//	fmt.Println("enum")
-
-					f.formatEnum()
-				} else {
-					//	fmt.Println("other")
-
-					f.formatBlockBody()
-					f.twoLinesOrEof()
-					continue
-				}
-			}
-		}
 
 		if f.alwaysOneLine() {
 			//fmt.Println(f.Token)
@@ -159,380 +117,380 @@ func newFormatter(input string) *Formatter {
 	return &formatter
 }
 
-func (f *Formatter) formatBlockBody() {
-	wrapping := false
-	f.Indent++
-
-	if f.NextToken.isRightBrace() {
-
-		f.Indent--
-	}
-
-	f.writeNewLines(1)
-
-	saved := *f
-
-	for f.parseToken() {
-
-		f.formatToken()
-
-		if f.startsFunctionArguments() {
-			f.formatFunctionCall()
-		}
-
-		if f.NextToken.isRightBrace() {
-			f.Indent--
-		}
-
-		if f.Token.isRightBrace() {
-			return
-		}
-
-		if f.Token.isDefineDirective() {
-			f.formatMacro()
-		} else if f.Token.isLeftBrace() {
-
-			if f.PreviousToken.isAssignment() {
-				f.formatInitializerList()
-				continue
-			} else if f.AcceptStructOrUnion {
-				f.formatStructOrUnion()
-			} else if f.AcceptEnum {
-				f.formatEnum()
-			} else {
-				isDoWhileLoop := f.PreviousToken.isDo()
-				wrapping = false
-				f.formatBlockBody()
-				if isDoWhileLoop {
-					f.writeString(" ")
-				} else {
-					f.oneOrTwoLines()
-				}
-
-				saved = *f
-				continue
-			}
-		}
-
-		if f.OutputColumn > 80 && !wrapping {
-			*f = saved
-			wrapping = true
-			continue
-		}
-
-		if f.alwaysOneLine() || f.NextToken.isRightBrace() {
-			f.writeNewLines(1)
-		} else if f.alwaysDefaultLines() {
-			f.writeDefaultLines()
-		} else if wrapping && f.Token.hasNewLines() {
-			f.wrap()
-		} else if !f.neverSpace() {
-			f.writeString(" ")
-		}
-
-		if f.Token.isSemicolon() && !f.IsParenthesis() {
-			wrapping = false
-			saved = *f
-		}
-	}
-
-	log.Fatal("Unclosed block")
-}
-
-func (f *Formatter) formatMacro() {
-
-	oldIndent := f.Indent
-
-	f.Indent = 0
-
-	f.writeString(" ")
-
-	for f.parseToken() {
-		if f.Token.hasEscapedLines() {
-			if f.Token.isLeftBrace() || f.Token.isLeftParenthesis() {
-				f.Indent++
-			}
-
-			if f.NextToken.isRightBrace() || f.NextToken.isRightParenthesis() {
-				f.Indent--
-			}
-		}
-
-		f.formatToken()
-
-		if f.Token.hasUnescapedLines() {
-			f.Indent = oldIndent
-			f.IsDirective = false
+// func (f *Formatter) formatBlockBody() {
+// 	wrapping := false
+// 	f.Indent++
+
+// 	if f.NextToken.isRightBrace() {
+
+// 		f.Indent--
+// 	}
+
+// 	f.writeNewLines(1)
+
+// 	saved := *f
+
+// 	for f.parseToken() {
+
+// 		f.formatToken()
+
+// 		if f.startsFunctionArguments() {
+// 			f.formatFunctionCall()
+// 		}
+
+// 		if f.NextToken.isRightBrace() {
+// 			f.Indent--
+// 		}
+
+// 		if f.Token.isRightBrace() {
+// 			return
+// 		}
+
+// 		if f.Token.isDefineDirective() {
+// 			f.formatMacro()
+// 		} else if f.Token.isLeftBrace() {
+
+// 			if f.PreviousToken.isAssignment() {
+// 				f.formatInitializerList()
+// 				continue
+// 			} else if f.AcceptStructOrUnion {
+// 				f.formatStructOrUnion()
+// 			} else if f.AcceptEnum {
+// 				f.formatEnum()
+// 			} else {
+// 				isDoWhileLoop := f.PreviousToken.isDo()
+// 				wrapping = false
+// 				f.formatBlockBody()
+// 				if isDoWhileLoop {
+// 					f.writeString(" ")
+// 				} else {
+// 					f.oneOrTwoLines()
+// 				}
+
+// 				saved = *f
+// 				continue
+// 			}
+// 		}
+
+// 		if f.OutputColumn > 80 && !wrapping {
+// 			*f = saved
+// 			wrapping = true
+// 			continue
+// 		}
+
+// 		if f.alwaysOneLine() || f.NextToken.isRightBrace() {
+// 			f.writeNewLines(1)
+// 		} else if f.alwaysDefaultLines() {
+// 			f.writeDefaultLines()
+// 		} else if wrapping && f.Token.hasNewLines() {
+// 			f.wrap()
+// 		} else if !f.neverSpace() {
+// 			f.writeString(" ")
+// 		}
+
+// 		if f.Token.isSemicolon() && !f.IsParenthesis() {
+// 			wrapping = false
+// 			saved = *f
+// 		}
+// 	}
+
+// 	log.Fatal("Unclosed block")
+// }
+
+// func (f *Formatter) formatMacro() {
+
+// 	oldIndent := f.Indent
+
+// 	f.Indent = 0
+
+// 	f.writeString(" ")
+
+// 	for f.parseToken() {
+// 		if f.Token.hasEscapedLines() {
+// 			if f.Token.isLeftBrace() || f.Token.isLeftParenthesis() {
+// 				f.Indent++
+// 			}
+
+// 			if f.NextToken.isRightBrace() || f.NextToken.isRightParenthesis() {
+// 				f.Indent--
+// 			}
+// 		}
+
+// 		f.formatToken()
+
+// 		if f.Token.hasUnescapedLines() {
+// 			f.Indent = oldIndent
+// 			f.IsDirective = false
 
-			return
-		}
+// 			return
+// 		}
 
-		if f.alwaysOneLine() || f.Token.hasEscapedLines() {
-			f.writeNewLines(1)
-		} else if f.alwaysDefaultLines() {
-			f.writeDefaultLines()
-		} else if !f.neverSpace() {
-			f.writeString(" ")
-		}
+// 		if f.alwaysOneLine() || f.Token.hasEscapedLines() {
+// 			f.writeNewLines(1)
+// 		} else if f.alwaysDefaultLines() {
+// 			f.writeDefaultLines()
+// 		} else if !f.neverSpace() {
+// 			f.writeString(" ")
+// 		}
 
-	}
-}
+// 	}
+// }
 
-func (f *Formatter) formatFunctionCall() {
-	saved := *f
-	success := f.tryFormatFunctionArguments(true, false)
+// func (f *Formatter) formatFunctionCall() {
+// 	saved := *f
+// 	success := f.tryFormatFunctionArguments(true, false)
 
-	if !success {
-		*f = saved
-		_ = f.tryFormatFunctionArguments(false, false)
-	}
-}
+// 	if !success {
+// 		*f = saved
+// 		_ = f.tryFormatFunctionArguments(false, false)
+// 	}
+// }
 
-func (f *Formatter) formatFunctionDecl() {
-	saved := *f
-	if !f.tryFormatFunctionArguments(true, true) {
-		*f = saved
-		f.tryFormatFunctionArguments(false, true)
-	}
-}
+// func (f *Formatter) formatFunctionDecl() {
+// 	saved := *f
+// 	if !f.tryFormatFunctionArguments(true, true) {
+// 		*f = saved
+// 		f.tryFormatFunctionArguments(false, true)
+// 	}
+// }
 
-func (f *Formatter) formatInitializerList() {
+// func (f *Formatter) formatInitializerList() {
 
-	initialState := *f
+// 	initialState := *f
 
-	if !f.tryFormatInlineInitializerList() {
-		*f = initialState
-		f.formatMultilineInitializerList()
-	}
+// 	if !f.tryFormatInlineInitializerList() {
+// 		*f = initialState
+// 		f.formatMultilineInitializerList()
+// 	}
 
-}
+// }
 
-func (f *Formatter) formatStructOrUnion() {
-	f.AcceptStructOrUnion = false
-	f.Indent++
+// func (f *Formatter) formatStructOrUnion() {
+// 	f.AcceptStructOrUnion = false
+// 	f.Indent++
 
-	f.writeNewLines(1)
+// 	f.writeNewLines(1)
 
-	for f.parseToken() {
-		f.formatToken()
+// 	for f.parseToken() {
+// 		f.formatToken()
 
-		if f.NextToken.isRightBrace() {
-			f.Indent--
-		}
+// 		if f.NextToken.isRightBrace() {
+// 			f.Indent--
+// 		}
 
-		if f.Token.isRightBrace() {
-			return
-		}
+// 		if f.Token.isRightBrace() {
+// 			return
+// 		}
 
-		if f.Token.isLeftBrace() {
-			f.formatStructOrUnion()
-		} else if f.Token.isDefineDirective() {
-			f.formatMacro()
-		}
+// 		if f.Token.isLeftBrace() {
+// 			f.formatStructOrUnion()
+// 		} else if f.Token.isDefineDirective() {
+// 			f.formatMacro()
+// 		}
 
-		if f.alwaysOneLine() || f.alwaysDefaultLines() {
-			f.writeDefaultLines()
+// 		if f.alwaysOneLine() || f.alwaysDefaultLines() {
+// 			f.writeDefaultLines()
 
-		} else if !f.neverSpace() &&
-			!f.NextToken.isSemicolon() {
-			f.writeString(" ")
-		}
-	}
+// 		} else if !f.neverSpace() &&
+// 			!f.NextToken.isSemicolon() {
+// 			f.writeString(" ")
+// 		}
+// 	}
 
-	log.Fatal("Unclosed declaration braces")
-}
+// 	log.Fatal("Unclosed declaration braces")
+// }
 
-func (f *Formatter) formatEnum() {
-	f.AcceptEnum = false
-	f.Indent++
+// func (f *Formatter) formatEnum() {
+// 	f.AcceptEnum = false
+// 	f.Indent++
 
-	f.writeNewLines(1)
+// 	f.writeNewLines(1)
 
-	for f.parseToken() {
-		f.formatToken()
+// 	for f.parseToken() {
+// 		f.formatToken()
 
-		if f.NextToken.isRightBrace() {
-			f.Indent--
-		}
+// 		if f.NextToken.isRightBrace() {
+// 			f.Indent--
+// 		}
 
-		if f.Token.isRightBrace() {
-			return
-		}
+// 		if f.Token.isRightBrace() {
+// 			return
+// 		}
 
-		if f.Token.isDefineDirective() {
-			f.formatMacro()
-		}
+// 		if f.Token.isDefineDirective() {
+// 			f.formatMacro()
+// 		}
 
-		if f.alwaysOneLine() || f.alwaysDefaultLines() || f.Token.isComma() || f.NextToken.isRightBrace() {
-			f.writeDefaultLines()
+// 		if f.alwaysOneLine() || f.alwaysDefaultLines() || f.Token.isComma() || f.NextToken.isRightBrace() {
+// 			f.writeDefaultLines()
 
-		} else if !f.neverSpace() &&
-			!f.NextToken.isSemicolon() {
-			f.writeString(" ")
-		}
-	}
-
-	log.Fatal("Unclosed declaration braces")
-}
+// 		} else if !f.neverSpace() &&
+// 			!f.NextToken.isSemicolon() {
+// 			f.writeString(" ")
+// 		}
+// 	}
+
+// 	log.Fatal("Unclosed declaration braces")
+// }
 
-func (f *Formatter) tryFormatInlineInitializerList() bool {
-	openBraces := 1
-
-	for f.parseToken() {
-		f.formatToken()
-
-		if f.Token.isRightBrace() {
-			openBraces--
-		}
-
-		if f.Token.isComma() && f.Token.hasNewLines() {
-			return false
-		}
-
-		if f.Token.isComment() {
-			return false
-		}
-
-		if f.Token.isLeftBrace() {
-
-			if !f.tryFormatInlineInitializerList() {
-				return false
-			}
-			continue
-		} else if f.Token.isDefineDirective() {
-			f.formatMacro()
-		}
-
-		if f.alwaysOneLine() || f.alwaysDefaultLines() {
-			f.writeDefaultLines()
-
-		} else if !f.neverSpace() &&
-			!f.NextToken.isRightBrace() &&
-			!f.Token.isRightBrace() {
-			f.writeString(" ")
-		}
-
-		if openBraces == 0 {
-			return true
-		}
-	}
-
-	log.Fatal("Unclosed initializer list")
-	panic("unreachable")
-}
-
-func (f *Formatter) formatMultilineInitializerList() {
-	openBraces := 1
+// func (f *Formatter) tryFormatInlineInitializerList() bool {
+// 	openBraces := 1
+
+// 	for f.parseToken() {
+// 		f.formatToken()
+
+// 		if f.Token.isRightBrace() {
+// 			openBraces--
+// 		}
+
+// 		if f.Token.isComma() && f.Token.hasNewLines() {
+// 			return false
+// 		}
+
+// 		if f.Token.isComment() {
+// 			return false
+// 		}
+
+// 		if f.Token.isLeftBrace() {
+
+// 			if !f.tryFormatInlineInitializerList() {
+// 				return false
+// 			}
+// 			continue
+// 		} else if f.Token.isDefineDirective() {
+// 			f.formatMacro()
+// 		}
+
+// 		if f.alwaysOneLine() || f.alwaysDefaultLines() {
+// 			f.writeDefaultLines()
+
+// 		} else if !f.neverSpace() &&
+// 			!f.NextToken.isRightBrace() &&
+// 			!f.Token.isRightBrace() {
+// 			f.writeString(" ")
+// 		}
+
+// 		if openBraces == 0 {
+// 			return true
+// 		}
+// 	}
+
+// 	log.Fatal("Unclosed initializer list")
+// 	panic("unreachable")
+// }
+
+// func (f *Formatter) formatMultilineInitializerList() {
+// 	openBraces := 1
 
-	f.Indent++
-
-	f.writeNewLines(1)
-
-	for f.parseToken() {
-
-		f.formatToken()
-		if f.NextToken.isRightBrace() {
-			f.Indent--
-		}
-
-		if f.Token.isRightBrace() {
-			openBraces--
-		}
-
-		if f.Token.isLeftBrace() {
-			f.formatInitializerList()
-			continue
-		} else if f.Token.isDefineDirective() {
-			f.formatMacro()
-		}
-
-		if f.alwaysOneLine() || f.NextToken.isRightBrace() ||
-			(f.Token.isComma() && f.Token.hasNewLines()) || f.alwaysDefaultLines() {
-			f.writeDefaultLines()
-
-		} else if !f.neverSpace() &&
-			!f.NextToken.isRightBrace() &&
-			!f.Token.isRightBrace() {
-			f.writeString(" ")
-		}
-
-		if openBraces == 0 {
-			return
-		}
-	}
-
-	log.Fatal("Unclosed initializer list")
-}
-
-func (f *Formatter) tryFormatFunctionArguments(inline bool, isFunctionDecl bool) bool {
-	commas := 0
-	openParenthesis := 1
-	if !inline {
-		f.Indent++
-		f.writeNewLines(1)
-	}
-
-	newLines := f.Token.Whitespace.NewLines
-
-	for f.parseToken() {
-		newLines += f.Token.Whitespace.NewLines
-		topLevelComma := false
-
-		if f.Token.isComma() && openParenthesis == 1 {
-			topLevelComma = true
-			commas++
-		}
-
-		if inline &&
-			((f.OutputColumn > 80 && commas > 0 && (isFunctionDecl || newLines > 0)) ||
-				(f.Token.isComment() || f.Token.isDirective())) {
-			return false
-		}
-
-		f.formatToken()
-
-		if f.Token.isRightParenthesis() {
-			openParenthesis--
-		}
-
-		if f.Token.isLeftParenthesis() {
-			openParenthesis++
-		}
-
-		if f.Token.isDefineDirective() {
-			f.formatMacro()
-		} else if f.Token.isLeftBrace() {
-			if inline {
-				return false
-			}
-			f.formatBlockBody()
-
-		}
-
-		if openParenthesis == 0 {
-			return true
-		}
-
-		beforeLastParenthesis := openParenthesis == 1 && f.NextToken.isRightParenthesis() && !inline
-
-		if beforeLastParenthesis {
-			f.Indent--
-		}
-
-		if f.alwaysOneLine() || f.alwaysDefaultLines() || (topLevelComma && !inline) || beforeLastParenthesis {
-			f.writeDefaultLines()
-
-		} else if !f.neverSpace() &&
-			!f.NextToken.isRightBrace() &&
-			!f.Token.isRightBrace() {
-			f.writeString(" ")
-		}
-	}
-
-	log.Fatal("Unclosed function arguments")
-
-	panic("unreachable")
-}
+// 	f.Indent++
+
+// 	f.writeNewLines(1)
+
+// 	for f.parseToken() {
+
+// 		f.formatToken()
+// 		if f.NextToken.isRightBrace() {
+// 			f.Indent--
+// 		}
+
+// 		if f.Token.isRightBrace() {
+// 			openBraces--
+// 		}
+
+// 		if f.Token.isLeftBrace() {
+// 			f.formatInitializerList()
+// 			continue
+// 		} else if f.Token.isDefineDirective() {
+// 			f.formatMacro()
+// 		}
+
+// 		if f.alwaysOneLine() || f.NextToken.isRightBrace() ||
+// 			(f.Token.isComma() && f.Token.hasNewLines()) || f.alwaysDefaultLines() {
+// 			f.writeDefaultLines()
+
+// 		} else if !f.neverSpace() &&
+// 			!f.NextToken.isRightBrace() &&
+// 			!f.Token.isRightBrace() {
+// 			f.writeString(" ")
+// 		}
+
+// 		if openBraces == 0 {
+// 			return
+// 		}
+// 	}
+
+// 	log.Fatal("Unclosed initializer list")
+// }
+
+// func (f *Formatter) tryFormatFunctionArguments(inline bool, isFunctionDecl bool) bool {
+// 	commas := 0
+// 	openParenthesis := 1
+// 	if !inline {
+// 		f.Indent++
+// 		f.writeNewLines(1)
+// 	}
+
+// 	newLines := f.Token.Whitespace.NewLines
+
+// 	for f.parseToken() {
+// 		newLines += f.Token.Whitespace.NewLines
+// 		topLevelComma := false
+
+// 		if f.Token.isComma() && openParenthesis == 1 {
+// 			topLevelComma = true
+// 			commas++
+// 		}
+
+// 		if inline &&
+// 			((f.OutputColumn > 80 && commas > 0 && (isFunctionDecl || newLines > 0)) ||
+// 				(f.Token.isComment() || f.Token.isDirective())) {
+// 			return false
+// 		}
+
+// 		f.formatToken()
+
+// 		if f.Token.isRightParenthesis() {
+// 			openParenthesis--
+// 		}
+
+// 		if f.Token.isLeftParenthesis() {
+// 			openParenthesis++
+// 		}
+
+// 		if f.Token.isDefineDirective() {
+// 			f.formatMacro()
+// 		} else if f.Token.isLeftBrace() {
+// 			if inline {
+// 				return false
+// 			}
+// 			f.formatBlockBody()
+
+// 		}
+
+// 		if openParenthesis == 0 {
+// 			return true
+// 		}
+
+// 		beforeLastParenthesis := openParenthesis == 1 && f.NextToken.isRightParenthesis() && !inline
+
+// 		if beforeLastParenthesis {
+// 			f.Indent--
+// 		}
+
+// 		if f.alwaysOneLine() || f.alwaysDefaultLines() || (topLevelComma && !inline) || beforeLastParenthesis {
+// 			f.writeDefaultLines()
+
+// 		} else if !f.neverSpace() &&
+// 			!f.NextToken.isRightBrace() &&
+// 			!f.Token.isRightBrace() {
+// 			f.writeString(" ")
+// 		}
+// 	}
+
+// 	log.Fatal("Unclosed function arguments")
+
+// 	panic("unreachable")
+// }
 
 func (f *Formatter) parseToken() bool {
 
@@ -651,6 +609,15 @@ func (f *Formatter) parseToken() bool {
 		}
 	}
 
+	if (f.Node().isStructOrUnion() || f.Node().isBlock() || f.Node().isEnum()) && f.isNodeStart() {
+		f.Indent++
+
+	}
+
+	if (f.Node().isStructOrUnion() || f.Node().isBlock() || f.Node().isEnum()) && f.NextToken.isRightBrace() {
+		f.Indent--
+	}
+
 	if f.Node().isDirective() &&
 		f.Token.hasUnescapedLines() {
 		f.popNode()
@@ -681,6 +648,15 @@ func (f *Formatter) parseToken() bool {
 
 	if f.Token.isRightParenthesis() {
 		f.OpenParenthesis--
+
+	}
+
+	if f.Token.isLeftBrace() {
+		f.OpenBraces++
+	}
+
+	if f.Token.isRightBrace() {
+		f.OpenBraces--
 
 	}
 
@@ -919,7 +895,10 @@ func (f *Formatter) alwaysOneLine() bool {
 		(f.Token.isComment() && (f.PreviousToken.hasNewLines() || f.PreviousToken.isAbsent())) ||
 		(f.IsEndOfInclude && f.NextToken.isIncludeDirective()) ||
 		(f.IsEndOfPragma && f.NextToken.isPragmaDirective()) ||
-		(f.Node().Type == NodeTypeInvokation || f.Node().Type == NodeTypeFunctionDef) && f.WrappingNode == f.Node().Id && (f.Token.isLeftParenthesis() || f.Token.isComma() || f.NextToken.isRightParenthesis())
+		(f.Node().Type == NodeTypeInvokation || f.Node().Type == NodeTypeFunctionDef) && f.WrappingNode == f.Node().Id && (f.Token.isLeftParenthesis() || f.Token.isComma() || f.NextToken.isRightParenthesis()) ||
+		((f.Node().isStructOrUnion() || f.Node().isBlock()) && f.Token.isSemicolon()) ||
+		((f.Node().isEnum()) && f.Token.isComma()) ||
+		((f.Node().isStructOrUnion() || f.Node().isBlock() || f.Node().isEnum()) && f.isNodeStart() || f.NextToken.isRightBrace())
 
 }
 
@@ -938,7 +917,14 @@ func (f *Formatter) Node() Node {
 
 func (f *Formatter) pushNode(t NodeType) {
 	f.LastNodeId++
-	node := Node{Type: t, Id: f.LastNodeId, FirstToken: f.TokenIndex, InitialIndent: f.Indent}
+	node := Node{
+		Type:               t,
+		Id:                 f.LastNodeId,
+		FirstToken:         f.TokenIndex,
+		InitialIndent:      f.Indent,
+		InitialParenthesis: f.OpenParenthesis,
+		InitialBraces:      f.OpenBraces,
+	}
 	f.Nodes = append(f.Nodes, node)
 	if node.Type == NodeTypeFunctionDef || node.Type == NodeTypeInvokation {
 		f.Indent++
@@ -959,6 +945,11 @@ func (f *Formatter) popNode() {
 		f.Indent = f.Node().InitialIndent
 	}
 	f.Nodes = f.Nodes[:len(f.Nodes)-1]
+
+}
+
+func (f *Formatter) isNodeStart() bool {
+	return f.TokenIndex == f.Node().FirstToken
 
 }
 
@@ -995,4 +986,16 @@ func (n Node) String() string {
 
 func (n Node) isDirective() bool {
 	return n.Type == NodeTypeMacroDef || n.Type == NodeTypeOtherDirective
+}
+
+func (n Node) isStructOrUnion() bool {
+	return n.Type == NodeTypeStructOrUnion
+}
+
+func (n Node) isBlock() bool {
+	return n.Type == NodeTypeBlock
+}
+
+func (n Node) isEnum() bool {
+	return n.Type == NodeTypeEnum
 }
