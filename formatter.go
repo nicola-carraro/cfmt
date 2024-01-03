@@ -86,7 +86,7 @@ func format(input string) string {
 		f.formatToken()
 
 		if f.alwaysOneLine() {
-			//fmt.Println(f.Token)
+			// fmt.Println(f.Token)
 			f.writeNewLines(1)
 		} else if f.isEndOfDirective() || f.alwaysDefaultLines() {
 			f.writeDefaultLines()
@@ -898,7 +898,7 @@ func (f *Formatter) alwaysOneLine() bool {
 		(f.Node().Type == NodeTypeInvokation || f.Node().Type == NodeTypeFunctionDef) && f.WrappingNode == f.Node().Id && (f.Token.isLeftParenthesis() || f.Token.isComma() || f.NextToken.isRightParenthesis()) ||
 		((f.Node().isStructOrUnion() || f.Node().isBlock()) && f.Token.isSemicolon()) ||
 		((f.Node().isEnum()) && f.Token.isComma()) ||
-		((f.Node().isStructOrUnion() || f.Node().isBlock() || f.Node().isEnum()) && f.isNodeStart() || f.NextToken.isRightBrace())
+		((f.Node().isStructOrUnion() || f.Node().isBlock() || f.Node().isEnum()) && (f.isNodeStart() || f.NextToken.isRightBrace()))
 
 }
 
