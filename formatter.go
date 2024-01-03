@@ -53,10 +53,11 @@ const (
 )
 
 type Node struct {
-	Type       NodeType
-	Id         int
-	FirstToken int
-	LastToken  int
+	Type          NodeType
+	Id            int
+	FirstToken    int
+	LastToken     int
+	InitialIndent int
 }
 
 type StructUnionEnum struct {
@@ -68,8 +69,8 @@ func (f *Formatter) wrapping() bool {
 }
 
 func (f *Formatter) insideFunctionParenthesis() bool {
-	for _, n := range f.Nodes{
-		if n.Type == NodeTypeFunctionDef || n.Type == NodeTypeInvokation{
+	for _, n := range f.Nodes {
+		if n.Type == NodeTypeFunctionDef || n.Type == NodeTypeInvokation {
 			return true
 		}
 	}
@@ -78,8 +79,8 @@ func (f *Formatter) insideFunctionParenthesis() bool {
 }
 
 func (f *Formatter) outermostFunction() Node {
-	for _, n := range f.Nodes{
-		if n.Type == NodeTypeFunctionDef || n.Type == NodeTypeInvokation{
+	for _, n := range f.Nodes {
+		if n.Type == NodeTypeFunctionDef || n.Type == NodeTypeInvokation {
 			return n
 		}
 	}
@@ -91,53 +92,38 @@ func format(input string) string {
 
 	f := newFormatter(input)
 
-	saved := *f
-
 	for f.parseToken() {
 
 		//fmt.Println(f.PreviousToken, " ", f.Token, " ", f.NextToken)
 
 		//	fmt.Println("wrapping ", f.wrapping())
 
-		fmt.Println(f.Node())
-		fmt.Println("comment or directive ", f.Token.isComment() || f.Token.isDirective())
-
-		if !(f.wrapping()) && (f.OutputColumn > 80 || 
-			((f.Token.isComment() || f.Token.isDirective()) && f.insideFunctionParenthesis())) {
-			node := f.outermostFunction() 
-			*f = saved
-			f.WrappingNode = node.Id
-			fmt.Println("WRAP")
-		}
-
-		if (!f.wrapping()) && f.startsFunctionArguments() {
-			saved = *f
-			//fmt.Println("Saved ", f.Token)
-		}
+		// fmt.Println(f.Node())
+		// fmt.Println("comment or directive ", f.Token.isComment() || f.Token.isDirective())
 
 		f.formatToken()
 
-		if f.Token.isDefineDirective() {
-			f.formatMacro()
-		} else if f.Token.isLeftBrace() {
-			if f.PreviousToken.isAssignment() {
-				f.formatInitializerList()
-				continue
-			} else if f.AcceptStructOrUnion {
-				f.WrappingNode = 0
-				//fmt.Println("struct")
-				f.formatStructOrUnion()
-			} else if f.AcceptEnum {
-				f.WrappingNode = 0
-				//	fmt.Println("enum")
+		if !f.Node().isDirective() {
+			if f.Token.isLeftBrace() {
+				if f.PreviousToken.isAssignment() {
+					f.formatInitializerList()
+					continue
+				} else if f.AcceptStructOrUnion {
+					f.WrappingNode = 0
+					//fmt.Println("struct")
+					f.formatStructOrUnion()
+				} else if f.AcceptEnum {
+					f.WrappingNode = 0
+					//	fmt.Println("enum")
 
-				f.formatEnum()
-			} else {
-				//	fmt.Println("other")
+					f.formatEnum()
+				} else {
+					//	fmt.Println("other")
 
-				f.formatBlockBody()
-				f.twoLinesOrEof()
-				continue
+					f.formatBlockBody()
+					f.twoLinesOrEof()
+					continue
+				}
 			}
 		}
 
@@ -155,7 +141,6 @@ func format(input string) string {
 		}
 
 		if f.Token.isSemicolon() && !f.IsParenthesis() && f.WrappingNode == f.Node().Id {
-			saved = *f
 			f.WrappingNode = 0
 			fmt.Println("RESET")
 			continue
@@ -654,6 +639,18 @@ func (f *Formatter) parseToken() bool {
 		f.popNode()
 	}
 
+	if f.Node().isDirective() {
+		if f.Token.hasEscapedLines() {
+			if f.Token.isLeftBrace() || f.Token.isLeftParenthesis() {
+				f.Indent++
+			}
+
+			if f.NextToken.isRightBrace() || f.NextToken.isRightParenthesis() {
+				f.Indent--
+			}
+		}
+	}
+
 	if f.Node().isDirective() &&
 		f.Token.hasUnescapedLines() {
 		f.popNode()
@@ -931,7 +928,8 @@ func (f *Formatter) alwaysDefaultLines() bool {
 		f.isEndOfDirective() ||
 		(f.Token.isComment() && !f.PreviousToken.hasNewLines() && !f.PreviousToken.isAbsent()) ||
 		f.NextToken.isMultilineComment() ||
-		(f.Token.isSemicolon() && !f.IsForLoop && !f.hasTrailingComment())
+		(f.Token.isSemicolon() && !f.IsForLoop && !f.hasTrailingComment()) ||
+		(f.Node().isDirective() && f.Token.hasEscapedLines())
 }
 
 func (f *Formatter) Node() Node {
@@ -940,7 +938,7 @@ func (f *Formatter) Node() Node {
 
 func (f *Formatter) pushNode(t NodeType) {
 	f.LastNodeId++
-	node := Node{Type: t, Id: f.LastNodeId, FirstToken: f.TokenIndex}
+	node := Node{Type: t, Id: f.LastNodeId, FirstToken: f.TokenIndex, InitialIndent: f.Indent}
 	f.Nodes = append(f.Nodes, node)
 	if node.Type == NodeTypeFunctionDef || node.Type == NodeTypeInvokation {
 		f.Indent++
@@ -956,6 +954,9 @@ func (f *Formatter) popNode() {
 	if f.WrappingNode == f.Node().Id {
 		//fmt.Println("POP NODE")
 		f.WrappingNode = 0
+	}
+	if f.Node().isDirective() {
+		f.Indent = f.Node().InitialIndent
 	}
 	f.Nodes = f.Nodes[:len(f.Nodes)-1]
 
