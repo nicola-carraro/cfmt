@@ -98,12 +98,6 @@ func format(input string) string {
 			f.writeString(" ")
 		}
 
-		if f.Token.isSemicolon() && !f.IsParenthesis() && f.WrappingNode == f.Node().Id {
-			f.WrappingNode = 0
-			fmt.Println("RESET")
-			continue
-		}
-
 	}
 
 	return f.Output.String()
