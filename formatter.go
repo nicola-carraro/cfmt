@@ -35,6 +35,8 @@ type Formatter struct {
 	PreviousNode          Node
 	WrappingNode          int
 	OpenBraces            int
+	Wrapping              bool
+	Tokens                *[]Token
 }
 
 type NodeType int
@@ -50,6 +52,14 @@ const (
 	NodeTypeStructOrUnion
 	NodeTypeEnum
 	NodeTypeOtherParenthesis
+)
+
+type WrappingStrategy int
+
+const (
+	WrappingStrategyNone WrappingStrategy = iota
+	WrappingStrategyComma
+	WrappingStrategyLineBreak
 )
 
 type Node struct {
@@ -74,6 +84,8 @@ func format(input string) string {
 
 	f := newFormatter(input)
 
+	saved := f
+
 	for f.parseToken() {
 
 		//fmt.Println(f.PreviousToken, " ", f.Token, " ", f.NextToken)
@@ -84,6 +96,11 @@ func format(input string) string {
 		// fmt.Println("comment or directive ", f.Token.isComment() || f.Token.isDirective())
 
 		f.formatToken()
+
+		if !f.Wrapping && f.OutputColumn > 80 {
+			f.Wrapping = true
+			f = saved
+		}
 
 		if f.alwaysOneLine() {
 			// fmt.Println(f.Token)
@@ -104,7 +121,7 @@ func format(input string) string {
 }
 
 func newFormatter(input string) *Formatter {
-	formatter := Formatter{Input: input, Output: strings.Builder{}}
+	formatter := Formatter{Input: input, Output: strings.Builder{}, Tokens: new([]Token)}
 
 	(&formatter).pushNode(NodeTypeNone)
 
@@ -486,13 +503,23 @@ func newFormatter(input string) *Formatter {
 // 	panic("unreachable")
 // }
 
+func (f *Formatter) getToken(index int) Token {
+	if len(*f.Tokens) <= index {
+		token := parseToken(f.Input)
+		f.Input = f.Input[len(token.Content):]
+		(*f.Tokens) = append(*f.Tokens, token)
+	}
+
+	return (*f.Tokens)[index]
+}
+
 func (f *Formatter) parseToken() bool {
 
 	if f.Token.isAbsent() {
 		_ = f.skipSpaceAndCountNewLines()
 
-		f.Token = parseToken(f.Input)
-		f.Input = f.Input[len(f.Token.Content):]
+		f.Token = f.getToken(f.TokenIndex)
+
 		f.TokenIndex++
 	} else {
 		f.PreviousToken = f.Token
@@ -541,8 +568,7 @@ func (f *Formatter) parseToken() bool {
 
 	f.Token.Whitespace = f.skipSpaceAndCountNewLines()
 
-	f.NextToken = parseToken(f.Input)
-	f.Input = f.Input[len(f.NextToken.Content):]
+	f.NextToken = f.getToken(f.TokenIndex)
 
 	if !f.Node().isDirective() {
 
@@ -944,7 +970,10 @@ func (f *Formatter) popNode() {
 
 func (f *Formatter) isNodeStart() bool {
 	return f.TokenIndex == f.Node().FirstToken
+}
 
+func (f *Formatter) isTopLevelInNode() bool {
+	return f.OpenBraces == f.Node().InitialBraces && f.OpenParenthesis == f.Node().InitialParenthesis
 }
 
 func (t NodeType) String() string {
