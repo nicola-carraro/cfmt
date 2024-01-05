@@ -277,7 +277,7 @@ func TestFormatInitializerList(t *testing.T) {
 	_testFormat(t, input, expected)
 
 	input = " p = { x, {y,\n z}};\n"
-	expected = "p = {\n    x, {\n        y,\n        z\n    }\n};\n"
+	expected = "p = {x, {y, z}};\n"
 
 	_testFormat(t, input, expected)
 
@@ -360,8 +360,12 @@ func TestFormatLoop(t *testing.T) {
 	expected = "Foo zz = {123, \"123\"};\n"
 	_testFormat(t, input, expected)
 
-	input = "Foo zz = {\n123,\n\"123\"\n};"
-	expected = "Foo zz = {\n    123,\n    \"123\"\n};\n"
+	input = `Foo zz = {
+		123,
+		"123"
+		};`
+	expected = `Foo zz = {123, "123"};
+`
 	_testFormat(t, input, expected)
 
 	input = "int foo(){for (i16 i = 0; i < buf_size / sizeof(i16); i++) {return bar;}}"

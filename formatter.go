@@ -204,9 +204,9 @@ func (f *Formatter) parseToken() bool {
 		} else if f.Token.isLeftParenthesis() {
 			f.pushNode(NodeTypeOtherParenthesis)
 		} else if f.Token.isLeftBrace() {
-			if f.PreviousToken.isAssignment() {
+			if f.PreviousToken.isAssignment() || f.Node().isInitialiserList() {
 				f.pushNode(NodeTypeInitialiserList)
-			} else if f.AcceptStructOrUnion {
+			} else if f.AcceptStructOrUnion || f.Node().isStructOrUnion() {
 				f.pushNode(NodeTypeStructOrUnion)
 
 			} else if f.AcceptEnum {
