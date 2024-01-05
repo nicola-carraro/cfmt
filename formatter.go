@@ -65,6 +65,13 @@ const (
 	WrappingStrategyLineBreakAfterComma
 )
 
+type BlockType int
+
+const (
+	BlockTypeNone BlockType = iota
+	BlockTypeDoWhile
+)
+
 type Node struct {
 	Type               NodeType
 	Id                 int
@@ -73,6 +80,7 @@ type Node struct {
 	InitialIndent      int
 	InitialParenthesis int
 	InitialBraces      int
+	BlockType          BlockType
 }
 
 type StructUnionEnum struct {
@@ -581,7 +589,7 @@ func (f *Formatter) alwaysDefaultLines() bool {
 		f.NextToken.isMultilineComment() ||
 		(f.Token.isSemicolon() && !f.IsForLoop && !f.hasTrailingComment()) ||
 		(f.Node().isDirective() && f.Token.hasEscapedLines()) ||
-		f.afterEndOfBlock()
+		(f.afterEndOfBlock() && !(f.PreviousNode.BlockType == BlockTypeDoWhile))
 }
 
 func (f *Formatter) Node() Node {
@@ -591,6 +599,12 @@ func (f *Formatter) Node() Node {
 func (f *Formatter) pushNode(t NodeType) {
 	f.LastNodeId++
 
+	blockType := BlockTypeNone
+
+	if f.PreviousToken.isDo() {
+		blockType = BlockTypeDoWhile
+	}
+
 	node := Node{
 		Type:               t,
 		Id:                 f.LastNodeId,
@@ -598,6 +612,7 @@ func (f *Formatter) pushNode(t NodeType) {
 		InitialIndent:      f.Indent,
 		InitialParenthesis: f.OpenParenthesis,
 		InitialBraces:      f.OpenBraces,
+		BlockType:          blockType,
 	}
 
 	//fmt.Println("Push ", node)
@@ -625,7 +640,7 @@ func (f *Formatter) isNodeStart() bool {
 }
 
 func (f *Formatter) afterEndOfBlock() bool {
-	return f.PreviousNode.isBlock() && f.PreviousNode.LastToken == (f.TokenIndex-1)
+	return f.PreviousNode.isBlock() && f.PreviousNode.LastToken == f.TokenIndex
 }
 
 func (f *Formatter) isWrappingNode() bool {
