@@ -16,8 +16,8 @@ type Formatter struct {
 	InputColumn           int
 	OutputLine            int
 	OutputColumn          int
-	Input                 string
-	Output                strings.Builder
+	Input                 *string
+	Output                []byte
 	SavedInput            string
 	OpenParenthesis       int
 	IsDirective           bool
@@ -37,12 +37,14 @@ type Formatter struct {
 	OpenBraces            int
 	Wrapping              bool
 	Tokens                *[]Token
+	WrappingStrategy      WrappingStrategy
 }
 
 type NodeType int
 
 const (
 	NodeTypeNone NodeType = iota
+	NodeTypeTopLevel
 	NodeTypeMacroDef
 	NodeTypeOtherDirective
 	NodeTypeFunctionDef
@@ -82,11 +84,13 @@ func (f *Formatter) wrapping() bool {
 
 func format(input string) string {
 
-	f := newFormatter(input)
+	formatter := Formatter{Input: &input, Tokens: new([]Token)}
 
-	saved := f
+	(&formatter).pushNode(NodeTypeTopLevel)
 
-	for f.parseToken() {
+	saved := formatter
+
+	for formatter.parseToken() {
 
 		//fmt.Println(f.PreviousToken, " ", f.Token, " ", f.NextToken)
 
@@ -95,37 +99,39 @@ func format(input string) string {
 		// fmt.Println(f.Node())
 		// fmt.Println("comment or directive ", f.Token.isComment() || f.Token.isDirective())
 
-		f.formatToken()
-
-		if !f.Wrapping && f.OutputColumn > 80 {
-			f.Wrapping = true
-			f = saved
+		formatter.formatToken()
+		fmt.Printf("Output %d\n", len(formatter.Output))
+		fmt.Printf("Tokens %d\n", len(*formatter.Tokens))
+		fmt.Printf("Inputs %d\n", len(*formatter.Input))
+		if !formatter.Wrapping && formatter.OutputColumn > 80 {
+			fmt.Println("RESET")
+			formatter = saved
+			formatter.Wrapping = true
 		}
 
-		if f.alwaysOneLine() {
+		if formatter.PreviousNode.isPresent() && formatter.PreviousNode.Id == formatter.WrappingNode {
+			//fmt.Println("END RESET ", f.PreviousNode)
+			formatter.Wrapping = false
+			formatter.WrappingNode = 0
+			saved = formatter
+		}
+
+		if formatter.alwaysOneLine() {
 			// fmt.Println(f.Token)
-			f.writeNewLines(1)
-		} else if f.isEndOfDirective() || f.alwaysDefaultLines() {
-			f.writeDefaultLines()
-		} else if f.wrapping() && f.Token.hasNewLines() {
-			f.wrap()
-		} else if !f.neverSpace() &&
-			!f.NextToken.isRightBrace() &&
-			!f.Token.isLeftBrace() {
-			f.writeString(" ")
+			formatter.writeNewLines(1)
+		} else if formatter.isEndOfDirective() || formatter.alwaysDefaultLines() {
+			formatter.writeDefaultLines()
+		} else if formatter.wrapping() && formatter.Token.hasNewLines() {
+			formatter.wrap()
+		} else if !formatter.neverSpace() &&
+			!formatter.NextToken.isRightBrace() &&
+			!formatter.Token.isLeftBrace() {
+			formatter.writeString(" ")
 		}
 
 	}
 
-	return f.Output.String()
-}
-
-func newFormatter(input string) *Formatter {
-	formatter := Formatter{Input: input, Output: strings.Builder{}, Tokens: new([]Token)}
-
-	(&formatter).pushNode(NodeTypeNone)
-
-	return &formatter
+	return string(formatter.Output)
 }
 
 // func (f *Formatter) formatBlockBody() {
@@ -505,8 +511,8 @@ func newFormatter(input string) *Formatter {
 
 func (f *Formatter) getToken(index int) Token {
 	if len(*f.Tokens) <= index {
-		token := parseToken(f.Input)
-		f.Input = f.Input[len(token.Content):]
+		token := parseToken(*f.Input)
+		*f.Input = (*f.Input)[len(token.Content):]
 		(*f.Tokens) = append(*f.Tokens, token)
 	}
 
@@ -564,6 +570,17 @@ func (f *Formatter) parseToken() bool {
 
 	if f.Token.isSemicolon() {
 		f.RightSideOfAssignment = false
+	}
+
+	if f.Wrapping && f.WrappingStrategy == WrappingStrategyNone {
+		//fmt.Println("Looking for wrapping ", f.Token)
+		if f.isFunctionStart() {
+
+			//fmt.Println("Comma")
+			f.WrappingStrategy = WrappingStrategyComma
+			f.WrappingNode = f.Node().Id
+
+		}
 	}
 
 	f.Token.Whitespace = f.skipSpaceAndCountNewLines()
@@ -708,8 +725,8 @@ func (formatter *Formatter) consumeSpace(Whitespace *Whitespace) bool {
 
 	if formatter.IsDirective {
 		for _, nl := range newLineInDirective {
-			if formatter.IsDirective && strings.HasPrefix(formatter.Input, nl) {
-				formatter.Input = formatter.Input[len(nl):]
+			if formatter.IsDirective && strings.HasPrefix((*formatter.Input), nl) {
+				*formatter.Input = (*formatter.Input)[len(nl):]
 				Whitespace.NewLines++
 				Whitespace.HasEscapedLines = true
 				return true
@@ -718,10 +735,10 @@ func (formatter *Formatter) consumeSpace(Whitespace *Whitespace) bool {
 
 	}
 
-	r, size := peakRune(formatter.Input)
+	r, size := peakRune(*formatter.Input)
 
 	if r == '\n' {
-		formatter.Input = formatter.Input[size:]
+		*formatter.Input = (*formatter.Input)[size:]
 		Whitespace.NewLines++
 		Whitespace.HasUnescapedLines = true
 
@@ -736,7 +753,7 @@ func (formatter *Formatter) consumeSpace(Whitespace *Whitespace) bool {
 	otherSpaces := []rune{' ', '\t', '\r', '\v', '\f'}
 
 	if slices.Contains(otherSpaces, r) {
-		formatter.Input = formatter.Input[size:]
+		*formatter.Input = (*formatter.Input)[size:]
 		return true
 
 	}
@@ -745,7 +762,7 @@ func (formatter *Formatter) consumeSpace(Whitespace *Whitespace) bool {
 }
 
 func (formatter *Formatter) writeString(str string) {
-	formatter.Output.WriteString(str)
+	formatter.Output = append(formatter.Output, []byte(str)...)
 	formatter.OutputColumn += len(str)
 }
 
@@ -799,7 +816,7 @@ func (formatter *Formatter) writeNewLines(lines int) {
 
 func (f *Formatter) writeDefaultLines() {
 	switch f.Node().Type {
-	case NodeTypeNone:
+	case NodeTypeTopLevel:
 		f.twoLinesOrEof()
 	case NodeTypeMacroDef, NodeTypeInvokation, NodeTypeInitialiserList, NodeTypeStructOrUnion, NodeTypeEnum:
 		f.writeNewLines(1)
@@ -881,6 +898,10 @@ func (f *Formatter) isFunctionName() bool {
 	return f.Token.Type == TokenTypeIdentifier && f.NextToken.isLeftParenthesis() && (!f.IsDirective || !f.Token.Whitespace.HasSpace)
 }
 
+func (f *Formatter) isFunctionStart() bool {
+	return f.PreviousToken.Type == TokenTypeIdentifier && f.Token.isLeftParenthesis() && (!f.IsDirective || !f.Token.Whitespace.HasSpace)
+}
+
 func (f *Formatter) neverSpace() bool {
 
 	return f.NextToken.isSemicolon() ||
@@ -918,8 +939,8 @@ func (f *Formatter) alwaysOneLine() bool {
 		(f.Node().Type == NodeTypeInvokation || f.Node().Type == NodeTypeFunctionDef) && f.WrappingNode == f.Node().Id && (f.Token.isLeftParenthesis() || f.Token.isComma() || f.NextToken.isRightParenthesis()) ||
 		((f.Node().isStructOrUnion() || f.Node().isBlock()) && f.Token.isSemicolon()) ||
 		((f.Node().isEnum()) && f.Token.isComma()) ||
-		((f.Node().isStructOrUnion() || f.Node().isBlock() || f.Node().isEnum()) && (f.isNodeStart() || f.NextToken.isRightBrace()))
-
+		((f.Node().isStructOrUnion() || f.Node().isBlock() || f.Node().isEnum()) && (f.isNodeStart() || f.NextToken.isRightBrace())) ||
+		(f.Wrapping && f.isWrappingNode() && f.WrappingStrategy == WrappingStrategyComma && f.Token.isComma())
 }
 
 func (f *Formatter) alwaysDefaultLines() bool {
@@ -953,7 +974,7 @@ func (f *Formatter) pushNode(t NodeType) {
 }
 
 func (f *Formatter) popNode() {
-	//fmt.Printf("Pop %s, %s \n", f.Node(), f.Token)
+	//fmt.Printf("Pop %s, %s \n", f.NonextTokenfode(), f.Token)
 
 	f.PreviousNode = f.Node()
 	f.PreviousNode.LastToken = f.TokenIndex
@@ -972,6 +993,10 @@ func (f *Formatter) isNodeStart() bool {
 	return f.TokenIndex == f.Node().FirstToken
 }
 
+func (f *Formatter) isWrappingNode() bool {
+	return f.WrappingNode == f.Node().Id
+}
+
 func (f *Formatter) isTopLevelInNode() bool {
 	return f.OpenBraces == f.Node().InitialBraces && f.OpenParenthesis == f.Node().InitialParenthesis
 }
@@ -980,6 +1005,8 @@ func (t NodeType) String() string {
 	switch t {
 	case NodeTypeNone:
 		return "NodeTypeNone"
+	case NodeTypeTopLevel:
+		return "NodeTypeTopLevel"
 	case NodeTypeMacroDef:
 		return "NodeTypeMacroDef"
 	case NodeTypeOtherDirective:
@@ -1007,6 +1034,10 @@ func (n Node) String() string {
 	return fmt.Sprintf("Node{Type: %s, Id: %d}", n.Type, n.Id)
 }
 
+func (n Node) isTopLevel() bool {
+	return n.Type == NodeTypeTopLevel
+}
+
 func (n Node) isDirective() bool {
 	return n.Type == NodeTypeMacroDef || n.Type == NodeTypeOtherDirective
 }
@@ -1021,4 +1052,8 @@ func (n Node) isBlock() bool {
 
 func (n Node) isEnum() bool {
 	return n.Type == NodeTypeEnum
+}
+
+func (n Node) isPresent() bool {
+	return n.Type != NodeTypeNone
 }
