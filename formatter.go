@@ -421,7 +421,7 @@ func (formatter *Formatter) writeNewLines(lines int) {
 	const newLine = "\n"
 
 	for line := 0; line < lines; line++ {
-		if formatter.IsDirective {
+		if formatter.Node().isDirective() {
 			formatter.writeString("\\")
 		}
 		formatter.writeString(newLine)
@@ -635,7 +635,6 @@ func (f *Formatter) popNode() {
 	if f.Node().isDirective() {
 		f.Indent = f.Node().InitialIndent
 	}
-	//fmt.Println("pop ", f.Node())
 
 	f.Nodes = f.Nodes[:len(f.Nodes)-1]
 }
