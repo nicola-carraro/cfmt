@@ -96,6 +96,7 @@ func format(input string) string {
 		if !f.Wrapping && f.OutputColumn > 80 {
 			f = saved
 			f.Wrapping = true
+			continue
 		}
 
 		if f.PreviousNode.isPresent() && f.isBlockStart() {
