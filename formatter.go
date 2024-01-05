@@ -84,54 +84,41 @@ func (f *Formatter) wrapping() bool {
 
 func format(input string) string {
 
-	formatter := Formatter{Input: &input, Tokens: new([]Token)}
+	f := Formatter{Input: &input, Tokens: new([]Token)}
 
-	(&formatter).pushNode(NodeTypeTopLevel)
+	(&f).pushNode(NodeTypeTopLevel)
 
-	saved := formatter
+	saved := f
 
-	for formatter.parseToken() {
+	for f.parseToken() {
+		f.formatToken()
 
-		//fmt.Println(f.PreviousToken, " ", f.Token, " ", f.NextToken)
-
-		//	fmt.Println("wrapping ", f.wrapping())
-
-		// fmt.Println(f.Node())
-		// fmt.Println("comment or directive ", f.Token.isComment() || f.Token.isDirective())
-
-		formatter.formatToken()
-		fmt.Printf("Output %d\n", len(formatter.Output))
-		fmt.Printf("Tokens %d\n", len(*formatter.Tokens))
-		fmt.Printf("Inputs %d\n", len(*formatter.Input))
-		if !formatter.Wrapping && formatter.OutputColumn > 80 {
-			fmt.Println("RESET")
-			formatter = saved
-			formatter.Wrapping = true
+		if !f.Wrapping && f.OutputColumn > 80 {
+			f = saved
+			f.Wrapping = true
 		}
 
-		if formatter.PreviousNode.isPresent() && formatter.PreviousNode.Id == formatter.WrappingNode {
-			//fmt.Println("END RESET ", f.PreviousNode)
-			formatter.Wrapping = false
-			formatter.WrappingNode = 0
-			saved = formatter
+		if f.PreviousNode.isPresent() && f.isBlockStart() {
+			f.Wrapping = false
+			f.WrappingNode = 0
+			saved = f
 		}
 
-		if formatter.alwaysOneLine() {
-			// fmt.Println(f.Token)
-			formatter.writeNewLines(1)
-		} else if formatter.isEndOfDirective() || formatter.alwaysDefaultLines() {
-			formatter.writeDefaultLines()
-		} else if formatter.wrapping() && formatter.Token.hasNewLines() {
-			formatter.wrap()
-		} else if !formatter.neverSpace() &&
-			!formatter.NextToken.isRightBrace() &&
-			!formatter.Token.isLeftBrace() {
-			formatter.writeString(" ")
+		if f.alwaysOneLine() {
+			f.writeNewLines(1)
+		} else if f.isEndOfDirective() || f.alwaysDefaultLines() {
+			f.writeDefaultLines()
+		} else if f.wrapping() && f.Token.hasNewLines() {
+			f.wrap()
+		} else if !f.neverSpace() &&
+			!f.NextToken.isRightBrace() &&
+			!f.Token.isLeftBrace() {
+			f.writeString(" ")
 		}
 
 	}
 
-	return string(formatter.Output)
+	return string(f.Output)
 }
 
 // func (f *Formatter) formatBlockBody() {
@@ -572,17 +559,6 @@ func (f *Formatter) parseToken() bool {
 		f.RightSideOfAssignment = false
 	}
 
-	if f.Wrapping && f.WrappingStrategy == WrappingStrategyNone {
-		//fmt.Println("Looking for wrapping ", f.Token)
-		if f.isFunctionStart() {
-
-			//fmt.Println("Comma")
-			f.WrappingStrategy = WrappingStrategyComma
-			f.WrappingNode = f.Node().Id
-
-		}
-	}
-
 	f.Token.Whitespace = f.skipSpaceAndCountNewLines()
 
 	f.NextToken = f.getToken(f.TokenIndex)
@@ -634,6 +610,14 @@ func (f *Formatter) parseToken() bool {
 		f.popNode()
 	}
 
+	if f.Wrapping && f.WrappingStrategy == WrappingStrategyNone {
+		if f.isFunctionStart() {
+			f.WrappingStrategy = WrappingStrategyComma
+			f.WrappingNode = f.Node().Id
+
+		}
+	}
+
 	if f.Node().isDirective() {
 		if f.Token.hasEscapedLines() {
 			if f.Token.isLeftBrace() || f.Token.isLeftParenthesis() {
@@ -662,7 +646,6 @@ func (f *Formatter) parseToken() bool {
 
 	if (f.Node().Type == NodeTypeFunctionDef || f.Node().Type == NodeTypeInvokation) && f.NextToken.isRightParenthesis() {
 		f.Indent--
-		//fmt.Println(f.Token)
 	}
 
 	if f.Token.Whitespace.HasUnescapedLines || f.NextToken.isAbsent() {
@@ -894,6 +877,10 @@ func (f *Formatter) startsFunctionArguments() bool {
 	}
 }
 
+func (f *Formatter) isBlockStart() bool {
+	return f.Node().isBlock() && f.isNodeStart()
+}
+
 func (f *Formatter) isFunctionName() bool {
 	return f.Token.Type == TokenTypeIdentifier && f.NextToken.isLeftParenthesis() && (!f.IsDirective || !f.Token.Whitespace.HasSpace)
 }
@@ -970,16 +957,13 @@ func (f *Formatter) pushNode(t NodeType) {
 	if node.Type == NodeTypeFunctionDef || node.Type == NodeTypeInvokation {
 		f.Indent++
 	}
-	//fmt.Printf("Push %s, %s\n", node, f.Token)
 }
 
 func (f *Formatter) popNode() {
-	//fmt.Printf("Pop %s, %s \n", f.NonextTokenfode(), f.Token)
 
 	f.PreviousNode = f.Node()
 	f.PreviousNode.LastToken = f.TokenIndex
 	if f.WrappingNode == f.Node().Id {
-		//fmt.Println("POP NODE")
 		f.WrappingNode = 0
 	}
 	if f.Node().isDirective() {
