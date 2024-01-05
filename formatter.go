@@ -563,7 +563,6 @@ func (f *Formatter) alwaysOneLine() bool {
 		(f.Token.isComment() && (f.PreviousToken.hasNewLines() || f.PreviousToken.isAbsent())) ||
 		(f.IsEndOfInclude && f.NextToken.isIncludeDirective()) ||
 		(f.IsEndOfPragma && f.NextToken.isPragmaDirective()) ||
-		(f.Node().Type == NodeTypeInvokation || f.Node().Type == NodeTypeFunctionDef) && f.WrappingNode == f.Node().Id && (f.Token.isLeftParenthesis() || f.Token.isComma() || f.NextToken.isRightParenthesis()) ||
 		(f.Node().isStructOrUnion() && f.Token.isSemicolon()) ||
 		((f.Node().isEnum()) && f.Token.isComma()) ||
 		((f.Node().isStructOrUnion() || f.Node().isBlock() || f.Node().isEnum()) && (f.isNodeStart() || f.NextToken.isRightBrace())) ||
@@ -581,7 +580,8 @@ func (f *Formatter) alwaysDefaultLines() bool {
 		(f.Token.isComment() && !f.PreviousToken.hasNewLines() && !f.PreviousToken.isAbsent()) ||
 		f.NextToken.isMultilineComment() ||
 		(f.Token.isSemicolon() && !f.IsForLoop && !f.hasTrailingComment()) ||
-		(f.Node().isDirective() && f.Token.hasEscapedLines())
+		(f.Node().isDirective() && f.Token.hasEscapedLines()) ||
+		f.afterEndOfBlock()
 }
 
 func (f *Formatter) Node() Node {
@@ -600,6 +600,8 @@ func (f *Formatter) pushNode(t NodeType) {
 		InitialBraces:      f.OpenBraces,
 	}
 
+	//fmt.Println("Push ", node)
+
 	f.Nodes = append(f.Nodes, node)
 }
 
@@ -613,12 +615,17 @@ func (f *Formatter) popNode() {
 	if f.Node().isDirective() {
 		f.Indent = f.Node().InitialIndent
 	}
+	//fmt.Println("pop ", f.Node())
 
 	f.Nodes = f.Nodes[:len(f.Nodes)-1]
 }
 
 func (f *Formatter) isNodeStart() bool {
 	return f.TokenIndex == f.Node().FirstToken
+}
+
+func (f *Formatter) afterEndOfBlock() bool {
+	return f.PreviousNode.isBlock() && f.PreviousNode.LastToken == (f.TokenIndex-1)
 }
 
 func (f *Formatter) isWrappingNode() bool {
