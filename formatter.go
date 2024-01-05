@@ -62,6 +62,7 @@ const (
 	WrappingStrategyNone WrappingStrategy = iota
 	WrappingStrategyComma
 	WrappingStrategyLineBreak
+	WrappingStrategyLineBreakAfterComma
 )
 
 type Node struct {
@@ -94,12 +95,14 @@ func format(input string) string {
 		f.formatToken()
 
 		if !f.Wrapping && f.OutputColumn > 80 {
+			fmt.Println("RESET ", f.Token)
 			f = saved
 			f.Wrapping = true
+
 			continue
 		}
 
-		if f.PreviousNode.isPresent() && f.isBlockStart() {
+		if f.isBlockStart() || (!f.Node().isStructOrUnion() && f.Token.isSemicolon()) {
 			f.Wrapping = false
 			f.WrappingNode = 0
 			saved = f
@@ -109,8 +112,6 @@ func format(input string) string {
 			f.writeNewLines(1)
 		} else if f.isEndOfDirective() || f.alwaysDefaultLines() {
 			f.writeDefaultLines()
-		} else if f.wrapping() && f.Token.hasNewLines() {
-			f.wrap()
 		} else if !f.neverSpace() &&
 			!f.NextToken.isRightBrace() &&
 			!f.Token.isLeftBrace() {
@@ -122,385 +123,11 @@ func format(input string) string {
 	return string(f.Output)
 }
 
-// func (f *Formatter) formatBlockBody() {
-// 	wrapping := false
-// 	f.Indent++
-
-// 	if f.NextToken.isRightBrace() {
-
-// 		f.Indent--
-// 	}
-
-// 	f.writeNewLines(1)
-
-// 	saved := *f
-
-// 	for f.parseToken() {
-
-// 		f.formatToken()
-
-// 		if f.startsFunctionArguments() {
-// 			f.formatFunctionCall()
-// 		}
-
-// 		if f.NextToken.isRightBrace() {
-// 			f.Indent--
-// 		}
-
-// 		if f.Token.isRightBrace() {
-// 			return
-// 		}
-
-// 		if f.Token.isDefineDirective() {
-// 			f.formatMacro()
-// 		} else if f.Token.isLeftBrace() {
-
-// 			if f.PreviousToken.isAssignment() {
-// 				f.formatInitializerList()
-// 				continue
-// 			} else if f.AcceptStructOrUnion {
-// 				f.formatStructOrUnion()
-// 			} else if f.AcceptEnum {
-// 				f.formatEnum()
-// 			} else {
-// 				isDoWhileLoop := f.PreviousToken.isDo()
-// 				wrapping = false
-// 				f.formatBlockBody()
-// 				if isDoWhileLoop {
-// 					f.writeString(" ")
-// 				} else {
-// 					f.oneOrTwoLines()
-// 				}
-
-// 				saved = *f
-// 				continue
-// 			}
-// 		}
-
-// 		if f.OutputColumn > 80 && !wrapping {
-// 			*f = saved
-// 			wrapping = true
-// 			continue
-// 		}
-
-// 		if f.alwaysOneLine() || f.NextToken.isRightBrace() {
-// 			f.writeNewLines(1)
-// 		} else if f.alwaysDefaultLines() {
-// 			f.writeDefaultLines()
-// 		} else if wrapping && f.Token.hasNewLines() {
-// 			f.wrap()
-// 		} else if !f.neverSpace() {
-// 			f.writeString(" ")
-// 		}
-
-// 		if f.Token.isSemicolon() && !f.IsParenthesis() {
-// 			wrapping = false
-// 			saved = *f
-// 		}
-// 	}
-
-// 	log.Fatal("Unclosed block")
-// }
-
-// func (f *Formatter) formatMacro() {
-
-// 	oldIndent := f.Indent
-
-// 	f.Indent = 0
-
-// 	f.writeString(" ")
-
-// 	for f.parseToken() {
-// 		if f.Token.hasEscapedLines() {
-// 			if f.Token.isLeftBrace() || f.Token.isLeftParenthesis() {
-// 				f.Indent++
-// 			}
-
-// 			if f.NextToken.isRightBrace() || f.NextToken.isRightParenthesis() {
-// 				f.Indent--
-// 			}
-// 		}
-
-// 		f.formatToken()
-
-// 		if f.Token.hasUnescapedLines() {
-// 			f.Indent = oldIndent
-// 			f.IsDirective = false
-
-// 			return
-// 		}
-
-// 		if f.alwaysOneLine() || f.Token.hasEscapedLines() {
-// 			f.writeNewLines(1)
-// 		} else if f.alwaysDefaultLines() {
-// 			f.writeDefaultLines()
-// 		} else if !f.neverSpace() {
-// 			f.writeString(" ")
-// 		}
-
-// 	}
-// }
-
-// func (f *Formatter) formatFunctionCall() {
-// 	saved := *f
-// 	success := f.tryFormatFunctionArguments(true, false)
-
-// 	if !success {
-// 		*f = saved
-// 		_ = f.tryFormatFunctionArguments(false, false)
-// 	}
-// }
-
-// func (f *Formatter) formatFunctionDecl() {
-// 	saved := *f
-// 	if !f.tryFormatFunctionArguments(true, true) {
-// 		*f = saved
-// 		f.tryFormatFunctionArguments(false, true)
-// 	}
-// }
-
-// func (f *Formatter) formatInitializerList() {
-
-// 	initialState := *f
-
-// 	if !f.tryFormatInlineInitializerList() {
-// 		*f = initialState
-// 		f.formatMultilineInitializerList()
-// 	}
-
-// }
-
-// func (f *Formatter) formatStructOrUnion() {
-// 	f.AcceptStructOrUnion = false
-// 	f.Indent++
-
-// 	f.writeNewLines(1)
-
-// 	for f.parseToken() {
-// 		f.formatToken()
-
-// 		if f.NextToken.isRightBrace() {
-// 			f.Indent--
-// 		}
-
-// 		if f.Token.isRightBrace() {
-// 			return
-// 		}
-
-// 		if f.Token.isLeftBrace() {
-// 			f.formatStructOrUnion()
-// 		} else if f.Token.isDefineDirective() {
-// 			f.formatMacro()
-// 		}
-
-// 		if f.alwaysOneLine() || f.alwaysDefaultLines() {
-// 			f.writeDefaultLines()
-
-// 		} else if !f.neverSpace() &&
-// 			!f.NextToken.isSemicolon() {
-// 			f.writeString(" ")
-// 		}
-// 	}
-
-// 	log.Fatal("Unclosed declaration braces")
-// }
-
-// func (f *Formatter) formatEnum() {
-// 	f.AcceptEnum = false
-// 	f.Indent++
-
-// 	f.writeNewLines(1)
-
-// 	for f.parseToken() {
-// 		f.formatToken()
-
-// 		if f.NextToken.isRightBrace() {
-// 			f.Indent--
-// 		}
-
-// 		if f.Token.isRightBrace() {
-// 			return
-// 		}
-
-// 		if f.Token.isDefineDirective() {
-// 			f.formatMacro()
-// 		}
-
-// 		if f.alwaysOneLine() || f.alwaysDefaultLines() || f.Token.isComma() || f.NextToken.isRightBrace() {
-// 			f.writeDefaultLines()
-
-// 		} else if !f.neverSpace() &&
-// 			!f.NextToken.isSemicolon() {
-// 			f.writeString(" ")
-// 		}
-// 	}
-
-// 	log.Fatal("Unclosed declaration braces")
-// }
-
-// func (f *Formatter) tryFormatInlineInitializerList() bool {
-// 	openBraces := 1
-
-// 	for f.parseToken() {
-// 		f.formatToken()
-
-// 		if f.Token.isRightBrace() {
-// 			openBraces--
-// 		}
-
-// 		if f.Token.isComma() && f.Token.hasNewLines() {
-// 			return false
-// 		}
-
-// 		if f.Token.isComment() {
-// 			return false
-// 		}
-
-// 		if f.Token.isLeftBrace() {
-
-// 			if !f.tryFormatInlineInitializerList() {
-// 				return false
-// 			}
-// 			continue
-// 		} else if f.Token.isDefineDirective() {
-// 			f.formatMacro()
-// 		}
-
-// 		if f.alwaysOneLine() || f.alwaysDefaultLines() {
-// 			f.writeDefaultLines()
-
-// 		} else if !f.neverSpace() &&
-// 			!f.NextToken.isRightBrace() &&
-// 			!f.Token.isRightBrace() {
-// 			f.writeString(" ")
-// 		}
-
-// 		if openBraces == 0 {
-// 			return true
-// 		}
-// 	}
-
-// 	log.Fatal("Unclosed initializer list")
-// 	panic("unreachable")
-// }
-
-// func (f *Formatter) formatMultilineInitializerList() {
-// 	openBraces := 1
-
-// 	f.Indent++
-
-// 	f.writeNewLines(1)
-
-// 	for f.parseToken() {
-
-// 		f.formatToken()
-// 		if f.NextToken.isRightBrace() {
-// 			f.Indent--
-// 		}
-
-// 		if f.Token.isRightBrace() {
-// 			openBraces--
-// 		}
-
-// 		if f.Token.isLeftBrace() {
-// 			f.formatInitializerList()
-// 			continue
-// 		} else if f.Token.isDefineDirective() {
-// 			f.formatMacro()
-// 		}
-
-// 		if f.alwaysOneLine() || f.NextToken.isRightBrace() ||
-// 			(f.Token.isComma() && f.Token.hasNewLines()) || f.alwaysDefaultLines() {
-// 			f.writeDefaultLines()
-
-// 		} else if !f.neverSpace() &&
-// 			!f.NextToken.isRightBrace() &&
-// 			!f.Token.isRightBrace() {
-// 			f.writeString(" ")
-// 		}
-
-// 		if openBraces == 0 {
-// 			return
-// 		}
-// 	}
-
-// 	log.Fatal("Unclosed initializer list")
-// }
-
-// func (f *Formatter) tryFormatFunctionArguments(inline bool, isFunctionDecl bool) bool {
-// 	commas := 0
-// 	openParenthesis := 1
-// 	if !inline {
-// 		f.Indent++
-// 		f.writeNewLines(1)
-// 	}
-
-// 	newLines := f.Token.Whitespace.NewLines
-
-// 	for f.parseToken() {
-// 		newLines += f.Token.Whitespace.NewLines
-// 		topLevelComma := false
-
-// 		if f.Token.isComma() && openParenthesis == 1 {
-// 			topLevelComma = true
-// 			commas++
-// 		}
-
-// 		if inline &&
-// 			((f.OutputColumn > 80 && commas > 0 && (isFunctionDecl || newLines > 0)) ||
-// 				(f.Token.isComment() || f.Token.isDirective())) {
-// 			return false
-// 		}
-
-// 		f.formatToken()
-
-// 		if f.Token.isRightParenthesis() {
-// 			openParenthesis--
-// 		}
-
-// 		if f.Token.isLeftParenthesis() {
-// 			openParenthesis++
-// 		}
-
-// 		if f.Token.isDefineDirective() {
-// 			f.formatMacro()
-// 		} else if f.Token.isLeftBrace() {
-// 			if inline {
-// 				return false
-// 			}
-// 			f.formatBlockBody()
-
-// 		}
-
-// 		if openParenthesis == 0 {
-// 			return true
-// 		}
-
-// 		beforeLastParenthesis := openParenthesis == 1 && f.NextToken.isRightParenthesis() && !inline
-
-// 		if beforeLastParenthesis {
-// 			f.Indent--
-// 		}
-
-// 		if f.alwaysOneLine() || f.alwaysDefaultLines() || (topLevelComma && !inline) || beforeLastParenthesis {
-// 			f.writeDefaultLines()
-
-// 		} else if !f.neverSpace() &&
-// 			!f.NextToken.isRightBrace() &&
-// 			!f.Token.isRightBrace() {
-// 			f.writeString(" ")
-// 		}
-// 	}
-
-// 	log.Fatal("Unclosed function arguments")
-
-// 	panic("unreachable")
-// }
-
 func (f *Formatter) getToken(index int) Token {
 	if len(*f.Tokens) <= index {
 		token := parseToken(*f.Input)
 		*f.Input = (*f.Input)[len(token.Content):]
+		token.Whitespace = f.skipSpaceAndCountNewLines()
 		(*f.Tokens) = append(*f.Tokens, token)
 	}
 
@@ -560,8 +187,6 @@ func (f *Formatter) parseToken() bool {
 		f.RightSideOfAssignment = false
 	}
 
-	f.Token.Whitespace = f.skipSpaceAndCountNewLines()
-
 	f.NextToken = f.getToken(f.TokenIndex)
 
 	if !f.Node().isDirective() {
@@ -615,7 +240,11 @@ func (f *Formatter) parseToken() bool {
 		if f.isFunctionStart() {
 			f.WrappingStrategy = WrappingStrategyComma
 			f.WrappingNode = f.Node().Id
+		}
 
+		if f.isInitialiserListStart() {
+			f.WrappingStrategy = WrappingStrategyLineBreakAfterComma
+			f.WrappingNode = f.Node().Id
 		}
 	}
 
@@ -631,12 +260,12 @@ func (f *Formatter) parseToken() bool {
 		}
 	}
 
-	if (f.Node().isStructOrUnion() || f.Node().isBlock() || f.Node().isEnum()) && f.isNodeStart() {
+	if f.shouldIncreaseIndent() {
 		f.Indent++
 
 	}
 
-	if (f.Node().isStructOrUnion() || f.Node().isBlock() || f.Node().isEnum()) && f.NextToken.isRightBrace() {
+	if f.shouldDecreaseIndent() {
 		f.Indent--
 	}
 
@@ -690,6 +319,16 @@ func (f *Formatter) parseToken() bool {
 	}
 
 	return !f.Token.isAbsent()
+}
+
+func (f *Formatter) shouldIncreaseIndent() bool {
+	return ((f.Node().isStructOrUnion() || f.Node().isBlock() || f.Node().isEnum()) && f.isNodeStart()) ||
+		(f.isWrappingNode() && (f.isInitialiserListStart() || f.isInvokationStart() || f.isFunctionDefStart()))
+}
+
+func (f *Formatter) shouldDecreaseIndent() bool {
+	return ((f.Node().isStructOrUnion() || f.Node().isBlock() || f.Node().isEnum()) && f.NextToken.isRightBrace()) ||
+		(f.isWrappingNode() && f.Node().isInitialiserList() && f.NextToken.isRightBrace())
 }
 
 func (f *Formatter) skipSpaceAndCountNewLines() Whitespace {
@@ -748,12 +387,6 @@ func (formatter *Formatter) consumeSpace(Whitespace *Whitespace) bool {
 func (formatter *Formatter) writeString(str string) {
 	formatter.Output = append(formatter.Output, []byte(str)...)
 	formatter.OutputColumn += len(str)
-}
-
-func (formatter *Formatter) wrap() {
-	formatter.Indent++
-	formatter.writeNewLines(1)
-	formatter.Indent--
 }
 
 func (formatter *Formatter) oneOrTwoLines() {
@@ -879,7 +512,22 @@ func (f *Formatter) startsFunctionArguments() bool {
 }
 
 func (f *Formatter) isBlockStart() bool {
+	if f.Node().isBlock() && f.isNodeStart() {
+		fmt.Printf("Node start: %s\n", f.Token)
+	}
 	return f.Node().isBlock() && f.isNodeStart()
+}
+
+func (f *Formatter) isInitialiserListStart() bool {
+	return f.Node().isInitialiserList() && f.isNodeStart()
+}
+
+func (f *Formatter) isInvokationStart() bool {
+	return f.Node().isInvokation() && f.isNodeStart()
+}
+
+func (f *Formatter) isFunctionDefStart() bool {
+	return f.Node().isFunctionDef() && f.isNodeStart()
 }
 
 func (f *Formatter) isFunctionName() bool {
@@ -920,6 +568,10 @@ func (f *Formatter) neverSpace() bool {
 
 func (f *Formatter) alwaysOneLine() bool {
 
+	if f.isBlockStart() {
+		fmt.Println("ONE LINE ", f.Token)
+	}
+
 	return f.NextToken.isAbsent() ||
 		(f.Token.isComment() && (f.PreviousToken.hasNewLines() || f.PreviousToken.isAbsent())) ||
 		(f.IsEndOfInclude && f.NextToken.isIncludeDirective()) ||
@@ -928,7 +580,12 @@ func (f *Formatter) alwaysOneLine() bool {
 		((f.Node().isStructOrUnion() || f.Node().isBlock()) && f.Token.isSemicolon()) ||
 		((f.Node().isEnum()) && f.Token.isComma()) ||
 		((f.Node().isStructOrUnion() || f.Node().isBlock() || f.Node().isEnum()) && (f.isNodeStart() || f.NextToken.isRightBrace())) ||
-		(f.Wrapping && f.isWrappingNode() && f.WrappingStrategy == WrappingStrategyComma && f.Token.isComma())
+		(f.Wrapping && f.isWrappingNode() && f.WrappingStrategy == WrappingStrategyComma && f.Token.isComma()) ||
+		(f.Wrapping && f.isWrappingNode() && f.isInitialiserListStart()) ||
+		f.isBlockStart() ||
+		(f.Wrapping && f.isWrappingNode() && f.Node().isInitialiserList() && f.NextToken.isRightBrace()) ||
+		(f.WrappingStrategy == WrappingStrategyLineBreakAfterComma && f.Token.isComma() && f.Token.hasNewLines())
+
 }
 
 func (f *Formatter) alwaysDefaultLines() bool {
@@ -946,6 +603,7 @@ func (f *Formatter) Node() Node {
 
 func (f *Formatter) pushNode(t NodeType) {
 	f.LastNodeId++
+
 	node := Node{
 		Type:               t,
 		Id:                 f.LastNodeId,
@@ -954,10 +612,8 @@ func (f *Formatter) pushNode(t NodeType) {
 		InitialParenthesis: f.OpenParenthesis,
 		InitialBraces:      f.OpenBraces,
 	}
+
 	f.Nodes = append(f.Nodes, node)
-	if node.Type == NodeTypeFunctionDef || node.Type == NodeTypeInvokation {
-		f.Indent++
-	}
 }
 
 func (f *Formatter) popNode() {
@@ -970,8 +626,8 @@ func (f *Formatter) popNode() {
 	if f.Node().isDirective() {
 		f.Indent = f.Node().InitialIndent
 	}
-	f.Nodes = f.Nodes[:len(f.Nodes)-1]
 
+	f.Nodes = f.Nodes[:len(f.Nodes)-1]
 }
 
 func (f *Formatter) isNodeStart() bool {
@@ -1041,4 +697,16 @@ func (n Node) isEnum() bool {
 
 func (n Node) isPresent() bool {
 	return n.Type != NodeTypeNone
+}
+
+func (n Node) isInitialiserList() bool {
+	return n.Type == NodeTypeInitialiserList
+}
+
+func (n Node) isInvokation() bool {
+	return n.Type == NodeTypeInvokation
+}
+
+func (n Node) isFunctionDef() bool {
+	return n.Type == NodeTypeFunctionDef
 }
