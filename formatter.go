@@ -91,6 +91,11 @@ func (f *Formatter) wrapping() bool {
 	return f.WrappingNode != 0
 }
 
+func (f *Formatter) shouldWrap() bool {
+	return f.OutputColumn > 80 ||
+	((f.Node().isInitialiserList() ||f.Node().isFunctionDef() || f.Node().isInvokation()) && (f.NextToken.isComment() || f.NextToken.isDirective()))
+}
+
 func format(input string) string {
 
 	f := Formatter{Input: &input, Tokens: new([]Token)}
@@ -102,7 +107,7 @@ func format(input string) string {
 	for f.parseToken() {
 		f.formatToken()
 
-		if !f.Wrapping && f.OutputColumn > 80 {
+		if !f.Wrapping && f.shouldWrap(){
 			f = saved
 			f.Wrapping = true
 			continue
