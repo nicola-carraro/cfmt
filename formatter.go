@@ -95,10 +95,8 @@ func format(input string) string {
 		f.formatToken()
 
 		if !f.Wrapping && f.OutputColumn > 80 {
-			fmt.Println("RESET ", f.Token)
 			f = saved
 			f.Wrapping = true
-
 			continue
 		}
 
@@ -274,10 +272,6 @@ func (f *Formatter) parseToken() bool {
 		f.popNode()
 	}
 
-	if (f.Node().Type == NodeTypeFunctionDef || f.Node().Type == NodeTypeInvokation) && f.NextToken.isRightParenthesis() {
-		f.Indent--
-	}
-
 	if f.Token.Whitespace.HasUnescapedLines || f.NextToken.isAbsent() {
 		f.IsDirective = false
 		f.IsIncludeDirective = false
@@ -432,6 +426,7 @@ func (formatter *Formatter) writeNewLines(lines int) {
 }
 
 func (f *Formatter) writeDefaultLines() {
+
 	switch f.Node().Type {
 	case NodeTypeTopLevel:
 		f.twoLinesOrEof()
@@ -441,7 +436,6 @@ func (f *Formatter) writeDefaultLines() {
 		f.oneOrTwoLines()
 	default:
 		panic("unreacheable")
-
 	}
 }
 
@@ -512,9 +506,6 @@ func (f *Formatter) startsFunctionArguments() bool {
 }
 
 func (f *Formatter) isBlockStart() bool {
-	if f.Node().isBlock() && f.isNodeStart() {
-		fmt.Printf("Node start: %s\n", f.Token)
-	}
 	return f.Node().isBlock() && f.isNodeStart()
 }
 
@@ -568,16 +559,12 @@ func (f *Formatter) neverSpace() bool {
 
 func (f *Formatter) alwaysOneLine() bool {
 
-	if f.isBlockStart() {
-		fmt.Println("ONE LINE ", f.Token)
-	}
-
 	return f.NextToken.isAbsent() ||
 		(f.Token.isComment() && (f.PreviousToken.hasNewLines() || f.PreviousToken.isAbsent())) ||
 		(f.IsEndOfInclude && f.NextToken.isIncludeDirective()) ||
 		(f.IsEndOfPragma && f.NextToken.isPragmaDirective()) ||
 		(f.Node().Type == NodeTypeInvokation || f.Node().Type == NodeTypeFunctionDef) && f.WrappingNode == f.Node().Id && (f.Token.isLeftParenthesis() || f.Token.isComma() || f.NextToken.isRightParenthesis()) ||
-		((f.Node().isStructOrUnion() || f.Node().isBlock()) && f.Token.isSemicolon()) ||
+		(f.Node().isStructOrUnion() && f.Token.isSemicolon()) ||
 		((f.Node().isEnum()) && f.Token.isComma()) ||
 		((f.Node().isStructOrUnion() || f.Node().isBlock() || f.Node().isEnum()) && (f.isNodeStart() || f.NextToken.isRightBrace())) ||
 		(f.Wrapping && f.isWrappingNode() && f.WrappingStrategy == WrappingStrategyComma && f.Token.isComma()) ||
