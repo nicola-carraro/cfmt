@@ -135,11 +135,6 @@ func format(input string) string {
 			continue
 		}
 
-		if f.isBlockStart() || ((!f.Node().isStructOrUnion() && !f.Node().isDirective()) && f.Token.isSemicolon()) {
-			f.Wrapping = false
-			f.WrappingNode = 0
-			saved = f
-		}
 
 		if f.alwaysOneLine() {
 			f.writeNewLines(1)
@@ -149,6 +144,13 @@ func format(input string) string {
 			!f.NextToken.isRightBrace() &&
 			!f.Token.isLeftBrace() {
 			f.writeString(" ")
+		}
+
+		
+		if f.isBlockStart() || ((!f.Node().isStructOrUnion() && !f.Node().isDirective()) && f.Token.isSemicolon()) {
+			f.Wrapping = false
+			f.WrappingNode = 0
+			saved = f
 		}
 
 	}
@@ -268,7 +270,7 @@ func (f *Formatter) parseToken() bool {
 		f.Token.isRightParenthesis() {
 		f.popNode()
 	}
-		if f.Node().isDirective() &&
+	if f.Node().isDirective() &&
 		f.Token.hasUnescapedLines() {
 		f.popNode()
 	}
@@ -302,13 +304,10 @@ func (f *Formatter) parseToken() bool {
 		f.Indent++
 
 	}
-	
 
 	if f.shouldDecreaseIndent() {
 		f.Indent--
 	}
-
-
 
 	if f.Token.Whitespace.HasUnescapedLines || f.NextToken.isAbsent() {
 		f.IsDirective = false
@@ -360,7 +359,9 @@ func (f *Formatter) shouldIncreaseIndent() bool {
 
 func (f *Formatter) shouldDecreaseIndent() bool {
 	return ((f.Node().isStructOrUnion() || f.Node().isBlock() || f.Node().isEnum()) && f.NextToken.isRightBrace()) ||
-		(f.isWrappingNode() && f.Node().isInitialiserList() && f.NextToken.isRightBrace())
+		(f.Wrapping && f.isWrappingNode() && f.Node().isInitialiserList() && f.NextToken.isRightBrace()) ||
+		(f.Wrapping && f.isWrappingNode() && f.Node().isFunctionDef() && f.NextToken.isRightParenthesis()) ||
+		(f.Wrapping && f.isWrappingNode() && f.Node().isInvokation() && f.NextToken.isRightParenthesis())
 }
 
 func (f *Formatter) skipSpaceAndCountNewLines() Whitespace {
@@ -606,6 +607,12 @@ func (f *Formatter) alwaysOneLine() bool {
 		((f.Node().isStructOrUnion() || f.Node().isBlock() || f.Node().isEnum()) && (f.isNodeStart() || f.NextToken.isRightBrace())) ||
 		(f.Wrapping && f.isWrappingNode() && f.WrappingStrategy == WrappingStrategyComma && f.Token.isComma()) ||
 		(f.Wrapping && f.isWrappingNode() && f.isInitialiserListStart()) ||
+		(f.Wrapping && f.isWrappingNode() && f.isFunctionDefStart()) ||
+		(f.Wrapping && f.isWrappingNode() && f.isInvokationStart()) ||
+		(f.Wrapping && f.isWrappingNode() && f.Node().isFunctionDef() && f.NextToken.isRightParenthesis()) ||
+		(f.Wrapping && f.isWrappingNode() && f.Node().isInvokation() && f.NextToken.isRightParenthesis()) ||
+
+		(f.Wrapping && f.isWrappingNode() && f.isInvokationStart()) ||
 		f.isBlockStart() ||
 		(f.Wrapping && f.isWrappingNode() && f.Node().isInitialiserList() && f.NextToken.isRightBrace()) ||
 		(f.WrappingStrategy == WrappingStrategyLineBreakAfterComma && f.Token.isComma() && f.Token.hasNewLines())
