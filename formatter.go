@@ -38,6 +38,7 @@ type Formatter struct {
 	Wrapping              bool
 	Tokens                *[]Token
 	WrappingStrategy      WrappingStrategy
+	OpenNodeCount         [15]int
 }
 
 type NodeType int
@@ -112,7 +113,9 @@ func (f *Formatter) wrapping() bool {
 func (f *Formatter) shouldWrap() bool {
 	return f.OutputColumn > 80 ||
 		((f.Node().isInitialiserList() || f.Node().isFuncOrMacro() ) &&
-			(f.NextToken.isComment() || f.NextToken.isDirective() || f.isBlockStart()))
+			(f.NextToken.isComment() || f.NextToken.isDirective())) ||
+(f.isInsideFuncOrMacro() && f.Node().isBlock())
+	
 }
 
 func format(input string) string {
@@ -126,7 +129,7 @@ func format(input string) string {
 	for f.parseToken() {
 		f.formatToken()
 
-	//	fmt.Printf("Token %s, node %s, is wrapping node %t\n", f.Token, f.Node(), f.isWrappingNode())
+		//fmt.Printf("Token %s, node %s, is inside func %t, Open parenthesis %d\n", f.Token, f.Node(), f.isInsideFuncOrMacro(), f.OpenParenthesis)
 
 		if !f.Wrapping && f.shouldWrap() {
 			f = saved
@@ -221,6 +224,16 @@ func (f *Formatter) parseToken() bool {
 
 	f.NextToken = f.getToken(f.TokenIndex)
 
+	
+	if f.Token.isLeftParenthesis() {
+		f.OpenParenthesis++
+	}
+
+	if f.Token.isRightParenthesis() {
+		f.OpenParenthesis--
+
+	}
+
 	if !f.Node().isDirective() {
 
 		if f.Token.isDefineDirective() {
@@ -259,8 +272,11 @@ func (f *Formatter) parseToken() bool {
 		f.popNode()
 	}
 
+
+	//fmt.Printf("%s open %d, initial %d\n",f.Token, f.OpenParenthesis, f.Node().InitialParenthesis)
+
 	if f.Node().Type == NodeTypeFuncOrMacro &&
-		f.Token.isRightParenthesis() {
+		f.Token.isRightParenthesis() && f.OpenParenthesis == f.Node().InitialParenthesis - 1{
 		f.popNode()
 	}
 	if f.Node().isDirective() &&
@@ -316,14 +332,6 @@ func (f *Formatter) parseToken() bool {
 		f.IsEndOfPragma = true
 	}
 
-	if f.Token.isLeftParenthesis() {
-		f.OpenParenthesis++
-	}
-
-	if f.Token.isRightParenthesis() {
-		f.OpenParenthesis--
-
-	}
 
 	if f.Token.isLeftBrace() {
 		f.OpenBraces++
@@ -646,6 +654,8 @@ func (f *Formatter) pushNode(t NodeType) {
 	//fmt.Println("Push ", node)
 
 	f.Nodes = append(f.Nodes, node)
+
+	f.OpenNodeCount[t]++
 }
 
 func (f *Formatter) popNode() {
@@ -661,7 +671,20 @@ func (f *Formatter) popNode() {
 
 	//fmt.Printf("pop node %s, token %s, indent %d\n", f.Node(), f.Token, f.Indent)
 
+	f.OpenNodeCount[f.Node().Type]--
+
 	f.Nodes = f.Nodes[:len(f.Nodes)-1]
+
+
+}
+
+
+func (f *Formatter) isInsideNode(nodeType NodeType) bool {
+	return f.OpenNodeCount[nodeType] > 0
+}
+
+func (f *Formatter) isInsideFuncOrMacro() bool {
+	return f.isInsideNode(NodeTypeFuncOrMacro)
 }
 
 func (f *Formatter) isNodeStart() bool {
