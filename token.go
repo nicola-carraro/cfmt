@@ -9,9 +9,10 @@ import (
 )
 
 type Token struct {
-	Type       TokenType
-	Content    string
-	Whitespace Whitespace
+	Type          TokenType
+	Content       string
+	Whitespace    Whitespace
+	DirectiveType DirectiveType
 }
 
 type TokenType uint32
@@ -29,6 +30,11 @@ const (
 	TokenTypeSingleLineComment
 	TokenTypeMultilineComment
 )
+
+type DirectiveName struct {
+	name          string
+	directiveType DirectiveType
+}
 
 type Whitespace struct {
 	HasSpace          bool
@@ -376,15 +382,25 @@ func parseMultilineComment(text string) Token {
 }
 
 func tryParseDirective(s string) (Token, bool) {
-	directives := [...]string{
-		"#define", "#elif", "#else", "#endif",
-		"#error", "#ifndef", "#ifdef", "#if",
-		"#import", "#include", "#line", "#pragma",
-		"#undef", "#using"}
+
+	directives := [...]DirectiveName{
+		{"#define", DirectiveTypeDefine},
+		{"#elif", DirectiveTypeElif}, {"#else", DirectiveTypeElse},
+		{"#endif", DirectiveTypeEndif},
+		{"#error", DirectiveTypeError},
+		{"#ifndef", DirectiveTypeIfndef},
+		{"#ifdef", DirectiveTypeIfdef},
+		{"#if", DirectiveTypeIf},
+		{"#include", DirectiveTypeInclude},
+		{"#include", DirectiveTypeInclude},
+		{"#pragma", DirectiveTypePragma},
+		{"#undef", DirectiveTypeUndef},
+		{"#undef", DirectiveTypeUndef},
+	}
 
 	for _, directive := range directives {
-		if strings.HasPrefix(s, directive) {
-			return Token{Type: TokenTypeDirective, Content: directive}, true
+		if strings.HasPrefix(s, directive.name) {
+			return Token{Type: TokenTypeDirective, Content: directive.name, DirectiveType: directive.directiveType}, true
 		}
 	}
 

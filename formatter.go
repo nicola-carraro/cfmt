@@ -72,6 +72,25 @@ const (
 	BlockTypeDoWhile
 )
 
+type DirectiveType int
+
+const (
+	DirectiveTypeNone DirectiveType = iota
+	DirectiveTypeDefine
+	DirectiveTypeError
+	DirectiveTypeIf
+	DirectiveTypeElif
+	DirectiveTypeElse
+	DirectiveTypeEndif
+	DirectiveTypeIfdef
+	DirectiveTypeIfndef
+	DirectiveTypeIfDef
+	DirectiveTypeUndef
+	DirectiveTypeInclude
+	DirectiveTypeLine
+	DirectiveTypePragma
+)
+
 type Node struct {
 	Type               NodeType
 	Id                 int
@@ -81,6 +100,7 @@ type Node struct {
 	InitialParenthesis int
 	InitialBraces      int
 	BlockType          BlockType
+	DirectiveType     DirectiveType
 }
 
 type StructUnionEnum struct {
@@ -93,7 +113,7 @@ func (f *Formatter) wrapping() bool {
 
 func (f *Formatter) shouldWrap() bool {
 	return f.OutputColumn > 80 ||
-	((f.Node().isInitialiserList() ||f.Node().isFunctionDef() || f.Node().isInvokation()) && (f.NextToken.isComment() || f.NextToken.isDirective()))
+		((f.Node().isInitialiserList() || f.Node().isFunctionDef() || f.Node().isInvokation()) && (f.NextToken.isComment() || f.NextToken.isDirective()))
 }
 
 func format(input string) string {
@@ -107,7 +127,7 @@ func format(input string) string {
 	for f.parseToken() {
 		f.formatToken()
 
-		if !f.Wrapping && f.shouldWrap(){
+		if !f.Wrapping && f.shouldWrap() {
 			f = saved
 			f.Wrapping = true
 			continue
@@ -567,7 +587,7 @@ func (f *Formatter) neverSpace() bool {
 		f.Token.isCharizingOp() ||
 		f.Token.isTokenPastingOp() ||
 		f.NextToken.isTokenPastingOp() ||
-		(f.IsIncludeDirective && ((f.NextToken.isGreaterThanSign()) || f.Token.isLessThanSign()))
+		(f.Node().DirectiveType == DirectiveTypeInclude && ((f.NextToken.isGreaterThanSign()) || f.Token.isLessThanSign()))
 }
 
 func (f *Formatter) alwaysOneLine() bool {
@@ -618,6 +638,10 @@ func (f *Formatter) pushNode(t NodeType) {
 		InitialParenthesis: f.OpenParenthesis,
 		InitialBraces:      f.OpenBraces,
 		BlockType:          blockType,
+	}
+
+	if t == NodeTypeMacroDef || t == NodeTypeOtherDirective{
+		node.DirectiveType = f.Token.DirectiveType
 	}
 
 	//fmt.Println("Push ", node)
