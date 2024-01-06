@@ -127,6 +127,8 @@ func format(input string) string {
 	for f.parseToken() {
 		f.formatToken()
 
+		//fmt.Printf("Token %s, indent %d\n", f.Token, f.Indent)
+
 		if !f.Wrapping && f.shouldWrap() {
 			f = saved
 			f.Wrapping = true
@@ -291,6 +293,7 @@ func (f *Formatter) parseToken() bool {
 
 			if f.NextToken.isRightBrace() || f.NextToken.isRightParenthesis() {
 				f.Indent--
+				//fmt.Println(f.Token)
 			}
 		}
 	}
@@ -644,6 +647,7 @@ func (f *Formatter) pushNode(t NodeType) {
 
 	if t == NodeTypeMacroDef || t == NodeTypeOtherDirective {
 		node.DirectiveType = f.Token.DirectiveType
+		f.Indent = 0
 	}
 
 	//fmt.Println("Push ", node)
