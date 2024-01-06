@@ -127,7 +127,7 @@ func format(input string) string {
 	for f.parseToken() {
 		f.formatToken()
 
-		//fmt.Printf("Token %s, indent %d\n", f.Token, f.Indent)
+		//fmt.Printf("Token %s, wrapping %t, wrapping node %s, is wrapping node %t\n", f.Token, f.Wrapping, f.WrappingNode, f.isWrappingNode())
 
 		if !f.Wrapping && f.shouldWrap() {
 			f = saved
@@ -135,7 +135,7 @@ func format(input string) string {
 			continue
 		}
 
-		if f.isBlockStart() || (!f.Node().isStructOrUnion() && f.Token.isSemicolon()) {
+		if f.isBlockStart() || ((!f.Node().isStructOrUnion() && !f.Node().isDirective()) && f.Token.isSemicolon()) {
 			f.Wrapping = false
 			f.WrappingNode = 0
 			saved = f
