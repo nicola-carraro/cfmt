@@ -266,6 +266,10 @@ func (f *Formatter) parseToken() bool {
 		f.Token.isRightParenthesis() {
 		f.popNode()
 	}
+		if f.Node().isDirective() &&
+		f.Token.hasUnescapedLines() {
+		f.popNode()
+	}
 
 	if f.Wrapping && f.WrappingStrategy == WrappingStrategyNone {
 		if f.isFunctionStart() {
@@ -295,15 +299,13 @@ func (f *Formatter) parseToken() bool {
 		f.Indent++
 
 	}
+	
 
 	if f.shouldDecreaseIndent() {
 		f.Indent--
 	}
 
-	if f.Node().isDirective() &&
-		f.Token.hasUnescapedLines() {
-		f.popNode()
-	}
+
 
 	if f.Token.Whitespace.HasUnescapedLines || f.NextToken.isAbsent() {
 		f.IsDirective = false
@@ -659,6 +661,8 @@ func (f *Formatter) popNode() {
 	if f.Node().isDirective() {
 		f.Indent = f.Node().InitialIndent
 	}
+
+	//fmt.Printf("pop node %s, token %s, indent %d\n", f.Node(), f.Token, f.Indent)
 
 	f.Nodes = f.Nodes[:len(f.Nodes)-1]
 }
