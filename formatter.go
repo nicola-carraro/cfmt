@@ -135,7 +135,6 @@ func format(input string) string {
 			continue
 		}
 
-
 		if f.alwaysOneLine() {
 			f.writeNewLines(1)
 		} else if f.isEndOfDirective() || f.alwaysDefaultLines() {
@@ -146,7 +145,6 @@ func format(input string) string {
 			f.writeString(" ")
 		}
 
-		
 		if f.isBlockStart() || ((!f.Node().isStructOrUnion() && !f.Node().isDirective()) && f.Token.isSemicolon()) {
 			f.Wrapping = false
 			f.WrappingNode = 0
@@ -601,6 +599,7 @@ func (f *Formatter) alwaysOneLine() bool {
 	return f.NextToken.isAbsent() ||
 		(f.Token.isComment() && (f.PreviousToken.hasNewLines() || f.PreviousToken.isAbsent())) ||
 		(f.afterInclude() && f.NextToken.isIncludeDirective()) ||
+		(f.afterPragma() && f.NextToken.isPragmaDirective()) ||
 		(f.IsEndOfPragma && f.NextToken.isPragmaDirective()) ||
 		(f.Node().isStructOrUnion() && f.Token.isSemicolon()) ||
 		((f.Node().isEnum()) && f.Token.isComma()) ||
@@ -611,7 +610,6 @@ func (f *Formatter) alwaysOneLine() bool {
 		(f.Wrapping && f.isWrappingNode() && f.isInvokationStart()) ||
 		(f.Wrapping && f.isWrappingNode() && f.Node().isFunctionDef() && f.NextToken.isRightParenthesis()) ||
 		(f.Wrapping && f.isWrappingNode() && f.Node().isInvokation() && f.NextToken.isRightParenthesis()) ||
-
 		(f.Wrapping && f.isWrappingNode() && f.isInvokationStart()) ||
 		f.isBlockStart() ||
 		(f.Wrapping && f.isWrappingNode() && f.Node().isInitialiserList() && f.NextToken.isRightBrace()) ||
@@ -698,6 +696,10 @@ func (f *Formatter) afterInclude() bool {
 	return f.LastPop.isIncludeDirective() && f.LastPop.LastToken == f.TokenIndex
 }
 
+func (f *Formatter) afterPragma() bool {
+	return f.LastPop.isPragmaDirective() && f.LastPop.LastToken == f.TokenIndex
+}
+
 func (t NodeType) String() string {
 	switch t {
 	case NodeTypeNone:
@@ -769,4 +771,8 @@ func (n Node) isFunctionDef() bool {
 
 func (n Node) isIncludeDirective() bool {
 	return n.Type == NodeTypeOtherDirective && n.DirectiveType == DirectiveTypeInclude
+}
+
+func (n Node) isPragmaDirective() bool {
+	return n.Type == NodeTypeOtherDirective && n.DirectiveType == DirectiveTypePragma
 }
