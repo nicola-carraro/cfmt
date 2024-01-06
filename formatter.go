@@ -32,7 +32,7 @@ type Formatter struct {
 	ForOpenParenthesis    int
 	Nodes                 []Node
 	LastNodeId            int
-	PreviousNode          Node
+	LastPop               Node
 	WrappingNode          int
 	OpenBraces            int
 	Wrapping              bool
@@ -100,7 +100,7 @@ type Node struct {
 	InitialParenthesis int
 	InitialBraces      int
 	BlockType          BlockType
-	DirectiveType     DirectiveType
+	DirectiveType      DirectiveType
 }
 
 type StructUnionEnum struct {
@@ -434,7 +434,7 @@ func (formatter *Formatter) twoLinesOrEof() {
 }
 
 func (f *Formatter) isEndOfDirective() bool {
-	return f.PreviousNode.isDirective() && f.PreviousNode.LastToken == f.TokenIndex
+	return f.LastPop.isDirective() && f.LastPop.LastToken == f.TokenIndex
 }
 
 func (formatter *Formatter) writeNewLines(lines int) {
@@ -594,7 +594,7 @@ func (f *Formatter) alwaysOneLine() bool {
 
 	return f.NextToken.isAbsent() ||
 		(f.Token.isComment() && (f.PreviousToken.hasNewLines() || f.PreviousToken.isAbsent())) ||
-		(f.IsEndOfInclude && f.NextToken.isIncludeDirective()) ||
+		(f.afterInclude() && f.NextToken.isIncludeDirective()) ||
 		(f.IsEndOfPragma && f.NextToken.isPragmaDirective()) ||
 		(f.Node().isStructOrUnion() && f.Token.isSemicolon()) ||
 		((f.Node().isEnum()) && f.Token.isComma()) ||
@@ -614,7 +614,7 @@ func (f *Formatter) alwaysDefaultLines() bool {
 		f.NextToken.isMultilineComment() ||
 		(f.Token.isSemicolon() && !f.IsForLoop && !f.hasTrailingComment()) ||
 		(f.Node().isDirective() && f.Token.hasEscapedLines()) ||
-		(f.afterEndOfBlock() && !(f.PreviousNode.BlockType == BlockTypeDoWhile))
+		(f.afterEndOfBlock() && !(f.LastPop.BlockType == BlockTypeDoWhile))
 }
 
 func (f *Formatter) Node() Node {
@@ -640,7 +640,7 @@ func (f *Formatter) pushNode(t NodeType) {
 		BlockType:          blockType,
 	}
 
-	if t == NodeTypeMacroDef || t == NodeTypeOtherDirective{
+	if t == NodeTypeMacroDef || t == NodeTypeOtherDirective {
 		node.DirectiveType = f.Token.DirectiveType
 	}
 
@@ -651,8 +651,8 @@ func (f *Formatter) pushNode(t NodeType) {
 
 func (f *Formatter) popNode() {
 
-	f.PreviousNode = f.Node()
-	f.PreviousNode.LastToken = f.TokenIndex
+	f.LastPop = f.Node()
+	f.LastPop.LastToken = f.TokenIndex
 	if f.WrappingNode == f.Node().Id {
 		f.WrappingNode = 0
 	}
@@ -668,7 +668,7 @@ func (f *Formatter) isNodeStart() bool {
 }
 
 func (f *Formatter) afterEndOfBlock() bool {
-	return f.PreviousNode.isBlock() && f.PreviousNode.LastToken == f.TokenIndex
+	return f.LastPop.isBlock() && f.LastPop.LastToken == f.TokenIndex
 }
 
 func (f *Formatter) isWrappingNode() bool {
@@ -677,6 +677,10 @@ func (f *Formatter) isWrappingNode() bool {
 
 func (f *Formatter) isTopLevelInNode() bool {
 	return f.OpenBraces == f.Node().InitialBraces && f.OpenParenthesis == f.Node().InitialParenthesis
+}
+
+func (f *Formatter) afterInclude() bool {
+	return f.LastPop.isIncludeDirective() && f.LastPop.LastToken == f.TokenIndex
 }
 
 func (t NodeType) String() string {
@@ -746,4 +750,8 @@ func (n Node) isInvokation() bool {
 
 func (n Node) isFunctionDef() bool {
 	return n.Type == NodeTypeFunctionDef
+}
+
+func (n Node) isIncludeDirective() bool {
+	return n.Type == NodeTypeOtherDirective && n.DirectiveType == DirectiveTypeInclude
 }
