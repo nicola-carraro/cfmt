@@ -47,13 +47,11 @@ const (
 	NodeTypeTopLevel
 	NodeTypeMacroDef
 	NodeTypeOtherDirective
-	NodeTypeFunctionDef
-	NodeTypeInvokation
+	NodeTypeFuncOrMacro
 	NodeTypeBlock
 	NodeTypeInitialiserList
 	NodeTypeStructOrUnion
 	NodeTypeEnum
-	NodeTypeOtherParenthesis
 )
 
 type WrappingStrategy int
@@ -113,7 +111,8 @@ func (f *Formatter) wrapping() bool {
 
 func (f *Formatter) shouldWrap() bool {
 	return f.OutputColumn > 80 ||
-		((f.Node().isInitialiserList() || f.Node().isFunctionDef() || f.Node().isInvokation()) && (f.NextToken.isComment() || f.NextToken.isDirective()))
+		((f.Node().isInitialiserList() || f.Node().isFuncOrMacro() ) &&
+			(f.NextToken.isComment() || f.NextToken.isDirective() || f.isBlockStart()))
 }
 
 func format(input string) string {
@@ -127,7 +126,7 @@ func format(input string) string {
 	for f.parseToken() {
 		f.formatToken()
 
-		//fmt.Printf("Token %s, wrapping %t, wrapping node %s, is wrapping node %t\n", f.Token, f.Wrapping, f.WrappingNode, f.isWrappingNode())
+	//	fmt.Printf("Token %s, node %s, is wrapping node %t\n", f.Token, f.Node(), f.isWrappingNode())
 
 		if !f.Wrapping && f.shouldWrap() {
 			f = saved
@@ -231,13 +230,11 @@ func (f *Formatter) parseToken() bool {
 
 		} else if f.startsFunctionArguments() {
 			if f.IsDirective {
-				f.pushNode(NodeTypeInvokation)
+				f.pushNode(NodeTypeFuncOrMacro)
 
 			} else {
-				f.pushNode(NodeTypeFunctionDef)
+				f.pushNode(NodeTypeFuncOrMacro)
 			}
-		} else if f.Token.isLeftParenthesis() {
-			f.pushNode(NodeTypeOtherParenthesis)
 		} else if f.Token.isLeftBrace() {
 			if f.PreviousToken.isAssignment() || f.Node().isInitialiserList() {
 				f.pushNode(NodeTypeInitialiserList)
@@ -262,14 +259,12 @@ func (f *Formatter) parseToken() bool {
 		f.popNode()
 	}
 
-	if (f.Node().Type == NodeTypeInvokation ||
-		f.Node().Type == NodeTypeFunctionDef ||
-		f.Node().Type == NodeTypeOtherParenthesis) &&
+	if f.Node().Type == NodeTypeFuncOrMacro &&
 		f.Token.isRightParenthesis() {
 		f.popNode()
 	}
 	if f.Node().isDirective() &&
-		f.Token.hasUnescapedLines() {
+		(f.Token.hasUnescapedLines() || f.NextToken.isAbsent()) {
 		f.popNode()
 	}
 
@@ -352,14 +347,13 @@ func (f *Formatter) parseToken() bool {
 
 func (f *Formatter) shouldIncreaseIndent() bool {
 	return ((f.Node().isStructOrUnion() || f.Node().isBlock() || f.Node().isEnum()) && f.isNodeStart()) ||
-		(f.isWrappingNode() && (f.isInitialiserListStart() || f.isInvokationStart() || f.isFunctionDefStart()))
+		(f.isWrappingNode() && (f.isInitialiserListStart() || f.isFuncOrMacroStart()))
 }
 
 func (f *Formatter) shouldDecreaseIndent() bool {
 	return ((f.Node().isStructOrUnion() || f.Node().isBlock() || f.Node().isEnum()) && f.NextToken.isRightBrace()) ||
 		(f.Wrapping && f.isWrappingNode() && f.Node().isInitialiserList() && f.NextToken.isRightBrace()) ||
-		(f.Wrapping && f.isWrappingNode() && f.Node().isFunctionDef() && f.NextToken.isRightParenthesis()) ||
-		(f.Wrapping && f.isWrappingNode() && f.Node().isInvokation() && f.NextToken.isRightParenthesis())
+		(f.Wrapping && f.isWrappingNode() && f.Node().isFuncOrMacro() && f.NextToken.isRightParenthesis())
 }
 
 func (f *Formatter) skipSpaceAndCountNewLines() Whitespace {
@@ -467,9 +461,9 @@ func (f *Formatter) writeDefaultLines() {
 	switch f.Node().Type {
 	case NodeTypeTopLevel:
 		f.twoLinesOrEof()
-	case NodeTypeMacroDef, NodeTypeInvokation, NodeTypeInitialiserList, NodeTypeStructOrUnion, NodeTypeEnum:
+	case NodeTypeMacroDef, NodeTypeFuncOrMacro, NodeTypeInitialiserList, NodeTypeStructOrUnion, NodeTypeEnum:
 		f.writeNewLines(1)
-	case NodeTypeFunctionDef, NodeTypeBlock:
+	case  NodeTypeBlock:
 		f.oneOrTwoLines()
 	default:
 		panic("unreacheable")
@@ -550,13 +544,10 @@ func (f *Formatter) isInitialiserListStart() bool {
 	return f.Node().isInitialiserList() && f.isNodeStart()
 }
 
-func (f *Formatter) isInvokationStart() bool {
-	return f.Node().isInvokation() && f.isNodeStart()
+func (f *Formatter) isFuncOrMacroStart() bool {
+	return f.Node().isFuncOrMacro() && f.isNodeStart()
 }
 
-func (f *Formatter) isFunctionDefStart() bool {
-	return f.Node().isFunctionDef() && f.isNodeStart()
-}
 
 func (f *Formatter) isFunctionName() bool {
 	return f.Token.Type == TokenTypeIdentifier && f.NextToken.isLeftParenthesis() && (!f.IsDirective || !f.Token.Whitespace.HasSpace)
@@ -606,11 +597,8 @@ func (f *Formatter) alwaysOneLine() bool {
 		((f.Node().isStructOrUnion() || f.Node().isBlock() || f.Node().isEnum()) && (f.isNodeStart() || f.NextToken.isRightBrace())) ||
 		(f.Wrapping && f.isWrappingNode() && f.WrappingStrategy == WrappingStrategyComma && f.Token.isComma()) ||
 		(f.Wrapping && f.isWrappingNode() && f.isInitialiserListStart()) ||
-		(f.Wrapping && f.isWrappingNode() && f.isFunctionDefStart()) ||
-		(f.Wrapping && f.isWrappingNode() && f.isInvokationStart()) ||
-		(f.Wrapping && f.isWrappingNode() && f.Node().isFunctionDef() && f.NextToken.isRightParenthesis()) ||
-		(f.Wrapping && f.isWrappingNode() && f.Node().isInvokation() && f.NextToken.isRightParenthesis()) ||
-		(f.Wrapping && f.isWrappingNode() && f.isInvokationStart()) ||
+		(f.Wrapping && f.isWrappingNode() && f.isFuncOrMacroStart()) ||
+		(f.Wrapping && f.isWrappingNode() && f.Node().isFuncOrMacro() && f.NextToken.isRightParenthesis()) ||
 		f.isBlockStart() ||
 		(f.Wrapping && f.isWrappingNode() && f.Node().isInitialiserList() && f.NextToken.isRightBrace()) ||
 		(f.WrappingStrategy == WrappingStrategyLineBreakAfterComma && f.Token.isComma() && f.Token.hasNewLines())
@@ -711,11 +699,8 @@ func (t NodeType) String() string {
 	case NodeTypeOtherDirective:
 		return "NodeTypeOtherDirective"
 	case
-		NodeTypeFunctionDef:
-		return "NodeTypeFunctionDef"
-	case
-		NodeTypeInvokation:
-		return "NodeTypeInvokation"
+		NodeTypeFuncOrMacro:
+		return "NodeTypeFuncOrMacro"
 	case NodeTypeBlock:
 		return "NodeTypeBlock"
 	case NodeTypeInitialiserList:
@@ -725,8 +710,9 @@ func (t NodeType) String() string {
 	case NodeTypeEnum:
 		return "NodeTypeEnum"
 	default:
-		panic("Unexpected node type")
+		panic(fmt.Sprintf("Unexpected node type %d", t))
 	}
+
 }
 
 func (n Node) String() string {
@@ -761,12 +747,8 @@ func (n Node) isInitialiserList() bool {
 	return n.Type == NodeTypeInitialiserList
 }
 
-func (n Node) isInvokation() bool {
-	return n.Type == NodeTypeInvokation
-}
-
-func (n Node) isFunctionDef() bool {
-	return n.Type == NodeTypeFunctionDef
+func (n Node) isFuncOrMacro()bool{
+	return n.Type == NodeTypeFuncOrMacro
 }
 
 func (n Node) isIncludeDirective() bool {
