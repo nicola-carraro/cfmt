@@ -126,15 +126,16 @@ func format(input string) string {
 
 	saved := f
 
+	savedNodes := slices.Clone(f.Nodes)
+
 	for f.parseToken() {
 		f.formatToken()
 
-		//fmt.Printf("%s, right side %t, open %d, initial %d \n", f.Token, f.Node().RightSideOfAssignment, f.OpenBraces, f.Node().InitialBraces)
-
+		//fmt.Printf("%s %t\n", f.Token, f.isRightSideOfAssignment())
 		if !f.Wrapping && f.shouldWrap() {
 			f = saved
 			f.Wrapping = true
-			f.Node().RightSideOfAssignment = false
+			f.Nodes = slices.Clone(savedNodes)
 			continue
 		}
 
@@ -153,6 +154,7 @@ func format(input string) string {
 				f.Wrapping = false
 				f.WrappingNode = 0
 				saved = f
+				savedNodes = slices.Clone(f.Nodes)
 			}
 		}
 
@@ -279,14 +281,14 @@ func (f *Formatter) parseToken() bool {
 	}
 
 	if f.Wrapping && f.WrappingStrategy == WrappingStrategyNone {
-		fmt.Println(f.Token, " ", f.isInitialiserListStart(), " ", f.isRightSideOfAssignment())
 		if f.isFunctionStart() && !f.isRightSideOfAssignment() {
 			f.WrappingStrategy = WrappingStrategyComma
 			f.WrappingNode = f.Node().Id
-		}else if f.isInitialiserListStart() {
+			//fmt.Println(f.Node(), " ", f.Token)
+		} else if f.isInitialiserListStart() {
 			f.WrappingStrategy = WrappingStrategyLineBreakAfterComma
 			f.WrappingNode = f.Node().Id
-		}else if (f.Node().isTopLevel() || f.Node().isBlock()) && f.Node().RightSideOfAssignment{
+		} else if (f.Node().isTopLevel() || f.Node().isBlock()) && f.Node().RightSideOfAssignment {
 			f.WrappingStrategy = WrappingStrategyLineBreak
 			f.WrappingNode = f.Node().Id
 		}
@@ -604,8 +606,8 @@ func (f *Formatter) alwaysOneLine() bool {
 		(f.Wrapping && f.isWrappingNode() && f.beforeEndOfFuncOrMacro()) ||
 		f.isBlockStart() ||
 		(f.Wrapping && f.isWrappingNode() && f.Node().isInitialiserList() && f.NextToken.isRightBrace()) ||
-		(f.WrappingStrategy == WrappingStrategyLineBreakAfterComma && f.Token.isComma() && f.Token.hasNewLines())||
-		(f.WrappingStrategy == WrappingStrategyLineBreak && f.Token.hasNewLines())
+		(f.Wrapping && f.isWrappingNode() && f.WrappingStrategy == WrappingStrategyLineBreakAfterComma && f.Token.isComma() && f.Token.hasNewLines()) ||
+		(f.Wrapping && f.isWrappingNode()  && f.WrappingStrategy == WrappingStrategyLineBreak && f.Token.hasNewLines())
 
 }
 
@@ -621,7 +623,7 @@ func (f *Formatter) alwaysDefaultLines() bool {
 
 func (f *Formatter) Node() *Node {
 
-	if len(f.Nodes) == 0{
+	if len(f.Nodes) == 0 {
 		return &Node{}
 	}
 	return &f.Nodes[len(f.Nodes)-1]
@@ -659,7 +661,7 @@ func (f *Formatter) pushNode(t NodeType) {
 		f.Indent = 0
 	}
 
-	fmt.Printf("Push %s %s\n", node, f.Token)
+	//fmt.Printf("Push %s %s\n", node, f.Token)
 
 	f.Nodes = append(f.Nodes, node)
 
@@ -677,7 +679,7 @@ func (f *Formatter) popNode() {
 		f.Indent = f.Node().InitialIndent
 	}
 
-	fmt.Printf("Pop %s %s\n", f.Node(), f.Token)
+	//fmt.Printf("Pop %s %s\n", f.Node(), f.Token)
 
 	f.OpenNodeCount[f.Node().Type]--
 
@@ -724,7 +726,7 @@ func (f *Formatter) beforeEndOfFuncOrMacro() bool {
 func (f *Formatter) isRightSideOfAssignment() bool {
 	for _, node := range f.Nodes {
 		if node.RightSideOfAssignment {
-			fmt.Printf("RIGHT SIDE %s\n", node)
+			//fmt.Printf("RIGHT SIDE %s\n", node)
 			return true
 		}
 	}
