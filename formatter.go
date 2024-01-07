@@ -143,7 +143,11 @@ func format(input string) string {
 			f.writeNewLines(1)
 		} else if f.isEndOfDirective() || f.alwaysDefaultLines() {
 			f.writeDefaultLines()
-		} else if !f.neverSpace() &&
+		} else if f.indentedWrapping(){
+			f.Indent++
+			f.writeNewLines(1)
+			f.Indent --
+		}else if !f.neverSpace() &&
 			!f.NextToken.isRightBrace() &&
 			!f.Token.isLeftBrace() {
 			f.writeString(" ")
@@ -353,7 +357,7 @@ func (f *Formatter) parseToken() bool {
 
 func (f *Formatter) shouldIncreaseIndent() bool {
 	return ((f.Node().isStructOrUnion() || f.Node().isBlock() || f.Node().isEnum()) && f.isNodeStart()) ||
-		(f.isWrappingNode() && (f.isInitialiserListStart() || f.isFuncOrMacroStart()))
+		(f.Wrapping && f.isWrappingNode() && (f.isInitialiserListStart() || f.isFuncOrMacroStart())) 
 }
 
 func (f *Formatter) shouldDecreaseIndent() bool {
@@ -606,9 +610,13 @@ func (f *Formatter) alwaysOneLine() bool {
 		(f.Wrapping && f.isWrappingNode() && f.beforeEndOfFuncOrMacro()) ||
 		f.isBlockStart() ||
 		(f.Wrapping && f.isWrappingNode() && f.Node().isInitialiserList() && f.NextToken.isRightBrace()) ||
-		(f.Wrapping && f.isWrappingNode() && f.WrappingStrategy == WrappingStrategyLineBreakAfterComma && f.Token.isComma() && f.Token.hasNewLines()) ||
-		(f.Wrapping && f.isWrappingNode()  && f.WrappingStrategy == WrappingStrategyLineBreak && f.Token.hasNewLines())
+		(f.Wrapping && f.isWrappingNode() && f.WrappingStrategy == WrappingStrategyLineBreakAfterComma && f.Token.isComma() && f.Token.hasNewLines())
+		
 
+}
+
+func(f *Formatter) indentedWrapping()bool{
+	return (f.Wrapping && f.isWrappingNode()  && (f.Node().isBlock() || f.Node().isTopLevel()) && f.WrappingStrategy == WrappingStrategyLineBreak && f.Token.hasNewLines())
 }
 
 func (f *Formatter) alwaysDefaultLines() bool {
