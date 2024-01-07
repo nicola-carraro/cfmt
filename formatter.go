@@ -36,8 +36,7 @@ type NodeType int
 const (
 	NodeTypeNone NodeType = iota
 	NodeTypeTopLevel
-	NodeTypeMacroDef
-	NodeTypeOtherDirective
+	NodeTypeDirective
 	NodeTypeFuncOrMacro
 	NodeTypeBlock
 	NodeTypeInitialiserList
@@ -209,12 +208,9 @@ func (f *Formatter) nextToken() bool {
 
 	if !f.Node().isDirective() {
 
-		if f.Token.isDefineDirective() {
-			f.pushNode(NodeTypeMacroDef)
-		} else if f.Token.isDirective() {
-			f.pushNode(NodeTypeOtherDirective)
-
-		} else if f.startsFunctionArguments() {
+		if f.Token.isDirective() {
+			f.pushNode(NodeTypeDirective)
+		}  else if f.startsFunctionArguments() {
 			f.pushNode(NodeTypeFuncOrMacro)
 
 		} else if f.Token.isLeftParenthesis() && f.PreviousToken.isFor() {
@@ -407,7 +403,7 @@ func (f *Formatter) writeDefaultLines() {
 	switch f.Node().Type {
 	case NodeTypeTopLevel:
 		f.twoLinesOrEof()
-	case NodeTypeMacroDef, NodeTypeFuncOrMacro, NodeTypeInitialiserList, NodeTypeStructOrUnion, NodeTypeEnum, NodeTypeForLoopParenthesis:
+	case NodeTypeDirective, NodeTypeFuncOrMacro, NodeTypeInitialiserList, NodeTypeStructOrUnion, NodeTypeEnum, NodeTypeForLoopParenthesis:
 		f.writeNewLines(1)
 	case NodeTypeBlock:
 		f.oneOrTwoLines()
@@ -606,7 +602,7 @@ func (f *Formatter) pushNode(t NodeType) {
 		BlockType:          blockType,
 	}
 
-	if t == NodeTypeMacroDef || t == NodeTypeOtherDirective {
+	if t == NodeTypeDirective {
 		node.DirectiveType = f.Token.DirectiveType
 		f.Indent = 0
 	}
@@ -711,10 +707,8 @@ func (t NodeType) String() string {
 		return "NodeTypeNone"
 	case NodeTypeTopLevel:
 		return "NodeTypeTopLevel"
-	case NodeTypeMacroDef:
-		return "NodeTypeMacroDef"
-	case NodeTypeOtherDirective:
-		return "NodeTypeOtherDirective"
+	case NodeTypeDirective:
+		return "NodeTypeDirective"
 	case
 		NodeTypeFuncOrMacro:
 		return "NodeTypeFuncOrMacro"
@@ -743,7 +737,7 @@ func (n Node) isTopLevel() bool {
 }
 
 func (n Node) isDirective() bool {
-	return n.Type == NodeTypeMacroDef || n.Type == NodeTypeOtherDirective
+	return n.Type == NodeTypeDirective
 }
 
 func (n Node) isStructOrUnion() bool {
@@ -775,9 +769,9 @@ func (n Node) isForLoopParenthesis() bool {
 }
 
 func (n Node) isIncludeDirective() bool {
-	return n.Type == NodeTypeOtherDirective && n.DirectiveType == DirectiveTypeInclude
+	return n.Type == NodeTypeDirective && n.DirectiveType == DirectiveTypeInclude
 }
 
 func (n Node) isPragmaDirective() bool {
-	return n.Type == NodeTypeOtherDirective && n.DirectiveType == DirectiveTypePragma
+	return n.Type == NodeTypeDirective  && n.DirectiveType == DirectiveTypePragma
 }
