@@ -1074,7 +1074,13 @@ func TestFunctionDecl(t *testing.T) {
 
 	input = `bool c8_read_entire_file(const char *path, 
 		C8_Arena *arena, C8_File *read_result) {}`
-	expected = "bool c8_read_entire_file(const char *path, C8_Arena *arena, C8_File *read_result) {\n}\n"
+	expected = `bool c8_read_entire_file(
+    const char *path,
+    C8_Arena *arena,
+    C8_File *read_result
+) {
+}
+`
 	_testFormat(t, input, expected)
 
 	input = "bool foo(int a, int b, int c, int d, int e) {\n}\n"
@@ -1107,7 +1113,12 @@ LRESULT CALLBACK WindowProc(HWND window, UINT msg, WPARAM wparam, LPARAM lparam)
 	expected = `{
 }
 
-LRESULT CALLBACK WindowProc(HWND window, UINT msg, WPARAM wparam, LPARAM lparam) {
+LRESULT CALLBACK WindowProc(
+    HWND window,
+    UINT msg,
+    WPARAM wparam,
+    LPARAM lparam
+) {
 }
 `
 	_testFormat(t, input, expected)
