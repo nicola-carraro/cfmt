@@ -30,7 +30,6 @@ type Formatter struct {
 	OpenBraces          int
 	Wrapping            bool
 	Tokens              *[]Token
-	WrappingStrategy    WrappingStrategy
 	OpenNodeCount       [15]int
 }
 
@@ -46,15 +45,6 @@ const (
 	NodeTypeInitialiserList
 	NodeTypeStructOrUnion
 	NodeTypeEnum
-)
-
-type WrappingStrategy int
-
-const (
-	WrappingStrategyNone WrappingStrategy = iota
-	WrappingStrategyComma
-	WrappingStrategyLineBreak
-	WrappingStrategyLineBreakAfterComma
 )
 
 type BlockType int
@@ -129,7 +119,6 @@ func format(input string) string {
 			f = saved
 			f.Wrapping = true
 			f.Nodes = slices.Clone(savedNodes)
-			f.WrappingStrategy = WrappingStrategyNone
 			continue
 		}
 
@@ -151,7 +140,6 @@ func format(input string) string {
 			if (f.isBlockStart()) || ((!f.Node().isStructOrUnion() && !f.Node().isDirective()) && f.Token.isSemicolon()) {
 				f.Wrapping = false
 				f.WrappingNode = 0
-				f.WrappingStrategy = WrappingStrategyNone
 				saved = f
 				savedNodes = slices.Clone(f.Nodes)
 			}
@@ -267,15 +255,12 @@ func (f *Formatter) parseToken() bool {
 		f.popNode()
 	}
 
-	if f.Wrapping && f.WrappingStrategy == WrappingStrategyNone {
+	if f.Wrapping && f.WrappingNode == 0 {
 		if f.isFunctionStart() && (!f.isRightSideOfAssignment() || f.functionIsEntireRightSide()) {
-			f.WrappingStrategy = WrappingStrategyComma
 			f.WrappingNode = f.Node().Id
 		} else if f.isInitialiserListStart() {
-			f.WrappingStrategy = WrappingStrategyLineBreakAfterComma
 			f.WrappingNode = f.Node().Id
 		} else if (f.Node().isTopLevel() || f.Node().isBlock()) && f.Node().RightSideOfAssignment && !f.isFunctionName() {
-			f.WrappingStrategy = WrappingStrategyLineBreak
 			f.WrappingNode = f.Node().Id
 		}
 	}
@@ -556,6 +541,15 @@ func (f *Formatter) neverSpace() bool {
 		(f.Node().DirectiveType == DirectiveTypeInclude && ((f.NextToken.isGreaterThanSign()) || f.Token.isLessThanSign()))
 }
 
+func (f *Formatter) wrappingStrategyComma() bool {
+	return f.Node().isFuncOrMacro()
+}
+
+func (f *Formatter) wrappingStrategyLineBreakAfterComma() bool {
+	return f.Node().isInitialiserList()
+}
+
+
 func (f *Formatter) alwaysOneLine() bool {
 
 	return f.NextToken.isAbsent() ||
@@ -566,18 +560,17 @@ func (f *Formatter) alwaysOneLine() bool {
 		(f.Node().isStructOrUnion() && f.Token.isSemicolon()) ||
 		((f.Node().isEnum()) && f.Token.isComma()) ||
 		((f.Node().isStructOrUnion() || f.Node().isBlock() || f.Node().isEnum()) && (f.isNodeStart() || f.NextToken.isRightBrace())) ||
-		(f.Wrapping && f.isWrappingNode() && f.WrappingStrategy == WrappingStrategyComma && f.Token.isComma()) ||
+		(f.Wrapping && f.isWrappingNode() && f. wrappingStrategyComma() && f.Token.isComma()) ||
 		(f.Wrapping && f.isWrappingNode() && f.isInitialiserListStart()) ||
 		(f.Wrapping && f.isWrappingNode() && f.isFuncOrMacroStart()) ||
 		(f.Wrapping && f.isWrappingNode() && f.beforeEndOfFuncOrMacro()) ||
 		f.isBlockStart() ||
 		(f.Wrapping && f.isWrappingNode() && f.Node().isInitialiserList() && f.NextToken.isRightBrace()) ||
-		(f.Wrapping && f.isWrappingNode() && f.WrappingStrategy == WrappingStrategyLineBreakAfterComma && f.Token.isComma() && f.Token.hasNewLines())
-
+		(f.Wrapping && f.isWrappingNode() && f.wrappingStrategyLineBreakAfterComma() && f.Token.isComma() && f.Token.hasNewLines())
 }
 
 func (f *Formatter) indentedWrapping() bool {
-	return (f.Wrapping && f.isWrappingNode() && (f.Node().isBlock() || f.Node().isTopLevel()) && f.WrappingStrategy == WrappingStrategyLineBreak && f.Token.hasNewLines())
+	return (f.Wrapping && f.isWrappingNode() && (f.Node().isBlock() || f.Node().isTopLevel()) && f.Token.hasNewLines())
 }
 
 func (f *Formatter) alwaysDefaultLines() bool {
