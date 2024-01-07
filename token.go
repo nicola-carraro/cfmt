@@ -21,10 +21,7 @@ const (
 	TokenTypeNone TokenType = iota
 	TokenTypeKeyword
 	TokenTypeIdentifier
-	TokenTypeInteger
-	TokenTypeFloat
-	TokenTypeChar
-	TokenTypeString
+	TokenTypeConstant
 	TokenTypePunctuation
 	TokenTypeDirective
 	TokenTypeSingleLineComment
@@ -220,7 +217,7 @@ func parseString(text string) Token {
 		tokenSize += size
 		next = next[size:]
 		if r == '"' {
-			token := Token{Type: TokenTypeString, Content: text[:tokenSize]}
+			token := Token{Type: TokenTypeConstant, Content: text[:tokenSize]}
 			return token
 		} else if r == '\\' {
 			_, size := peakRune(next)
@@ -241,7 +238,7 @@ func parseChar(text string) Token {
 		tokenSize += size
 		next = next[size:]
 		if r == '\'' {
-			token := Token{Type: TokenTypeChar, Content: text[:tokenSize]}
+			token := Token{Type: TokenTypeConstant, Content: text[:tokenSize]}
 			return token
 		} else if r == '\\' {
 			_, size := peakRune(next)
@@ -324,7 +321,7 @@ func tryParseFloat(text string) (Token, bool) {
 		tokenSize += size
 	}
 
-	token := Token{Type: TokenTypeFloat, Content: text[:tokenSize]}
+	token := Token{Type: TokenTypeConstant, Content: text[:tokenSize]}
 
 	return token, true
 
@@ -357,7 +354,7 @@ func parseInt(text string, prefixLen int, isDigit IsDigitFunction) Token {
 
 	tokenSize += suffixLength(next)
 
-	return Token{Type: TokenTypeInteger, Content: text[:tokenSize]}
+	return Token{Type: TokenTypeConstant, Content: text[:tokenSize]}
 }
 
 func parseMultilineComment(text string) Token {
@@ -621,10 +618,7 @@ func (t Token) isSemicolon() bool {
 
 func (t Token) canBeLeftOperand() bool {
 	return t.Type == TokenTypeIdentifier ||
-		t.Type == TokenTypeString ||
-		t.Type == TokenTypeInteger ||
-		t.Type == TokenTypeFloat ||
-		t.Type == TokenTypeChar ||
+		t.Type == TokenTypeConstant ||
 		(t.Type == TokenTypePunctuation && t.Content == ")")
 }
 
@@ -729,27 +723,21 @@ func (t Token) hasUnescapedLines() bool {
 func (t TokenType) String() string {
 	switch t {
 	case TokenTypeNone:
-		return "None"
+		return "TokenTypeNone"
 	case TokenTypeIdentifier:
-		return "Identifier"
+		return "TokenTypeIdentifier"
 	case TokenTypeKeyword:
-		return "Keyword"
-	case TokenTypeInteger:
-		return "Integer"
-	case TokenTypeFloat:
-		return "Float"
-	case TokenTypeChar:
-		return "Char"
-	case TokenTypeString:
-		return "String"
+		return "TokenTypeKeyword"
+	case TokenTypeConstant:
+		return "TokenTypeConstant"
 	case TokenTypePunctuation:
-		return "Punctuation"
+		return "TokenTypePunctuation"
 	case TokenTypeDirective:
-		return "Directive"
+		return "TokenTypeDirective"
 	case TokenTypeSingleLineComment:
-		return "SingleLineComment"
+		return "TokenTypeSingleLineComment"
 	case TokenTypeMultilineComment:
-		return "MultilineComment"
+		return "TokenTypeMultilineComment"
 	default:
 		panic("Invalid TokenType")
 	}

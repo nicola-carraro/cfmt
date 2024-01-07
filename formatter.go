@@ -210,7 +210,7 @@ func (f *Formatter) nextToken() bool {
 
 		if f.Token.isDirective() {
 			f.pushNode(NodeTypeDirective)
-		}  else if f.startsFunctionArguments() {
+		} else if f.startsFunctionArguments() {
 			f.pushNode(NodeTypeFuncOrMacro)
 
 		} else if f.Token.isLeftParenthesis() && f.PreviousToken.isFor() {
@@ -773,5 +773,5 @@ func (n Node) isIncludeDirective() bool {
 }
 
 func (n Node) isPragmaDirective() bool {
-	return n.Type == NodeTypeDirective  && n.DirectiveType == DirectiveTypePragma
+	return n.Type == NodeTypeDirective && n.DirectiveType == DirectiveTypePragma
 }
