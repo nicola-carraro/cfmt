@@ -21,8 +21,6 @@ type Formatter struct {
 	OpenParenthesis     int
 	AcceptStructOrUnion bool
 	AcceptEnum          bool
-	IsForLoop           bool
-	ForOpenParenthesis  int
 	Nodes               []Node
 	LastNodeId          int
 	LastPop             Node
@@ -45,6 +43,7 @@ const (
 	NodeTypeInitialiserList
 	NodeTypeStructOrUnion
 	NodeTypeEnum
+	NodeTypeForLoopParenthesis
 )
 
 type BlockType int
@@ -222,6 +221,9 @@ func (f *Formatter) parseToken() bool {
 		} else if f.startsFunctionArguments() {
 			f.pushNode(NodeTypeFuncOrMacro)
 
+		} else if f.Token.isLeftParenthesis() && f.PreviousToken.isFor() {
+			f.pushNode(NodeTypeForLoopParenthesis)
+
 		} else if f.Token.isLeftBrace() {
 			if f.PreviousToken.isAssignment() || f.Node().isInitialiserList() {
 				f.pushNode(NodeTypeInitialiserList)
@@ -246,7 +248,7 @@ func (f *Formatter) parseToken() bool {
 		f.popNode()
 	}
 
-	if f.Node().Type == NodeTypeFuncOrMacro &&
+	if (f.Node().isFuncOrMacro() || f.Node().isForLoopParenthesis()) &&
 		f.Token.isRightParenthesis() && f.OpenParenthesis == (f.Node().InitialParenthesis) {
 		f.popNode()
 	}
@@ -289,19 +291,10 @@ func (f *Formatter) parseToken() bool {
 
 	if f.shouldIncreaseIndent() {
 		f.Indent++
-
 	}
 
 	if f.shouldDecreaseIndent() {
 		f.Indent--
-	}
-
-	if f.Token.isFor() && f.NextToken.isLeftParenthesis() {
-		f.IsForLoop = true
-		f.ForOpenParenthesis = f.OpenParenthesis
-	} else if f.ForOpenParenthesis == f.OpenParenthesis {
-		f.IsForLoop = false
-		f.ForOpenParenthesis = 0
 	}
 
 	return !f.Token.isAbsent()
@@ -418,7 +411,7 @@ func (f *Formatter) writeDefaultLines() {
 	switch f.Node().Type {
 	case NodeTypeTopLevel:
 		f.twoLinesOrEof()
-	case NodeTypeMacroDef, NodeTypeFuncOrMacro, NodeTypeInitialiserList, NodeTypeStructOrUnion, NodeTypeEnum:
+	case NodeTypeMacroDef, NodeTypeFuncOrMacro, NodeTypeInitialiserList, NodeTypeStructOrUnion, NodeTypeEnum, NodeTypeForLoopParenthesis:
 		f.writeNewLines(1)
 	case NodeTypeBlock:
 		f.oneOrTwoLines()
@@ -549,7 +542,6 @@ func (f *Formatter) wrappingStrategyLineBreakAfterComma() bool {
 	return f.Node().isInitialiserList()
 }
 
-
 func (f *Formatter) alwaysOneLine() bool {
 
 	return f.NextToken.isAbsent() ||
@@ -560,7 +552,7 @@ func (f *Formatter) alwaysOneLine() bool {
 		(f.Node().isStructOrUnion() && f.Token.isSemicolon()) ||
 		((f.Node().isEnum()) && f.Token.isComma()) ||
 		((f.Node().isStructOrUnion() || f.Node().isBlock() || f.Node().isEnum()) && (f.isNodeStart() || f.NextToken.isRightBrace())) ||
-		(f.Wrapping && f.isWrappingNode() && f. wrappingStrategyComma() && f.Token.isComma()) ||
+		(f.Wrapping && f.isWrappingNode() && f.wrappingStrategyComma() && f.Token.isComma()) ||
 		(f.Wrapping && f.isWrappingNode() && f.isInitialiserListStart()) ||
 		(f.Wrapping && f.isWrappingNode() && f.isFuncOrMacroStart()) ||
 		(f.Wrapping && f.isWrappingNode() && f.beforeEndOfFuncOrMacro()) ||
@@ -578,7 +570,7 @@ func (f *Formatter) alwaysDefaultLines() bool {
 		f.isEndOfDirective() ||
 		(f.Token.isComment() && !f.PreviousToken.hasNewLines() && !f.PreviousToken.isAbsent()) ||
 		f.NextToken.isMultilineComment() ||
-		(f.Token.isSemicolon() && !f.IsForLoop && !f.hasTrailingComment()) ||
+		(f.Token.isSemicolon() && !f.Node().isForLoopParenthesis() && !f.hasTrailingComment()) ||
 		(f.Node().isDirective() && f.Token.hasEscapedLines()) ||
 		(f.afterEndOfBlock() && !(f.LastPop.BlockType == BlockTypeDoWhile))
 }
@@ -738,6 +730,8 @@ func (t NodeType) String() string {
 		return "NodeTypeStructOrUnion"
 	case NodeTypeEnum:
 		return "NodeTypeEnum"
+	case NodeTypeForLoopParenthesis:
+		return "NodeTypeForLoopParenthesis"
 	default:
 		panic(fmt.Sprintf("Unexpected node type %d", t))
 	}
@@ -778,6 +772,10 @@ func (n Node) isInitialiserList() bool {
 
 func (n Node) isFuncOrMacro() bool {
 	return n.Type == NodeTypeFuncOrMacro
+}
+
+func (n Node) isForLoopParenthesis() bool {
+	return n.Type == NodeTypeForLoopParenthesis
 }
 
 func (n Node) isIncludeDirective() bool {
