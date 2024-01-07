@@ -1183,7 +1183,15 @@ func TestFormatFunctionCall(t *testing.T) {
 	input = `{int c = foo(
 		foo(1, 2), foo(3, 4), foo(5, 6), foo(5, 6), foo(5, 6), foo(5, 6), foo(5, 6) );}`
 	expected = `{
-    int c = foo(foo(1, 2), foo(3, 4), foo(5, 6), foo(5, 6), foo(5, 6), foo(5, 6), foo(5, 6));
+    int c = foo(
+        foo(1, 2),
+        foo(3, 4),
+        foo(5, 6),
+        foo(5, 6),
+        foo(5, 6),
+        foo(5, 6),
+        foo(5, 6)
+    );
 }
 `
 	_testFormat(t, input, expected)
