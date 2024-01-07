@@ -134,6 +134,7 @@ func format(input string) string {
 		if !f.Wrapping && f.shouldWrap() {
 			f = saved
 			f.Wrapping = true
+			f.Node().RightSideOfAssignment = false
 			continue
 		}
 
@@ -216,7 +217,7 @@ func (f *Formatter) parseToken() bool {
 		f.AcceptEnum = false
 	}
 
-	if f.Token.isAssignment() && f.isTopLevelInNode() {
+	if f.PreviousToken.isAssignment() && f.isTopLevelInNode() {
 		f.Node().RightSideOfAssignment = true
 	}
 
@@ -278,13 +279,15 @@ func (f *Formatter) parseToken() bool {
 	}
 
 	if f.Wrapping && f.WrappingStrategy == WrappingStrategyNone {
+		fmt.Println(f.Token, " ", f.isInitialiserListStart(), " ", f.isRightSideOfAssignment())
 		if f.isFunctionStart() && !f.isRightSideOfAssignment() {
 			f.WrappingStrategy = WrappingStrategyComma
 			f.WrappingNode = f.Node().Id
-		}
-
-		if f.isInitialiserListStart() {
+		}else if f.isInitialiserListStart() {
 			f.WrappingStrategy = WrappingStrategyLineBreakAfterComma
+			f.WrappingNode = f.Node().Id
+		}else if (f.Node().isTopLevel() || f.Node().isBlock()) && f.Node().RightSideOfAssignment{
+			f.WrappingStrategy = WrappingStrategyLineBreak
 			f.WrappingNode = f.Node().Id
 		}
 	}
@@ -601,7 +604,8 @@ func (f *Formatter) alwaysOneLine() bool {
 		(f.Wrapping && f.isWrappingNode() && f.beforeEndOfFuncOrMacro()) ||
 		f.isBlockStart() ||
 		(f.Wrapping && f.isWrappingNode() && f.Node().isInitialiserList() && f.NextToken.isRightBrace()) ||
-		(f.WrappingStrategy == WrappingStrategyLineBreakAfterComma && f.Token.isComma() && f.Token.hasNewLines())
+		(f.WrappingStrategy == WrappingStrategyLineBreakAfterComma && f.Token.isComma() && f.Token.hasNewLines())||
+		(f.WrappingStrategy == WrappingStrategyLineBreak && f.Token.hasNewLines())
 
 }
 
@@ -616,6 +620,10 @@ func (f *Formatter) alwaysDefaultLines() bool {
 }
 
 func (f *Formatter) Node() *Node {
+
+	if len(f.Nodes) == 0{
+		return &Node{}
+	}
 	return &f.Nodes[len(f.Nodes)-1]
 }
 
@@ -651,7 +659,7 @@ func (f *Formatter) pushNode(t NodeType) {
 		f.Indent = 0
 	}
 
-	//fmt.Println("Push ", node, " ", f.Token, " ", f.OpenParenthesis)
+	fmt.Printf("Push %s %s\n", node, f.Token)
 
 	f.Nodes = append(f.Nodes, node)
 
@@ -669,7 +677,7 @@ func (f *Formatter) popNode() {
 		f.Indent = f.Node().InitialIndent
 	}
 
-	//fmt.Printf("pop node %s, %s, open %d\n", f.Node(), f.Token, f.OpenParenthesis)
+	fmt.Printf("Pop %s %s\n", f.Node(), f.Token)
 
 	f.OpenNodeCount[f.Node().Type]--
 
@@ -716,6 +724,7 @@ func (f *Formatter) beforeEndOfFuncOrMacro() bool {
 func (f *Formatter) isRightSideOfAssignment() bool {
 	for _, node := range f.Nodes {
 		if node.RightSideOfAssignment {
+			fmt.Printf("RIGHT SIDE %s\n", node)
 			return true
 		}
 	}
