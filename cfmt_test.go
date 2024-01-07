@@ -1200,16 +1200,10 @@ func TestFormatFunctionCall(t *testing.T) {
 
 	input = `void foo() {
     int i = baz(1, 2, 3, 4, 5) + baz(1, 2, 3, 4, 5) + baz(1, 2, 3, 4, 5) + baz(
-		1, 2, 3, 4, 5);
+1, 2, 3, 4, 5);
 }`
 	expected = `void foo() {
-    int i = baz(1, 2, 3, 4, 5) + baz(1, 2, 3, 4, 5) + baz(1, 2, 3, 4, 5) + baz(
-        1,
-        2,
-        3,
-        4,
-        5
-    );
+    int i = baz(1, 2, 3, 4, 5) + baz(1, 2, 3, 4, 5) + baz(1, 2, 3, 4, 5) + baz(1, 2, 3, 4, 5);
 }
 `
 	_testFormat(t, input, expected)
