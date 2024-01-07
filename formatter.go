@@ -18,10 +18,7 @@ type Formatter struct {
 	OutputColumn        int
 	Input               *string
 	Output              []byte
-	SavedInput          string
 	OpenParenthesis     int
-	IsDirective         bool
-	IsIncludeDirective  bool
 	AcceptStructOrUnion bool
 	AcceptEnum          bool
 	IsForLoop           bool
@@ -196,14 +193,6 @@ func (f *Formatter) parseToken() bool {
 
 	}
 
-	if f.Token.isDirective() {
-		f.IsDirective = true
-	}
-
-	if f.Token.isIncludeDirective() {
-		f.IsIncludeDirective = true
-	}
-
 	if f.Token.isStructOrUnion() {
 		f.AcceptStructOrUnion = true
 	}
@@ -322,11 +311,6 @@ func (f *Formatter) parseToken() bool {
 		f.Indent--
 	}
 
-	if f.Token.Whitespace.HasUnescapedLines || f.NextToken.isAbsent() {
-		f.IsDirective = false
-		f.IsIncludeDirective = false
-	}
-
 	if f.Token.isFor() && f.NextToken.isLeftParenthesis() {
 		f.IsForLoop = true
 		f.ForOpenParenthesis = f.OpenParenthesis
@@ -364,9 +348,9 @@ func (f *Formatter) skipSpaceAndCountNewLines() Whitespace {
 func (formatter *Formatter) consumeSpace(Whitespace *Whitespace) bool {
 	newLineInDirective := []string{"\\\r\n", "\\\n"}
 
-	if formatter.IsDirective {
+	if formatter.Node().isDirective() {
 		for _, nl := range newLineInDirective {
-			if formatter.IsDirective && strings.HasPrefix((*formatter.Input), nl) {
+			if formatter.Node().isDirective() && strings.HasPrefix((*formatter.Input), nl) {
 				*formatter.Input = (*formatter.Input)[len(nl):]
 				Whitespace.NewLines++
 				Whitespace.HasEscapedLines = true
@@ -383,10 +367,6 @@ func (formatter *Formatter) consumeSpace(Whitespace *Whitespace) bool {
 		Whitespace.NewLines++
 		Whitespace.HasUnescapedLines = true
 
-		if formatter.IsDirective {
-			formatter.IsDirective = false
-			formatter.IsIncludeDirective = false
-		}
 		return true
 	}
 
@@ -520,7 +500,7 @@ func (f *Formatter) formatToken() {
 }
 
 func (f *Formatter) startsFunctionArguments() bool {
-	if !f.IsDirective {
+	if !f.Node().isDirective() {
 		return f.PreviousToken.Type == TokenTypeIdentifier && f.Token.isLeftParenthesis()
 
 	} else {
@@ -541,11 +521,11 @@ func (f *Formatter) isFuncOrMacroStart() bool {
 }
 
 func (f *Formatter) isFunctionName() bool {
-	return f.Token.Type == TokenTypeIdentifier && f.NextToken.isLeftParenthesis() && (!f.IsDirective || !f.Token.Whitespace.HasSpace)
+	return f.Token.Type == TokenTypeIdentifier && f.NextToken.isLeftParenthesis() && (!f.Node().isDirective() || !f.Token.Whitespace.HasSpace)
 }
 
 func (f *Formatter) isFunctionStart() bool {
-	return f.PreviousToken.Type == TokenTypeIdentifier && f.Token.isLeftParenthesis() && (!f.IsDirective || !f.Token.Whitespace.HasSpace)
+	return f.PreviousToken.Type == TokenTypeIdentifier && f.Token.isLeftParenthesis() && (!f.Node().isDirective() || !f.Token.Whitespace.HasSpace)
 }
 
 func (f *Formatter) neverSpace() bool {
