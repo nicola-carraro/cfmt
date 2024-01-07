@@ -22,7 +22,6 @@ type Formatter struct {
 	OpenParenthesis     int
 	IsDirective         bool
 	IsIncludeDirective  bool
-	IsEndOfInclude      bool
 	AcceptStructOrUnion bool
 	AcceptEnum          bool
 	IsForLoop           bool
@@ -197,12 +196,9 @@ func (f *Formatter) parseToken() bool {
 
 	}
 
-	f.IsEndOfInclude = false
-
 	if f.Token.isDirective() {
 		f.IsDirective = true
 	}
-	wasInclude := f.IsIncludeDirective
 
 	if f.Token.isIncludeDirective() {
 		f.IsIncludeDirective = true
@@ -329,10 +325,6 @@ func (f *Formatter) parseToken() bool {
 	if f.Token.Whitespace.HasUnescapedLines || f.NextToken.isAbsent() {
 		f.IsDirective = false
 		f.IsIncludeDirective = false
-	}
-
-	if wasInclude && !f.IsIncludeDirective {
-		f.IsEndOfInclude = true
 	}
 
 	if f.Token.isFor() && f.NextToken.isLeftParenthesis() {
