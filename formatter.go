@@ -85,10 +85,6 @@ type Node struct {
 	RightSideOfAssignment bool
 }
 
-type StructUnionEnum struct {
-	Indent int
-}
-
 func (f *Formatter) wrapping() bool {
 	return f.WrappingNode != 0
 }
@@ -111,7 +107,7 @@ func format(input string) string {
 
 	savedNodes := slices.Clone(f.Nodes)
 
-	for f.parseToken() {
+	for f.nextToken() {
 		f.formatToken()
 
 		if !f.Wrapping && f.shouldWrap() {
@@ -165,7 +161,7 @@ func (f *Formatter) getToken(index int) Token {
 	return (*f.Tokens)[index]
 }
 
-func (f *Formatter) parseToken() bool {
+func (f *Formatter) nextToken() bool {
 
 	if f.Token.isAbsent() {
 		_ = f.skipSpaceAndCountNewLines()
