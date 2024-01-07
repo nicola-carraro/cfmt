@@ -835,7 +835,7 @@ float fx,fdx,fdy;
 }
     C8_Arena *arena,
 #define MAKE_STRING(s) {.text = s, .len = sizeof(s)}
-    C8_File * read_result
+    C8_File *read_result
 ) {
 }
 `
