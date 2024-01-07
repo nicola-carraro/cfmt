@@ -278,7 +278,7 @@ func (f *Formatter) parseToken() bool {
 	}
 
 	if f.Wrapping && f.WrappingStrategy == WrappingStrategyNone {
-		if f.isFunctionStart() && !f.ParentNode().RightSideOfAssignment {
+		if f.isFunctionStart() && !f.isRightSideOfAssignment() {
 			f.WrappingStrategy = WrappingStrategyComma
 			f.WrappingNode = f.Node().Id
 		}
@@ -711,6 +711,16 @@ func (f *Formatter) afterPragma() bool {
 
 func (f *Formatter) beforeEndOfFuncOrMacro() bool {
 	return f.Node().isFuncOrMacro() && f.NextToken.isRightParenthesis() && f.OpenParenthesis == f.Node().InitialParenthesis
+}
+
+func (f *Formatter) isRightSideOfAssignment() bool {
+	for _, node := range f.Nodes {
+		if node.RightSideOfAssignment {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (t NodeType) String() string {
