@@ -129,13 +129,9 @@ func format(input string) string {
 	for f.parseToken() {
 		f.formatToken()
 
-		//fmt.Printf("Token %s, node %s, is inside func %t, Open parenthesis %d\n", f.Token, f.Node(), f.isInsideFuncOrMacro(), f.OpenParenthesis)
-
-		//fmt.Printf("%s inside %t\n", f.Token, f.isInsideFuncOrMacro())
 		if !f.Wrapping && f.shouldWrap() {
 			f = saved
 			f.Wrapping = true
-			fmt.Println("RESET")
 			continue
 		}
 
@@ -266,8 +262,6 @@ func (f *Formatter) parseToken() bool {
 		f.popNode()
 	}
 
-	fmt.Printf("%s open %d, initial %d\n", f.Token, f.OpenParenthesis, f.Node().InitialParenthesis)
-
 	if f.Node().Type == NodeTypeFuncOrMacro &&
 		f.Token.isRightParenthesis() && f.OpenParenthesis == (f.Node().InitialParenthesis) {
 		f.popNode()
@@ -358,7 +352,7 @@ func (f *Formatter) shouldIncreaseIndent() bool {
 func (f *Formatter) shouldDecreaseIndent() bool {
 	return ((f.Node().isStructOrUnion() || f.Node().isBlock() || f.Node().isEnum()) && f.NextToken.isRightBrace()) ||
 		(f.Wrapping && f.isWrappingNode() && f.Node().isInitialiserList() && f.NextToken.isRightBrace()) ||
-		(f.Wrapping && f.isWrappingNode() && f.Node().isFuncOrMacro() && f.NextToken.isRightParenthesis())
+		(f.Wrapping && f.isWrappingNode() && f.beforeEndOfFuncOrMacro())
 }
 
 func (f *Formatter) skipSpaceAndCountNewLines() Whitespace {
@@ -602,7 +596,7 @@ func (f *Formatter) alwaysOneLine() bool {
 		(f.Wrapping && f.isWrappingNode() && f.WrappingStrategy == WrappingStrategyComma && f.Token.isComma()) ||
 		(f.Wrapping && f.isWrappingNode() && f.isInitialiserListStart()) ||
 		(f.Wrapping && f.isWrappingNode() && f.isFuncOrMacroStart()) ||
-		(f.Wrapping && f.isWrappingNode() && f.Node().isFuncOrMacro() && f.NextToken.isRightParenthesis()) ||
+		(f.Wrapping && f.isWrappingNode() && f.beforeEndOfFuncOrMacro()) ||
 		f.isBlockStart() ||
 		(f.Wrapping && f.isWrappingNode() && f.Node().isInitialiserList() && f.NextToken.isRightBrace()) ||
 		(f.WrappingStrategy == WrappingStrategyLineBreakAfterComma && f.Token.isComma() && f.Token.hasNewLines())
@@ -647,7 +641,7 @@ func (f *Formatter) pushNode(t NodeType) {
 		f.Indent = 0
 	}
 
-	fmt.Println("Push ", node, " ", f.Token, " ", f.OpenParenthesis)
+	//fmt.Println("Push ", node, " ", f.Token, " ", f.OpenParenthesis)
 
 	f.Nodes = append(f.Nodes, node)
 
@@ -665,7 +659,7 @@ func (f *Formatter) popNode() {
 		f.Indent = f.Node().InitialIndent
 	}
 
-	fmt.Printf("pop node %s, %s, open %d\n", f.Node(), f.Token, f.OpenParenthesis)
+	//fmt.Printf("pop node %s, %s, open %d\n", f.Node(), f.Token, f.OpenParenthesis)
 
 	f.OpenNodeCount[f.Node().Type]--
 
@@ -703,6 +697,10 @@ func (f *Formatter) afterInclude() bool {
 
 func (f *Formatter) afterPragma() bool {
 	return f.LastPop.isPragmaDirective() && f.LastPop.LastToken == f.TokenIndex
+}
+
+func (f *Formatter) beforeEndOfFuncOrMacro() bool {
+	return f.Node().isFuncOrMacro() && f.NextToken.isRightParenthesis() && f.OpenParenthesis == f.Node().InitialParenthesis
 }
 
 func (t NodeType) String() string {
