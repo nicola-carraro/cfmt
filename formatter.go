@@ -7,38 +7,37 @@ import (
 )
 
 type Formatter struct {
-	PreviousToken         Token
-	Token                 Token
-	NextToken             Token
-	Indent                int
-	TokenIndex            int
-	InputLine             int
-	InputColumn           int
-	OutputLine            int
-	OutputColumn          int
-	Input                 *string
-	Output                []byte
-	SavedInput            string
-	OpenParenthesis       int
-	IsDirective           bool
-	IsIncludeDirective    bool
-	IsPragmaDirective     bool
-	IsEndOfInclude        bool
-	IsEndOfPragma         bool
-	RightSideOfAssignment bool
-	AcceptStructOrUnion   bool
-	AcceptEnum            bool
-	IsForLoop             bool
-	ForOpenParenthesis    int
-	Nodes                 []Node
-	LastNodeId            int
-	LastPop               Node
-	WrappingNode          int
-	OpenBraces            int
-	Wrapping              bool
-	Tokens                *[]Token
-	WrappingStrategy      WrappingStrategy
-	OpenNodeCount         [15]int
+	PreviousToken       Token
+	Token               Token
+	NextToken           Token
+	Indent              int
+	TokenIndex          int
+	InputLine           int
+	InputColumn         int
+	OutputLine          int
+	OutputColumn        int
+	Input               *string
+	Output              []byte
+	SavedInput          string
+	OpenParenthesis     int
+	IsDirective         bool
+	IsIncludeDirective  bool
+	IsPragmaDirective   bool
+	IsEndOfInclude      bool
+	IsEndOfPragma       bool
+	AcceptStructOrUnion bool
+	AcceptEnum          bool
+	IsForLoop           bool
+	ForOpenParenthesis  int
+	Nodes               []Node
+	LastNodeId          int
+	LastPop             Node
+	WrappingNode        int
+	OpenBraces          int
+	Wrapping            bool
+	Tokens              *[]Token
+	WrappingStrategy    WrappingStrategy
+	OpenNodeCount       [15]int
 }
 
 type NodeType int
@@ -91,15 +90,16 @@ const (
 )
 
 type Node struct {
-	Type               NodeType
-	Id                 int
-	FirstToken         int
-	LastToken          int
-	InitialIndent      int
-	InitialParenthesis int
-	InitialBraces      int
-	BlockType          BlockType
-	DirectiveType      DirectiveType
+	Type                  NodeType
+	Id                    int
+	FirstToken            int
+	LastToken             int
+	InitialIndent         int
+	InitialParenthesis    int
+	InitialBraces         int
+	BlockType             BlockType
+	DirectiveType         DirectiveType
+	RightSideOfAssignment bool
 }
 
 type StructUnionEnum struct {
@@ -128,6 +128,8 @@ func format(input string) string {
 
 	for f.parseToken() {
 		f.formatToken()
+
+		//fmt.Printf("%s, right side %t, open %d, initial %d \n", f.Token, f.Node().RightSideOfAssignment, f.OpenBraces, f.Node().InitialBraces)
 
 		if !f.Wrapping && f.shouldWrap() {
 			f = saved
@@ -214,18 +216,22 @@ func (f *Formatter) parseToken() bool {
 		f.AcceptEnum = false
 	}
 
-	if f.Token.isAssignment() {
-		f.RightSideOfAssignment = true
+	if f.Token.isAssignment() && f.isTopLevelInNode() {
+		f.Node().RightSideOfAssignment = true
 	}
 
-	if f.Token.isSemicolon() {
-		f.RightSideOfAssignment = false
+	if f.Token.isSemicolon() && f.isTopLevelInNode() {
+		f.Node().RightSideOfAssignment = false
 	}
 
 	f.NextToken = f.getToken(f.TokenIndex)
 
 	if f.Token.isLeftParenthesis() {
 		f.OpenParenthesis++
+	}
+
+	if f.Token.isLeftBrace() {
+		f.OpenBraces++
 	}
 
 	if !f.Node().isDirective() {
@@ -272,7 +278,7 @@ func (f *Formatter) parseToken() bool {
 	}
 
 	if f.Wrapping && f.WrappingStrategy == WrappingStrategyNone {
-		if f.isFunctionStart() {
+		if f.isFunctionStart() && !f.Node().RightSideOfAssignment {
 			f.WrappingStrategy = WrappingStrategyComma
 			f.WrappingNode = f.Node().Id
 		}
@@ -285,6 +291,11 @@ func (f *Formatter) parseToken() bool {
 
 	if f.Token.isRightParenthesis() {
 		f.OpenParenthesis--
+
+	}
+
+	if f.Token.isRightBrace() {
+		f.OpenBraces--
 
 	}
 
@@ -322,15 +333,6 @@ func (f *Formatter) parseToken() bool {
 
 	if wasPragma && !f.IsPragmaDirective {
 		f.IsEndOfPragma = true
-	}
-
-	if f.Token.isLeftBrace() {
-		f.OpenBraces++
-	}
-
-	if f.Token.isRightBrace() {
-		f.OpenBraces--
-
 	}
 
 	if f.Token.isFor() && f.NextToken.isLeftParenthesis() {
@@ -474,7 +476,7 @@ func (formatter *Formatter) IsParenthesis() bool {
 }
 
 func (f *Formatter) isPointerOperator() bool {
-	return f.Token.canBePointerOperator() && (!f.PreviousToken.canBeLeftOperand() || !f.RightSideOfAssignment)
+	return f.Token.canBePointerOperator() && (!f.PreviousToken.canBeLeftOperand() || !f.Node().RightSideOfAssignment)
 }
 
 func (f *Formatter) hasPostfixIncrDecr() bool {
@@ -613,8 +615,8 @@ func (f *Formatter) alwaysDefaultLines() bool {
 		(f.afterEndOfBlock() && !(f.LastPop.BlockType == BlockTypeDoWhile))
 }
 
-func (f *Formatter) Node() Node {
-	return f.Nodes[len(f.Nodes)-1]
+func (f *Formatter) Node() *Node {
+	return &f.Nodes[len(f.Nodes)-1]
 }
 
 func (f *Formatter) pushNode(t NodeType) {
@@ -650,7 +652,7 @@ func (f *Formatter) pushNode(t NodeType) {
 
 func (f *Formatter) popNode() {
 
-	f.LastPop = f.Node()
+	f.LastPop = *f.Node()
 	f.LastPop.LastToken = f.TokenIndex
 	if f.WrappingNode == f.Node().Id {
 		f.WrappingNode = 0
