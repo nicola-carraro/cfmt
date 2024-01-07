@@ -24,7 +24,6 @@ type Formatter struct {
 	IsIncludeDirective  bool
 	IsPragmaDirective   bool
 	IsEndOfInclude      bool
-	IsEndOfPragma       bool
 	AcceptStructOrUnion bool
 	AcceptEnum          bool
 	IsForLoop           bool
@@ -200,13 +199,11 @@ func (f *Formatter) parseToken() bool {
 	}
 
 	f.IsEndOfInclude = false
-	f.IsEndOfPragma = false
 
 	if f.Token.isDirective() {
 		f.IsDirective = true
 	}
 	wasInclude := f.IsIncludeDirective
-	wasPragma := f.IsPragmaDirective
 
 	if f.Token.isIncludeDirective() {
 		f.IsIncludeDirective = true
@@ -342,10 +339,6 @@ func (f *Formatter) parseToken() bool {
 
 	if wasInclude && !f.IsIncludeDirective {
 		f.IsEndOfInclude = true
-	}
-
-	if wasPragma && !f.IsPragmaDirective {
-		f.IsEndOfPragma = true
 	}
 
 	if f.Token.isFor() && f.NextToken.isLeftParenthesis() {
@@ -604,7 +597,7 @@ func (f *Formatter) alwaysOneLine() bool {
 		(f.Token.isComment() && (f.PreviousToken.hasNewLines() || f.PreviousToken.isAbsent())) ||
 		(f.afterInclude() && f.NextToken.isIncludeDirective()) ||
 		(f.afterPragma() && f.NextToken.isPragmaDirective()) ||
-		(f.IsEndOfPragma && f.NextToken.isPragmaDirective()) ||
+		(f.afterPragma() && f.NextToken.isPragmaDirective()) ||
 		(f.Node().isStructOrUnion() && f.Token.isSemicolon()) ||
 		((f.Node().isEnum()) && f.Token.isComma()) ||
 		((f.Node().isStructOrUnion() || f.Node().isBlock() || f.Node().isEnum()) && (f.isNodeStart() || f.NextToken.isRightBrace())) ||
