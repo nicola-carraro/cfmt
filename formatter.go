@@ -278,7 +278,7 @@ func (f *Formatter) parseToken() bool {
 	}
 
 	if f.Wrapping && f.WrappingStrategy == WrappingStrategyNone {
-		if f.isFunctionStart() && !f.Node().RightSideOfAssignment {
+		if f.isFunctionStart() && !f.ParentNode().RightSideOfAssignment {
 			f.WrappingStrategy = WrappingStrategyComma
 			f.WrappingNode = f.Node().Id
 		}
@@ -617,6 +617,14 @@ func (f *Formatter) alwaysDefaultLines() bool {
 
 func (f *Formatter) Node() *Node {
 	return &f.Nodes[len(f.Nodes)-1]
+}
+
+func (f *Formatter) ParentNode() *Node {
+	if len(f.Nodes) < 2 {
+		return new(Node)
+	}
+
+	return &f.Nodes[len(f.Nodes)-2]
 }
 
 func (f *Formatter) pushNode(t NodeType) {
