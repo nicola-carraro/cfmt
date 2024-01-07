@@ -131,7 +131,6 @@ func format(input string) string {
 	for f.parseToken() {
 		f.formatToken()
 
-		//fmt.Printf("%s %t\n", f.Token, f.isRightSideOfAssignment())
 		if !f.Wrapping && f.shouldWrap() {
 			f = saved
 			f.Wrapping = true
@@ -157,6 +156,7 @@ func format(input string) string {
 			if (f.isBlockStart()) || ((!f.Node().isStructOrUnion() && !f.Node().isDirective()) && f.Token.isSemicolon()) {
 				f.Wrapping = false
 				f.WrappingNode = 0
+				f.WrappingStrategy = WrappingStrategyNone
 				saved = f
 				savedNodes = slices.Clone(f.Nodes)
 			}
@@ -288,7 +288,6 @@ func (f *Formatter) parseToken() bool {
 		if f.isFunctionStart() && !f.isRightSideOfAssignment() {
 			f.WrappingStrategy = WrappingStrategyComma
 			f.WrappingNode = f.Node().Id
-			//fmt.Println(f.Node(), " ", f.Token)
 		} else if f.isInitialiserListStart() {
 			f.WrappingStrategy = WrappingStrategyLineBreakAfterComma
 			f.WrappingNode = f.Node().Id
@@ -316,7 +315,6 @@ func (f *Formatter) parseToken() bool {
 
 			if f.NextToken.isRightBrace() || f.NextToken.isRightParenthesis() {
 				f.Indent--
-				//fmt.Println(f.Token)
 			}
 		}
 	}
@@ -669,8 +667,6 @@ func (f *Formatter) pushNode(t NodeType) {
 		f.Indent = 0
 	}
 
-	//fmt.Printf("Push %s %s\n", node, f.Token)
-
 	f.Nodes = append(f.Nodes, node)
 
 	f.OpenNodeCount[t]++
@@ -686,8 +682,6 @@ func (f *Formatter) popNode() {
 	if f.Node().isDirective() {
 		f.Indent = f.Node().InitialIndent
 	}
-
-	//fmt.Printf("Pop %s %s\n", f.Node(), f.Token)
 
 	f.OpenNodeCount[f.Node().Type]--
 
@@ -734,7 +728,6 @@ func (f *Formatter) beforeEndOfFuncOrMacro() bool {
 func (f *Formatter) isRightSideOfAssignment() bool {
 	for _, node := range f.Nodes {
 		if node.RightSideOfAssignment {
-			//fmt.Printf("RIGHT SIDE %s\n", node)
 			return true
 		}
 	}
