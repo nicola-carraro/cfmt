@@ -28,15 +28,15 @@ type Formatter struct {
 }
 
 func (f *Formatter) token() Token {
-	return f.getToken(f.TokenIndex)
+	return f.tokenAt(f.TokenIndex)
 }
 
 func (f *Formatter) previousToken() Token {
-	return f.getToken(f.TokenIndex - 1)
+	return f.tokenAt(f.TokenIndex - 1)
 }
 
 func (f *Formatter) nextToken() Token {
-	return f.getToken(f.TokenIndex + 1)
+	return f.tokenAt(f.TokenIndex + 1)
 }
 
 func (f *Formatter) shouldWrap() bool {
@@ -100,7 +100,7 @@ func format(input string) string {
 	return string(f.Output)
 }
 
-func (f *Formatter) getToken(index int) Token {
+func (f *Formatter) tokenAt(index int) Token {
 
 	if index < 0 {
 		return Token{}
@@ -617,7 +617,7 @@ func (f *Formatter) isRightSideOfAssignment() bool {
 }
 
 func (f *Formatter) functionIsEntireRightSide() bool {
-	if !f.getToken(f.TokenIndex - 2).isAssignment() {
+	if !f.tokenAt(f.TokenIndex - 2).isAssignment() {
 		return false
 	}
 
@@ -625,7 +625,7 @@ func (f *Formatter) functionIsEntireRightSide() bool {
 
 	openParenthesis := 1
 
-	for token := f.getToken(i); !token.isAbsent(); token = f.getToken(i) {
+	for token := f.tokenAt(i); !token.isAbsent(); token = f.tokenAt(i) {
 		if token.isLeftParenthesis() {
 			openParenthesis++
 		}
@@ -639,5 +639,5 @@ func (f *Formatter) functionIsEntireRightSide() bool {
 		i++
 	}
 
-	return f.getToken(i + 1).isSemicolon()
+	return f.tokenAt(i + 1).isSemicolon()
 }
