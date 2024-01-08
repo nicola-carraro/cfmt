@@ -27,6 +27,11 @@ type Formatter struct {
 	OpenNodeCount       [NodeTypeCount]int
 }
 
+type SavedState struct {
+	Formatter             Formatter
+	RightSideOfAssignment []bool
+}
+
 func (f *Formatter) token() Token {
 	return f.tokenAt(f.TokenIndex)
 }
@@ -47,23 +52,37 @@ func (f *Formatter) shouldWrap() bool {
 
 }
 
+func (f *Formatter) save() SavedState {
+	result := SavedState{}
+	result.Formatter = *f
+	for _, node := range f.Nodes {
+		result.RightSideOfAssignment = append(result.RightSideOfAssignment, node.RightSideOfAssignment)
+	}
+
+	return result
+}
+
+func (f *Formatter) restore(savedState *SavedState) {
+	*f = savedState.Formatter
+	for i, rightSide := range savedState.RightSideOfAssignment {
+		f.Nodes[i].RightSideOfAssignment = rightSide
+	}
+}
+
 func format(input string) string {
 
 	f := Formatter{Input: &input, Tokens: new([]Token)}
 
 	(&f).pushNode(NodeTypeTopLevel)
-
-	saved := Formatter{}
-	savedNodes := slices.Clone(f.Nodes)
+	var saved SavedState
 
 	_ = f.skipSpaceAndCountNewLines()
 	for f.update() {
 		f.formatToken()
 
 		if !f.Wrapping && f.shouldWrap() {
-			f = saved
+			f.restore(&saved)
 			f.Wrapping = true
-			f.Nodes = slices.Clone(savedNodes)
 		} else {
 			if f.alwaysOneLine() {
 				f.writeNewLines(1)
@@ -80,15 +99,14 @@ func format(input string) string {
 			}
 
 			if f.TokenIndex == 0 {
-				saved = f
+				saved = f.save()
 			}
 
 			if !f.isInsideFuncOrMacro() {
 				if (f.isBlockStart()) || ((!f.Node().isStructOrUnion() && !f.Node().isDirective()) && f.token().isSemicolon()) {
 					f.Wrapping = false
 					f.WrappingNode = 0
-					saved = f
-					savedNodes = slices.Clone(f.Nodes)
+					saved = f.save()
 				}
 			}
 		}
