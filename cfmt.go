@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 func usage() {
@@ -17,6 +18,8 @@ func printError(err error) {
 }
 
 func main() {
+
+	timer := time.Now()
 	var stdout bool = false
 	flag.BoolVar(&stdout, "stdout", false, "print to standard output instead of overwriting files")
 	flag.Usage = usage
@@ -27,6 +30,7 @@ func main() {
 	}
 
 	for _, path := range flag.Args() {
+		fmt.Println(path)
 		data, err := os.ReadFile(path)
 
 		if err != nil {
@@ -48,4 +52,7 @@ func main() {
 			}
 		}
 	}
+
+	elapsed := time.Since(timer)
+	fmt.Println(elapsed)
 }

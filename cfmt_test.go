@@ -1384,4 +1384,26 @@ void c8_glyph(
 `
 	_testFormat(t, input, expected)
 
+	input = `void a(int i) {
+	}
+	
+	void stb_c_lexer_get_location(
+		const stb_lexer *lexer,
+		const char *where,
+		stb_lex_location *loc
+	) {
+	}
+	`
+	expected = `void a(int i) {
+}
+
+void stb_c_lexer_get_location(
+    const stb_lexer *lexer,
+    const char *where,
+    stb_lex_location *loc
+) {
+}
+`
+	_testFormat(t, input, expected)
+
 }

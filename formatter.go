@@ -30,8 +30,8 @@ type Formatter struct {
 }
 
 type SavedState struct {
-	Formatter             Formatter
-	RightSideOfAssignment []bool
+	Formatter Formatter
+	Nodes     []Node
 }
 
 func (f *Formatter) token() Token {
@@ -57,18 +57,14 @@ func (f *Formatter) shouldWrap() bool {
 func (f *Formatter) save() SavedState {
 	result := SavedState{}
 	result.Formatter = *f
-	for _, node := range f.Nodes {
-		result.RightSideOfAssignment = append(result.RightSideOfAssignment, node.RightSideOfAssignment)
-	}
+	result.Nodes = slices.Clone(f.Nodes)
 
 	return result
 }
 
 func (f *Formatter) restore(savedState *SavedState) {
 	*f = savedState.Formatter
-	for i, rightSide := range savedState.RightSideOfAssignment {
-		f.Nodes[i].RightSideOfAssignment = rightSide
-	}
+	f.Nodes = slices.Clone(savedState.Nodes)
 }
 
 func Format(input string) string {

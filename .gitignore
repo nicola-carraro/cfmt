@@ -7,3 +7,4 @@
 enc_temp_folder
 *.c
 *.h
+*.bat
