@@ -4,6 +4,7 @@ import (
 	"log"
 	"slices"
 	"strings"
+	"unicode/utf8"
 )
 
 type Formatter struct {
@@ -310,7 +311,7 @@ func (f *Formatter) consumeSpace(Whitespace *Whitespace) bool {
 
 	}
 
-	r, size := peakRune(*f.Input)
+	r, size := utf8.DecodeRuneInString(*f.Input)
 
 	if r == '\n' {
 		*f.Input = (*f.Input)[size:]

@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"slices"
 	"strings"
 	"unicode/utf8"
@@ -51,7 +50,7 @@ func parseToken(input string) Token {
 		return Token{}
 	}
 
-	r, _ := peakRune(input)
+	r, _ := utf8.DecodeRuneInString(input)
 
 	token, isFloat := tryParseFloat(input)
 	if isFloat {
@@ -132,12 +131,12 @@ func parseIdentifierOrKeyword(text string) Token {
 	tokenSize := 0
 	next := text
 
-	r, size := peakRune(next)
+	r, size := utf8.DecodeRuneInString(next)
 
 	for isIdentifierChar(r) {
 		tokenSize += size
 		next = next[size:]
-		r, size = peakRune(next)
+		r, size = utf8.DecodeRuneInString(next)
 	}
 
 	content := text[:tokenSize]
@@ -207,14 +206,14 @@ func parseString(text string) Token {
 	next := text[tokenSize:]
 
 	for {
-		r, size := peakRune(next)
+		r, size := utf8.DecodeRuneInString(next)
 		tokenSize += size
 		next = next[size:]
 		if r == '"' {
 			token := Token{Type: TokenTypeConstant, Content: text[:tokenSize]}
 			return token
 		} else if r == '\\' {
-			_, size := peakRune(next)
+			_, size := utf8.DecodeRuneInString(next)
 			tokenSize += size
 			next = next[size:]
 		} else if r == utf8.RuneError && size == 0 {
@@ -228,14 +227,14 @@ func parseChar(text string) Token {
 	next := text[1:]
 
 	for {
-		r, size := peakRune(next)
+		r, size := utf8.DecodeRuneInString(next)
 		tokenSize += size
 		next = next[size:]
 		if r == '\'' {
 			token := Token{Type: TokenTypeConstant, Content: text[:tokenSize]}
 			return token
 		} else if r == '\\' {
-			_, size := peakRune(next)
+			_, size := utf8.DecodeRuneInString(next)
 			next = next[size:]
 			tokenSize += size
 
@@ -252,7 +251,7 @@ func tryParseFloat(text string) (Token, bool) {
 
 	hasDigit := false
 
-	r, size := peakRune(next)
+	r, size := utf8.DecodeRuneInString(next)
 
 	if !isDecimal(r) && r != '.' {
 		return Token{}, false
@@ -261,7 +260,7 @@ func tryParseFloat(text string) (Token, bool) {
 	for isDecimal(r) {
 		tokenSize += size
 		next = next[size:]
-		r, size = peakRune(next)
+		r, size = utf8.DecodeRuneInString(next)
 		hasDigit = true
 	}
 
@@ -270,7 +269,7 @@ func tryParseFloat(text string) (Token, bool) {
 	if r == '.' {
 		tokenSize += size
 		next = next[size:]
-		r, size = peakRune(next)
+		r, size = utf8.DecodeRuneInString(next)
 		hasDot = true
 	}
 
@@ -278,7 +277,7 @@ func tryParseFloat(text string) (Token, bool) {
 
 		tokenSize += size
 		next = next[size:]
-		r, size = peakRune(next)
+		r, size = utf8.DecodeRuneInString(next)
 		hasDigit = true
 	}
 
@@ -287,19 +286,19 @@ func tryParseFloat(text string) (Token, bool) {
 	if isExponentStart(r) {
 		tokenSize += size
 		next = next[size:]
-		r, size = peakRune(next)
+		r, size = utf8.DecodeRuneInString(next)
 
 		if isSignStart(r) {
 			tokenSize += size
 			next = next[size:]
-			r, size = peakRune(next)
+			r, size = utf8.DecodeRuneInString(next)
 		}
 
 		for isDecimal(r) {
 			hasExponent = true
 			tokenSize += size
 			next = next[size:]
-			r, size = peakRune(next)
+			r, size = utf8.DecodeRuneInString(next)
 		}
 	}
 
@@ -338,12 +337,12 @@ func parseInt(text string, prefixLen int, isDigit IsDigitFunction) Token {
 	tokenSize := prefixLen
 
 	next := text[prefixLen:]
-	r, size := peakRune(next)
+	r, size := utf8.DecodeRuneInString(next)
 
 	for isDigit(r) {
 		tokenSize += size
 		next = next[size:]
-		r, size = peakRune(next)
+		r, size = utf8.DecodeRuneInString(next)
 	}
 
 	tokenSize += suffixLength(next)
@@ -355,7 +354,7 @@ func parseMultilineComment(text string) Token {
 	tokenSize := 2
 	next := text[2:]
 
-	_, size := peakRune(next)
+	_, size := utf8.DecodeRuneInString(next)
 
 	for !strings.HasPrefix(next, "*/") {
 		if len(next) == 0 {
@@ -363,7 +362,7 @@ func parseMultilineComment(text string) Token {
 		}
 		tokenSize += size
 		next = next[size:]
-		_, size = peakRune(next)
+		_, size = utf8.DecodeRuneInString(next)
 	}
 
 	tokenSize += 2
@@ -402,26 +401,16 @@ func parseSingleLineComment(text string) Token {
 	tokenSize := 0
 	next := text
 
-	_, size := peakRune(next)
+	_, size := utf8.DecodeRuneInString(next)
 
 	for len(next) > 0 && !startsWithNewLine(next) {
 		tokenSize += size
 		next = next[size:]
-		_, size = peakRune(next)
+		_, size = utf8.DecodeRuneInString(next)
 	}
 
 	token := Token{Type: TokenTypeSingleLineComment, Content: text[:tokenSize]}
 	return token
-}
-
-func peakRune(text string) (rune, int) {
-	r, size := utf8.DecodeRuneInString(text)
-
-	if r == utf8.RuneError && size == 1 {
-		log.Fatal("Invalid character")
-	}
-
-	return r, size
 }
 
 func longSuffixLength(text string) int {
