@@ -72,7 +72,7 @@ func Format(input string) string {
 	f := Formatter{Input: &input, Tokens: new([]Token), InputLine: new(int), InputColumn: new(int)}
 
 	(&f).pushNode(NodeTypeTopLevel)
-	var saved SavedState
+	saved := f.save()
 
 	_ = f.skipSpaceAndCountNewLines()
 	for f.update() {
