@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"slices"
 	"strings"
 )
@@ -113,6 +114,14 @@ func format(input string) string {
 
 		f.TokenIndex++
 
+	}
+
+	for i := range f.Nodes {
+		node := f.Nodes[len(f.Nodes)-i-1]
+
+		if !node.isTopLevel() && !node.isDirective() {
+			log.Fatalf("Unclosed node %s\n", node)
+		}
 	}
 
 	return string(f.Output)
