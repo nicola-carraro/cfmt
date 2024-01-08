@@ -1406,4 +1406,12 @@ void stb_c_lexer_get_location(
 `
 	_testFormat(t, input, expected)
 
+	input = `// stb_connected_components - v0.96 - public domain connected components on grids
+// http://github.com/nothings/stb`
+	expected = `// stb_connected_components - v0.96 - public domain connected components on grids
+// http://github.com/nothings/stb
+`
+
+	_testFormat(t, input, expected)
+
 }

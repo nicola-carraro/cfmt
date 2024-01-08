@@ -83,7 +83,7 @@ func Format(input string) string {
 
 		f.formatToken()
 
-		if !f.Wrapping && f.shouldWrap() {
+		if !f.Wrapping && f.shouldWrap() && f.TokenIndex > 0 {
 			f.restore(&saved)
 			f.Wrapping = true
 		} else {
