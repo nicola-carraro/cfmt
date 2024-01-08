@@ -20,7 +20,6 @@ func printError(err error) {
 
 func formatFile(path string, stdout bool) {
 
-	fmt.Println(path)
 	data, err := os.ReadFile(path)
 
 	if err != nil {
@@ -30,8 +29,14 @@ func formatFile(path string, stdout bool) {
 
 	text := string(data)
 
-	formattedText := Format(text)
+	formattedText, err := Format(text)
 
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s:%s\n", path, err)
+		return
+	}
+
+	fmt.Println(path)
 	if stdout {
 		fmt.Print(formattedText)
 	} else {

@@ -19,7 +19,7 @@ func _testTokenizeSingleToken(t *testing.T, text string, tType TokenType) {
 }
 
 func _testFormat(t *testing.T, input string, expected string) {
-	output := Format(input)
+	output, _ := Format(input)
 
 	for i, r := range []byte(expected) {
 		if i >= len(output) {

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"slices"
 	"strings"
 	"unicode/utf8"
@@ -67,7 +67,7 @@ func (f *Formatter) restore(savedState *SavedState) {
 	f.Nodes = slices.Clone(savedState.Nodes)
 }
 
-func Format(input string) string {
+func Format(input string) (string, error) {
 
 	f := Formatter{Input: &input, Tokens: new([]Token), InputLine: new(int), InputColumn: new(int)}
 
@@ -78,7 +78,7 @@ func Format(input string) string {
 	for f.update() {
 
 		if f.token().isInvalid() {
-			log.Fatalf("Line %d, column %d: invalid token", f.token().Line+1, f.token().Column+1)
+			return "", fmt.Errorf("%d:%d invalid token", f.token().Line+1, f.token().Column+1)
 		}
 
 		f.formatToken()
@@ -123,11 +123,11 @@ func Format(input string) string {
 
 		if !node.isTopLevel() && !node.isDirective() {
 			firstToken := (*f.Tokens)[node.FirstToken]
-			log.Fatalf("Line %d, column %d: unclosed node %s\n", firstToken.Line+1, firstToken.Column+1, node.Type)
+			return "", fmt.Errorf("%d:%d unclosed node %s", firstToken.Line+1, firstToken.Column+1, node.Type)
 		}
 	}
 
-	return string(f.Output)
+	return string(f.Output), nil
 }
 
 func (f *Formatter) tokenAt(index int) Token {
