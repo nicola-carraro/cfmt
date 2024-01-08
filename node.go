@@ -27,6 +27,7 @@ const (
 	NodeTypeStructOrUnion
 	NodeTypeEnum
 	NodeTypeForLoopParenthesis
+	NodeTypeCount
 )
 
 type BlockType int

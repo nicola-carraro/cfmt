@@ -24,7 +24,7 @@ type Formatter struct {
 	OpenBraces          int
 	Wrapping            bool
 	Tokens              *[]Token
-	OpenNodeCount       [15]int
+	OpenNodeCount       [NodeTypeCount]int
 }
 
 func (f *Formatter) token() Token {
