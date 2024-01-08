@@ -709,10 +709,6 @@ func (t Token) isFor() bool {
 	return t.Type == TokenTypeKeyword && t.Content == "for"
 }
 
-func (t Token) isDefineDirective() bool {
-	return t.Type == TokenTypeDirective && t.Content == "#define"
-}
-
 func (t Token) hasEscapedLines() bool {
 	return t.Whitespace.HasEscapedLines
 }

@@ -39,7 +39,7 @@ const (
 	NodeTypeDirective
 	NodeTypeFuncOrMacro
 	NodeTypeBlock
-	NodeTypeInitialiserList
+	NodeTypeInitializerList
 	NodeTypeStructOrUnion
 	NodeTypeEnum
 	NodeTypeForLoopParenthesis
@@ -84,13 +84,9 @@ type Node struct {
 	RightSideOfAssignment bool
 }
 
-func (f *Formatter) wrapping() bool {
-	return f.WrappingNode != 0
-}
-
 func (f *Formatter) shouldWrap() bool {
 	return f.OutputColumn > 80 ||
-		((f.Node().isInitialiserList() || f.Node().isFuncOrMacro()) &&
+		((f.Node().isInitializerList() || f.Node().isFuncOrMacro()) &&
 			(f.NextToken.isComment() || f.NextToken.isDirective())) ||
 		(f.isInsideFuncOrMacro() && f.Node().isBlock())
 
@@ -217,8 +213,8 @@ func (f *Formatter) nextToken() bool {
 			f.pushNode(NodeTypeForLoopParenthesis)
 
 		} else if f.Token.isLeftBrace() {
-			if f.PreviousToken.isAssignment() || f.Node().isInitialiserList() {
-				f.pushNode(NodeTypeInitialiserList)
+			if f.PreviousToken.isAssignment() || f.Node().isInitializerList() {
+				f.pushNode(NodeTypeInitializerList)
 			} else if f.AcceptStructOrUnion || f.Node().isStructOrUnion() {
 				f.pushNode(NodeTypeStructOrUnion)
 
@@ -233,7 +229,7 @@ func (f *Formatter) nextToken() bool {
 	}
 
 	if (f.Node().Type == NodeTypeBlock ||
-		f.Node().Type == NodeTypeInitialiserList ||
+		f.Node().Type == NodeTypeInitializerList ||
 		f.Node().Type == NodeTypeEnum ||
 		f.Node().Type == NodeTypeStructOrUnion) &&
 		f.Token.isRightBrace() {
@@ -252,7 +248,7 @@ func (f *Formatter) nextToken() bool {
 	if f.Wrapping && f.WrappingNode == 0 {
 		if f.isFunctionStart() && (!f.isRightSideOfAssignment() || f.functionIsEntireRightSide()) {
 			f.WrappingNode = f.Node().Id
-		} else if f.isInitialiserListStart() {
+		} else if f.isInitializerListStart() {
 			f.WrappingNode = f.Node().Id
 		} else if (f.Node().isTopLevel() || f.Node().isBlock()) && f.Node().RightSideOfAssignment && !f.isFunctionName() {
 			f.WrappingNode = f.Node().Id
@@ -294,12 +290,12 @@ func (f *Formatter) nextToken() bool {
 
 func (f *Formatter) shouldIncreaseIndent() bool {
 	return ((f.Node().isStructOrUnion() || f.Node().isBlock() || f.Node().isEnum()) && f.isNodeStart()) ||
-		(f.Wrapping && f.isWrappingNode() && (f.isInitialiserListStart() || f.isFuncOrMacroStart()))
+		(f.Wrapping && f.isWrappingNode() && (f.isInitializerListStart() || f.isFuncOrMacroStart()))
 }
 
 func (f *Formatter) shouldDecreaseIndent() bool {
 	return ((f.Node().isStructOrUnion() || f.Node().isBlock() || f.Node().isEnum()) && f.NextToken.isRightBrace()) ||
-		(f.Wrapping && f.isWrappingNode() && f.Node().isInitialiserList() && f.NextToken.isRightBrace()) ||
+		(f.Wrapping && f.isWrappingNode() && f.Node().isInitializerList() && f.NextToken.isRightBrace()) ||
 		(f.Wrapping && f.isWrappingNode() && f.beforeEndOfFuncOrMacro())
 }
 
@@ -403,12 +399,12 @@ func (f *Formatter) writeDefaultLines() {
 	switch f.Node().Type {
 	case NodeTypeTopLevel:
 		f.twoLinesOrEof()
-	case NodeTypeDirective, NodeTypeFuncOrMacro, NodeTypeInitialiserList, NodeTypeStructOrUnion, NodeTypeEnum, NodeTypeForLoopParenthesis:
+	case NodeTypeDirective, NodeTypeFuncOrMacro, NodeTypeInitializerList, NodeTypeStructOrUnion, NodeTypeEnum, NodeTypeForLoopParenthesis:
 		f.writeNewLines(1)
 	case NodeTypeBlock:
 		f.oneOrTwoLines()
 	default:
-		panic("unreacheable")
+		panic("unreachable")
 	}
 }
 
@@ -482,8 +478,8 @@ func (f *Formatter) isBlockStart() bool {
 	return f.Node().isBlock() && f.isNodeStart()
 }
 
-func (f *Formatter) isInitialiserListStart() bool {
-	return f.Node().isInitialiserList() && f.isNodeStart()
+func (f *Formatter) isInitializerListStart() bool {
+	return f.Node().isInitializerList() && f.isNodeStart()
 }
 
 func (f *Formatter) isFuncOrMacroStart() bool {
@@ -531,7 +527,7 @@ func (f *Formatter) wrappingStrategyComma() bool {
 }
 
 func (f *Formatter) wrappingStrategyLineBreakAfterComma() bool {
-	return f.Node().isInitialiserList()
+	return f.Node().isInitializerList()
 }
 
 func (f *Formatter) alwaysOneLine() bool {
@@ -545,11 +541,11 @@ func (f *Formatter) alwaysOneLine() bool {
 		((f.Node().isEnum()) && f.Token.isComma()) ||
 		((f.Node().isStructOrUnion() || f.Node().isBlock() || f.Node().isEnum()) && (f.isNodeStart() || f.NextToken.isRightBrace())) ||
 		(f.Wrapping && f.isWrappingNode() && f.wrappingStrategyComma() && f.Token.isComma()) ||
-		(f.Wrapping && f.isWrappingNode() && f.isInitialiserListStart()) ||
+		(f.Wrapping && f.isWrappingNode() && f.isInitializerListStart()) ||
 		(f.Wrapping && f.isWrappingNode() && f.isFuncOrMacroStart()) ||
 		(f.Wrapping && f.isWrappingNode() && f.beforeEndOfFuncOrMacro()) ||
 		f.isBlockStart() ||
-		(f.Wrapping && f.isWrappingNode() && f.Node().isInitialiserList() && f.NextToken.isRightBrace()) ||
+		(f.Wrapping && f.isWrappingNode() && f.Node().isInitializerList() && f.NextToken.isRightBrace()) ||
 		(f.Wrapping && f.isWrappingNode() && f.wrappingStrategyLineBreakAfterComma() && f.Token.isComma() && f.Token.hasNewLines())
 }
 
@@ -714,8 +710,8 @@ func (t NodeType) String() string {
 		return "NodeTypeFuncOrMacro"
 	case NodeTypeBlock:
 		return "NodeTypeBlock"
-	case NodeTypeInitialiserList:
-		return "NodeTypeInitialiserList"
+	case NodeTypeInitializerList:
+		return "NodeTypeInitializerList"
 	case NodeTypeStructOrUnion:
 		return "NodeTypeStructOrUnion"
 	case NodeTypeEnum:
@@ -752,12 +748,8 @@ func (n Node) isEnum() bool {
 	return n.Type == NodeTypeEnum
 }
 
-func (n Node) isPresent() bool {
-	return n.Type != NodeTypeNone
-}
-
-func (n Node) isInitialiserList() bool {
-	return n.Type == NodeTypeInitialiserList
+func (n Node) isInitializerList() bool {
+	return n.Type == NodeTypeInitializerList
 }
 
 func (n Node) isFuncOrMacro() bool {
