@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"slices"
 	"strings"
 )
@@ -26,59 +25,6 @@ type Formatter struct {
 	Wrapping            bool
 	Tokens              *[]Token
 	OpenNodeCount       [15]int
-}
-
-type NodeType int
-
-const (
-	NodeTypeNone NodeType = iota
-	NodeTypeTopLevel
-	NodeTypeDirective
-	NodeTypeFuncOrMacro
-	NodeTypeBlock
-	NodeTypeInitializerList
-	NodeTypeStructOrUnion
-	NodeTypeEnum
-	NodeTypeForLoopParenthesis
-)
-
-type BlockType int
-
-const (
-	BlockTypeNone BlockType = iota
-	BlockTypeDoWhile
-)
-
-type DirectiveType int
-
-const (
-	DirectiveTypeNone DirectiveType = iota
-	DirectiveTypeDefine
-	DirectiveTypeError
-	DirectiveTypeIf
-	DirectiveTypeElif
-	DirectiveTypeElse
-	DirectiveTypeEndif
-	DirectiveTypeIfdef
-	DirectiveTypeIfndef
-	DirectiveTypeIfDef
-	DirectiveTypeUndef
-	DirectiveTypeInclude
-	DirectiveTypeLine
-	DirectiveTypePragma
-)
-
-type Node struct {
-	Type                  NodeType
-	Id                    int
-	FirstToken            int
-	LastToken             int
-	InitialIndent         int
-	InitialParenthesis    int
-	InitialBraces         int
-	BlockType             BlockType
-	DirectiveType         DirectiveType
-	RightSideOfAssignment bool
 }
 
 func (f *Formatter) token() Token {
@@ -694,75 +640,4 @@ func (f *Formatter) functionIsEntireRightSide() bool {
 	}
 
 	return f.getToken(i + 1).isSemicolon()
-}
-
-func (t NodeType) String() string {
-	switch t {
-	case NodeTypeNone:
-		return "NodeTypeNone"
-	case NodeTypeTopLevel:
-		return "NodeTypeTopLevel"
-	case NodeTypeDirective:
-		return "NodeTypeDirective"
-	case
-		NodeTypeFuncOrMacro:
-		return "NodeTypeFuncOrMacro"
-	case NodeTypeBlock:
-		return "NodeTypeBlock"
-	case NodeTypeInitializerList:
-		return "NodeTypeInitializerList"
-	case NodeTypeStructOrUnion:
-		return "NodeTypeStructOrUnion"
-	case NodeTypeEnum:
-		return "NodeTypeEnum"
-	case NodeTypeForLoopParenthesis:
-		return "NodeTypeForLoopParenthesis"
-	default:
-		panic(fmt.Sprintf("Unexpected node type %d", t))
-	}
-
-}
-
-func (n Node) String() string {
-	return fmt.Sprintf("Node{Type: %s, Id: %d}", n.Type, n.Id)
-}
-
-func (n Node) isTopLevel() bool {
-	return n.Type == NodeTypeTopLevel
-}
-
-func (n Node) isDirective() bool {
-	return n.Type == NodeTypeDirective
-}
-
-func (n Node) isStructOrUnion() bool {
-	return n.Type == NodeTypeStructOrUnion
-}
-
-func (n Node) isBlock() bool {
-	return n.Type == NodeTypeBlock
-}
-
-func (n Node) isEnum() bool {
-	return n.Type == NodeTypeEnum
-}
-
-func (n Node) isInitializerList() bool {
-	return n.Type == NodeTypeInitializerList
-}
-
-func (n Node) isFuncOrMacro() bool {
-	return n.Type == NodeTypeFuncOrMacro
-}
-
-func (n Node) isForLoopParenthesis() bool {
-	return n.Type == NodeTypeForLoopParenthesis
-}
-
-func (n Node) isIncludeDirective() bool {
-	return n.Type == NodeTypeDirective && n.DirectiveType == DirectiveTypeInclude
-}
-
-func (n Node) isPragmaDirective() bool {
-	return n.Type == NodeTypeDirective && n.DirectiveType == DirectiveTypePragma
 }
