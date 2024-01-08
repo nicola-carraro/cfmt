@@ -13,6 +13,8 @@ type Token struct {
 	Content       string
 	Whitespace    Whitespace
 	DirectiveType DirectiveType
+	Line          int
+	Column        int
 }
 
 type TokenType uint32
@@ -26,6 +28,7 @@ const (
 	TokenTypeDirective
 	TokenTypeSingleLineComment
 	TokenTypeMultilineComment
+	TokenTypeInvalid
 )
 
 type DirectiveName struct {
@@ -43,8 +46,6 @@ type Whitespace struct {
 type IsDigitFunction func(r rune) bool
 
 func parseToken(input string) Token {
-
-	//fmt.Printf("parseToken, current token %s\n", formatter.Token)
 
 	if len(input) == 0 {
 		return Token{}
@@ -123,14 +124,7 @@ func parseToken(input string) Token {
 		return parseOctal(input)
 	}
 
-	max := 20
-	start := input
-	if len(start) > max {
-		start = start[:max]
-	}
-	log.Fatalf("Unrecognized token, starts with %s", start)
-
-	panic("Unreachable")
+	return Token{Type: TokenTypeInvalid}
 }
 
 func parseIdentifierOrKeyword(text string) Token {
@@ -224,7 +218,7 @@ func parseString(text string) Token {
 			tokenSize += size
 			next = next[size:]
 		} else if r == utf8.RuneError && size == 0 {
-			log.Fatal("Unclosed string literal")
+			return Token{Type: TokenTypeInvalid}
 		}
 	}
 }
@@ -246,7 +240,7 @@ func parseChar(text string) Token {
 			tokenSize += size
 
 		} else if r == utf8.RuneError && size == 0 {
-			log.Fatal("Unclosed character literal")
+			return Token{Type: TokenTypeInvalid}
 		}
 	}
 }
@@ -365,7 +359,7 @@ func parseMultilineComment(text string) Token {
 
 	for !strings.HasPrefix(next, "*/") {
 		if len(next) == 0 {
-			log.Fatalln("Unclosed comment")
+			return Token{Type: TokenTypeInvalid}
 		}
 		tokenSize += size
 		next = next[size:]
@@ -716,6 +710,10 @@ func (t Token) hasUnescapedLines() bool {
 	return t.Whitespace.HasUnescapedLines
 }
 
+func (t Token) isInvalid() bool {
+	return t.Type == TokenTypeInvalid
+}
+
 func (t TokenType) String() string {
 	switch t {
 	case TokenTypeNone:
@@ -734,6 +732,8 @@ func (t TokenType) String() string {
 		return "TokenTypeSingleLineComment"
 	case TokenTypeMultilineComment:
 		return "TokenTypeMultilineComment"
+	case TokenTypeInvalid:
+		return "TokenTypeInvalid"
 	default:
 		panic("Invalid TokenType")
 	}

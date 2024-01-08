@@ -9,8 +9,8 @@ import (
 type Formatter struct {
 	Indent              int
 	TokenIndex          int
-	InputLine           int
-	InputColumn         int
+	InputLine           *int
+	InputColumn         *int
 	OutputLine          int
 	OutputColumn        int
 	Input               *string
@@ -70,15 +70,20 @@ func (f *Formatter) restore(savedState *SavedState) {
 	}
 }
 
-func format(input string) string {
+func Format(input string) string {
 
-	f := Formatter{Input: &input, Tokens: new([]Token)}
+	f := Formatter{Input: &input, Tokens: new([]Token), InputLine: new(int), InputColumn: new(int)}
 
 	(&f).pushNode(NodeTypeTopLevel)
 	var saved SavedState
 
 	_ = f.skipSpaceAndCountNewLines()
 	for f.update() {
+
+		if f.token().isInvalid() {
+			log.Fatalf("Line %d, column %d: invalid token", f.token().Line+1, f.token().Column+1)
+		}
+
 		f.formatToken()
 
 		if !f.Wrapping && f.shouldWrap() {
@@ -120,7 +125,8 @@ func format(input string) string {
 		node := f.Nodes[len(f.Nodes)-i-1]
 
 		if !node.isTopLevel() && !node.isDirective() {
-			log.Fatalf("Unclosed node %s\n", node)
+			firstToken := (*f.Tokens)[node.FirstToken]
+			log.Fatalf("Line %d, column %d: unclosed node %s\n", firstToken.Line+1, firstToken.Column+1, node.Type)
 		}
 	}
 
@@ -135,9 +141,13 @@ func (f *Formatter) tokenAt(index int) Token {
 
 	for len(*f.Tokens) <= index {
 		token := parseToken(*f.Input)
+		token.Line = *f.InputLine
+		token.Column = *f.InputColumn
 		*f.Input = (*f.Input)[len(token.Content):]
+		*f.InputColumn += len(token.Content)
 		token.Whitespace = f.skipSpaceAndCountNewLines()
 		(*f.Tokens) = append(*f.Tokens, token)
+
 	}
 
 	return (*f.Tokens)[index]
@@ -283,37 +293,40 @@ func (f *Formatter) skipSpaceAndCountNewLines() Whitespace {
 
 }
 
-func (formatter *Formatter) consumeSpace(Whitespace *Whitespace) bool {
+func (f *Formatter) consumeSpace(Whitespace *Whitespace) bool {
 	newLineInDirective := []string{"\\\r\n", "\\\n"}
 
-	if formatter.Node().isDirective() {
+	if f.Node().isDirective() {
 		for _, nl := range newLineInDirective {
-			if formatter.Node().isDirective() && strings.HasPrefix((*formatter.Input), nl) {
-				*formatter.Input = (*formatter.Input)[len(nl):]
+			if f.Node().isDirective() && strings.HasPrefix((*f.Input), nl) {
+				*f.Input = (*f.Input)[len(nl):]
 				Whitespace.NewLines++
 				Whitespace.HasEscapedLines = true
+				*f.InputLine++
+				*f.InputColumn = 0
 				return true
 			}
 		}
 
 	}
 
-	r, size := peakRune(*formatter.Input)
+	r, size := peakRune(*f.Input)
 
 	if r == '\n' {
-		*formatter.Input = (*formatter.Input)[size:]
+		*f.Input = (*f.Input)[size:]
 		Whitespace.NewLines++
 		Whitespace.HasUnescapedLines = true
-
+		*f.InputLine++
+		*f.InputColumn = 0
 		return true
 	}
 
 	otherSpaces := []rune{' ', '\t', '\r', '\v', '\f'}
 
 	if slices.Contains(otherSpaces, r) {
-		*formatter.Input = (*formatter.Input)[size:]
+		*f.Input = (*f.Input)[size:]
+		*f.InputColumn += size
 		return true
-
 	}
 
 	return false

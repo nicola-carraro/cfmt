@@ -36,7 +36,7 @@ func main() {
 
 		text := string(data)
 
-		formattedText := format(text)
+		formattedText := Format(text)
 
 		if stdout {
 			fmt.Print(formattedText)
