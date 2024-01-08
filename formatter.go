@@ -98,7 +98,9 @@ func format(input string) string {
 
 	(&f).pushNode(NodeTypeTopLevel)
 
-	saved := f
+	init := false
+
+	saved := Formatter{}
 
 	savedNodes := slices.Clone(f.Nodes)
 
@@ -109,6 +111,8 @@ func format(input string) string {
 			f = saved
 			f.Wrapping = true
 			f.Nodes = slices.Clone(savedNodes)
+			fmt.Printf("RESET %s\n", f.Token)
+			f.TokenIndex++
 			continue
 		}
 
@@ -126,6 +130,11 @@ func format(input string) string {
 			f.writeString(" ")
 		}
 
+		if !init {
+			saved = f
+			init = true
+		}
+
 		if !f.isInsideFuncOrMacro() {
 			if (f.isBlockStart()) || ((!f.Node().isStructOrUnion() && !f.Node().isDirective()) && f.Token.isSemicolon()) {
 				f.Wrapping = false
@@ -134,6 +143,8 @@ func format(input string) string {
 				savedNodes = slices.Clone(f.Nodes)
 			}
 		}
+
+		f.TokenIndex++
 
 	}
 
@@ -162,13 +173,11 @@ func (f *Formatter) nextToken() bool {
 		_ = f.skipSpaceAndCountNewLines()
 
 		f.Token = f.getToken(f.TokenIndex)
+		fmt.Println(f.Token)
 
-		f.TokenIndex++
 	} else {
 		f.PreviousToken = f.Token
 		f.Token = f.NextToken
-		f.TokenIndex++
-
 	}
 
 	if f.Token.isStructOrUnion() {
@@ -192,7 +201,7 @@ func (f *Formatter) nextToken() bool {
 		f.Node().RightSideOfAssignment = false
 	}
 
-	f.NextToken = f.getToken(f.TokenIndex)
+	f.NextToken = f.getToken(f.TokenIndex + 1)
 
 	if f.Token.isLeftParenthesis() {
 		f.OpenParenthesis++
@@ -672,11 +681,11 @@ func (f *Formatter) isRightSideOfAssignment() bool {
 }
 
 func (f *Formatter) functionIsEntireRightSide() bool {
-	if !f.getToken(f.TokenIndex - 3).isAssignment() {
+	if !f.getToken(f.TokenIndex - 2).isAssignment() {
 		return false
 	}
 
-	i := f.TokenIndex
+	i := f.TokenIndex + 1
 
 	openParenthesis := 1
 
