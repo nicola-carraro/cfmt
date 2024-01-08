@@ -104,14 +104,14 @@ func format(input string) string {
 
 	savedNodes := slices.Clone(f.Nodes)
 
-	for f.nextToken() {
+	_ = f.skipSpaceAndCountNewLines()
+	for f.update() {
 		f.formatToken()
 
 		if !f.Wrapping && f.shouldWrap() {
 			f = saved
 			f.Wrapping = true
 			f.Nodes = slices.Clone(savedNodes)
-			fmt.Printf("RESET %s\n", f.Token)
 			f.TokenIndex++
 			continue
 		}
@@ -167,14 +167,11 @@ func (f *Formatter) getToken(index int) Token {
 	return (*f.Tokens)[index]
 }
 
-func (f *Formatter) nextToken() bool {
+func (f *Formatter) update() bool {
 
 	if f.Token.isAbsent() {
-		_ = f.skipSpaceAndCountNewLines()
 
 		f.Token = f.getToken(f.TokenIndex)
-		fmt.Println(f.Token)
-
 	} else {
 		f.PreviousToken = f.Token
 		f.Token = f.NextToken
