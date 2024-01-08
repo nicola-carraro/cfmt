@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 )
 
@@ -17,8 +18,33 @@ func printError(err error) {
 	_, _ = fmt.Fprintf(os.Stderr, "Error: %s\n", err)
 }
 
-func main() {
+func formatFile(path string, stdout bool) {
 
+	fmt.Println(path)
+	data, err := os.ReadFile(path)
+
+	if err != nil {
+		printError(err)
+		return
+	}
+
+	text := string(data)
+
+	formattedText := Format(text)
+
+	if stdout {
+		fmt.Print(formattedText)
+	} else {
+		os.WriteFile(path, []byte(formattedText), 0600)
+
+		if err != nil {
+			printError(err)
+		}
+	}
+}
+
+func main() {
+	wg := sync.WaitGroup{}
 	timer := time.Now()
 	var stdout bool = false
 	flag.BoolVar(&stdout, "stdout", false, "print to standard output instead of overwriting files")
@@ -30,29 +56,15 @@ func main() {
 	}
 
 	for _, path := range flag.Args() {
-		fmt.Println(path)
-		data, err := os.ReadFile(path)
-
-		if err != nil {
-			printError(err)
-			continue
-		}
-
-		text := string(data)
-
-		formattedText := Format(text)
-
-		if stdout {
-			fmt.Print(formattedText)
-		} else {
-			os.WriteFile(path, []byte(formattedText), 0600)
-
-			if err != nil {
-				printError(err)
-			}
-		}
+		path := path
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			formatFile(path, stdout)
+		}()
 	}
 
+	wg.Wait()
 	elapsed := time.Since(timer)
 	fmt.Println(elapsed)
 }
