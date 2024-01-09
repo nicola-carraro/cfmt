@@ -12,6 +12,7 @@ type Token struct {
 	Content       string
 	Whitespace    Whitespace
 	DirectiveType DirectiveType
+	KeywordType   KeywordType
 	Line          int
 	Column        int
 }
@@ -31,8 +32,77 @@ const (
 )
 
 type DirectiveName struct {
-	name          string
-	directiveType DirectiveType
+	Name          string
+	DirectiveType DirectiveType
+}
+
+type KeywordType int
+
+const (
+	KeywordTypeNone KeywordType = iota
+	KeywordTypeAuto
+	KeywordTypeBreak
+	KeywordTypeCase
+	KeywordTypeChar
+	KeywordTypeConst
+	KeywordTypeContinue
+	KeywordTypeDefault
+	KeywordTypeDo
+	KeywordTypeDouble
+	KeywordTypeElse
+	KeywordTypeEnum
+	KeywordTypeExtern
+	KeywordTypeFloat
+	KeywordTypeFor
+	KeywordTypeGoto
+	KeywordTypeIf
+	KeywordTypeInline
+	KeywordTypeInt
+	KeywordTypeLong
+	KeywordTypeRegister
+	KeywordTypeRestrict
+	KeywordTypeReturn
+	KeywordTypeShort
+	KeywordTypeSigned
+	KeywordTypeSizeof
+	KeywordTypeStatic
+	KeywordTypeStruct
+	KeywordTypeSwitch
+	KeywordTypeTypedef
+	KeywordTypeUnion
+	KeywordTypeUnsigned
+	KeywordTypeVoid
+	KeywordTypeVolatile
+	KeywordTypeWhile
+	KeywordTypeAlignas
+	KeywordTypeAlignof
+	KeywordTypeAtomic
+	KeywordTypeBool
+	KeywordTypeComplex
+	KeywordTypeGeneric
+	KeywordTypeImaginary
+	KeywordTypeNoreturn
+	KeywordTypeStaticAssert
+	KeywordTypeThreadLocal
+	KeywordTypeAsm
+	KeywordTypeBased
+	KeywordTypeCdecl
+	KeywordTypeDeclspec
+	KeywordTypeExcept
+	KeywordTypeFastcall
+	KeywordTypeFinally
+	KeywordTypeInt16
+	KeywordTypeInt32
+	KeywordTypeInt64
+	KeywordTypeInt8
+	KeywordTypeLeave
+	KeywordTypeStdcall
+	KeywordTypeTry
+)
+
+type KeywordName struct {
+	Name        string
+	KeywordType KeywordType
 }
 
 type Whitespace struct {
@@ -141,54 +211,71 @@ func parseIdentifierOrKeyword(text string) Token {
 
 	content := text[:tokenSize]
 
-	keywords := [...]string{
-		"auto",
-		"break",
-		"case",
-		"char",
-		"const",
-		"continue",
-		"default",
-		"double",
-		"do",
-		"else",
-		"enum",
-		"extern",
-		"float",
-		"for",
-		"goto",
-		"if",
-		"inline",
-		"int",
-		"long",
-		"register",
-		"return",
-		"short",
-		"signed",
-		"sizeof",
-		"static",
-		"struct",
-		"switch",
-		"typedef",
-		"union",
-		"unsigned",
-		"void",
-		"volatile",
-		"while",
-		"_Alignof",
-		"_Atomic",
-		"_Bool",
-		"_Complex",
-		"_Generic",
-		"_Imaginary",
-		"_Noreturn",
-		"_Static_assert",
-		"_Thread_local",
+	keywords := [...]KeywordName{
+		{"auto", KeywordTypeAuto},
+		{"break", KeywordTypeBreak},
+		{"case", KeywordTypeCase},
+		{"char", KeywordTypeChar},
+		{"const", KeywordTypeConst},
+		{"continue", KeywordTypeContinue},
+		{"default", KeywordTypeDefault},
+		{"double", KeywordTypeDouble},
+		{"do", KeywordTypeDo},
+		{"else", KeywordTypeElse},
+		{"enum", KeywordTypeEnum},
+		{"extern", KeywordTypeExtern},
+		{"float", KeywordTypeFloat},
+		{"for", KeywordTypeFor},
+		{"goto", KeywordTypeGoto},
+		{"if", KeywordTypeIf},
+		{"inline", KeywordTypeInline},
+		{"int", KeywordTypeInt},
+		{"long", KeywordTypeLong},
+		{"register", KeywordTypeRegister},
+		{"return", KeywordTypeReturn},
+		{"short", KeywordTypeShort},
+		{"signed", KeywordTypeSigned},
+		{"sizeof", KeywordTypeSizeof},
+		{"static_assert", KeywordTypeStaticAssert},
+		{"static", KeywordTypeStatic},
+		{"struct", KeywordTypeStruct},
+		{"switch", KeywordTypeSwitch},
+		{"typedef", KeywordTypeTypedef},
+		{"union", KeywordTypeUnion},
+		{"unsigned", KeywordTypeUnsigned},
+		{"void", KeywordTypeVoid},
+		{"volatile", KeywordTypeVolatile},
+		{"while", KeywordTypeWhile},
+		{"_Alignof", KeywordTypeAlignof},
+		{"_Atomic", KeywordTypeAtomic},
+		{"_Bool", KeywordTypeBool},
+		{"_Complex", KeywordTypeComplex},
+		{"_Generic", KeywordTypeGeneric},
+		{"_Imaginary", KeywordTypeImaginary},
+		{"_Noreturn", KeywordTypeNoreturn},
+		{"_Static_assert", KeywordTypeStaticAssert},
+		{"_Thread_local", KeywordTypeThreadLocal},
+		{"__asm", KeywordTypeAsm},
+		{"__based", KeywordTypeBased},
+		{"__cdecl", KeywordTypeCdecl},
+		{"__declspec", KeywordTypeDeclspec},
+		{"__except", KeywordTypeExcept},
+		{"__fastcall", KeywordTypeFastcall},
+		{"__finally", KeywordTypeFinally},
+		{"__inline", KeywordTypeInline},
+		{"__int16", KeywordTypeInt16},
+		{"__int32", KeywordTypeInt32},
+		{"__int64", KeywordTypeInt64},
+		{"__int8", KeywordTypeInt8},
+		{"__leave", KeywordTypeLeave},
+		{"__restrict", KeywordTypeRestrict},
+		{"__stdcall", KeywordTypeStdcall},
+		{"__try", KeywordTypeTry},
 	}
 
 	for _, keyword := range keywords {
-		if content == keyword {
-			return Token{Type: TokenTypeKeyword, Content: content}
+		if content == keyword.Name {
+			return Token{Type: TokenTypeKeyword, Content: content, KeywordType: keyword.KeywordType}
 		}
 	}
 
@@ -389,8 +476,8 @@ func tryParseDirective(s string) (Token, bool) {
 	}
 
 	for _, directive := range directives {
-		if strings.HasPrefix(s, directive.name) {
-			return Token{Type: TokenTypeDirective, Content: directive.name, DirectiveType: directive.directiveType}, true
+		if strings.HasPrefix(s, directive.Name) {
+			return Token{Type: TokenTypeDirective, Content: directive.Name, DirectiveType: directive.DirectiveType}, true
 		}
 	}
 
@@ -546,6 +633,9 @@ func isOneCharPunctuation(text string) bool {
 func (t Token) String() string {
 	if t.Type == TokenTypeNone {
 		return fmt.Sprintf("Token{Type: %s}", t.Type)
+	} else if t.Type == TokenTypeKeyword {
+		return fmt.Sprintf("Token{Type: %s, Content: \"%s\", KeywordType: %s}", t.Type, t.Content, t.KeywordType)
+
 	} else {
 		return fmt.Sprintf("Token{Type: %s, Content: \"%s\"}", t.Type, t.Content)
 	}
@@ -622,11 +712,11 @@ func (t Token) isArrowOperator() bool {
 }
 
 func (t Token) isStructOrUnion() bool {
-	return t.Type == TokenTypeKeyword && (t.Content == "struct" || t.Content == "union")
+	return t.Type == TokenTypeKeyword && (t.KeywordType == KeywordTypeStruct || t.KeywordType == KeywordTypeUnion)
 }
 
 func (t Token) isEnum() bool {
-	return t.Type == TokenTypeKeyword && t.Content == "enum"
+	return t.Type == TokenTypeKeyword && t.KeywordType == KeywordTypeEnum
 }
 
 func (t Token) isAssignment() bool {
@@ -673,7 +763,7 @@ func (t Token) isNegation() bool {
 }
 
 func (t Token) isSizeOf() bool {
-	return t.Type == TokenTypeKeyword && t.Content == "sizeof"
+	return t.Type == TokenTypeKeyword && t.KeywordType == KeywordTypeSizeof
 }
 
 func (t Token) isGreaterThanSign() bool {
@@ -685,11 +775,11 @@ func (t Token) isLessThanSign() bool {
 }
 
 func (t Token) isDo() bool {
-	return t.Type == TokenTypeKeyword && t.Content == "do"
+	return t.Type == TokenTypeKeyword && t.KeywordType == KeywordTypeDo
 }
 
 func (t Token) isFor() bool {
-	return t.Type == TokenTypeKeyword && t.Content == "for"
+	return t.Type == TokenTypeKeyword && t.KeywordType == KeywordTypeFor
 }
 
 func (t Token) hasEscapedLines() bool {
@@ -701,6 +791,132 @@ func (t Token) hasUnescapedLines() bool {
 
 func (t Token) isInvalid() bool {
 	return t.Type == TokenTypeInvalid
+}
+
+func (t KeywordType) String() string {
+	switch t {
+	case KeywordTypeNone:
+		return "KeywordTypeNone"
+	case KeywordTypeAuto:
+		return "KeywordTypeAuto"
+	case KeywordTypeBreak:
+		return "KeywordTypeBreak"
+	case KeywordTypeCase:
+		return "KeywordTypeCase"
+	case KeywordTypeChar:
+		return "KeywordTypeChar"
+	case KeywordTypeConst:
+		return "KeywordTypeConst"
+	case KeywordTypeContinue:
+		return "KeywordTypeContinue"
+	case KeywordTypeDefault:
+		return "KeywordTypeDefault"
+	case KeywordTypeDo:
+		return "KeywordTypeDo"
+	case KeywordTypeDouble:
+		return "KeywordTypeDouble"
+	case KeywordTypeElse:
+		return "KeywordTypeElse"
+	case KeywordTypeEnum:
+		return "KeywordTypeEnum"
+	case KeywordTypeExtern:
+		return "KeywordTypeExtern"
+	case KeywordTypeFloat:
+		return "KeywordTypeFloat"
+	case KeywordTypeFor:
+		return "KeywordTypeFor"
+	case KeywordTypeGoto:
+		return "KeywordTypeGoto"
+	case KeywordTypeIf:
+		return "KeywordTypeIf"
+	case KeywordTypeInline:
+		return "KeywordTypeInline"
+	case KeywordTypeInt:
+		return "KeywordTypeInt"
+	case KeywordTypeLong:
+		return "KeywordTypeLong"
+	case KeywordTypeRegister:
+		return "KeywordTypeRegister"
+	case KeywordTypeRestrict:
+		return "KeywordTypeRestrict"
+	case KeywordTypeReturn:
+		return "KeywordTypeReturn"
+	case KeywordTypeShort:
+		return "KeywordTypeShort"
+	case KeywordTypeSigned:
+		return "KeywordTypeSigned"
+	case KeywordTypeSizeof:
+		return "KeywordTypeSizeof"
+	case KeywordTypeStatic:
+		return "KeywordTypeStatic"
+	case KeywordTypeStruct:
+		return "KeywordTypeStruct"
+	case KeywordTypeSwitch:
+		return "KeywordTypeSwitch"
+	case KeywordTypeTypedef:
+		return "KeywordTypeTypedef"
+	case KeywordTypeUnion:
+		return "KeywordTypeUnion"
+	case KeywordTypeUnsigned:
+		return "KeywordTypeUnsigned"
+	case KeywordTypeVoid:
+		return "KeywordTypeVoid"
+	case KeywordTypeVolatile:
+		return "KeywordTypeVolatile"
+	case KeywordTypeWhile:
+		return "KeywordTypeWhile"
+	case KeywordTypeAlignas:
+		return "KeywordTypeAlignas"
+	case KeywordTypeAlignof:
+		return "KeywordTypeAlignof"
+	case KeywordTypeAtomic:
+		return "KeywordTypeAtomic"
+	case KeywordTypeBool:
+		return "KeywordTypeBool"
+	case KeywordTypeComplex:
+		return "KeywordTypeComplex"
+	case KeywordTypeGeneric:
+		return "KeywordTypeGeneric"
+	case KeywordTypeImaginary:
+		return "KeywordTypeImaginary"
+	case KeywordTypeNoreturn:
+		return "KeywordTypeNoreturn"
+	case KeywordTypeStaticAssert:
+		return "KeywordTypeStaticAssert"
+	case KeywordTypeThreadLocal:
+		return "KeywordTypeThreadLocal"
+	case KeywordTypeAsm:
+		return "KeywordTypeAsm"
+	case KeywordTypeBased:
+		return "KeywordTypeBased"
+	case KeywordTypeCdecl:
+		return "KeywordTypeCdecl"
+	case KeywordTypeDeclspec:
+		return "KeywordTypeDeclspec"
+	case KeywordTypeExcept:
+		return "KeywordTypeExcept"
+	case KeywordTypeFastcall:
+		return "KeywordTypeFastcall"
+	case KeywordTypeFinally:
+		return "KeywordTypeFinally"
+	case KeywordTypeInt16:
+		return "KeywordTypeInt16"
+	case KeywordTypeInt32:
+		return "KeywordTypeInt32"
+	case KeywordTypeInt64:
+		return "KeywordTypeInt64"
+	case KeywordTypeInt8:
+		return "KeywordTypeInt8"
+	case KeywordTypeLeave:
+		return "KeywordTypeLeave"
+	case KeywordTypeStdcall:
+		return "KeywordTypeStdcall"
+	case KeywordTypeTry:
+		return "KeywordTypeTry"
+	default:
+		panic(fmt.Sprintf("unknown keyword type %d", t))
+	}
+
 }
 
 func (t TokenType) String() string {
