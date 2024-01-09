@@ -244,7 +244,6 @@ func parseToken(input string) Token {
 	}
 
 	if isOneToNine(r) {
-		//TODO: handle octal and hex
 		return parseDecimal(input)
 	}
 
@@ -521,13 +520,13 @@ func tryParseDirective(s string) (Token, bool) {
 
 	directives := [...]DirectiveName{
 		{"#define", DirectiveTypeDefine},
-		{"#elif", DirectiveTypeElif}, {"#else", DirectiveTypeElse},
+		{"#elif", DirectiveTypeElif},
+		{"#else", DirectiveTypeElse},
 		{"#endif", DirectiveTypeEndif},
 		{"#error", DirectiveTypeError},
 		{"#ifndef", DirectiveTypeIfndef},
 		{"#ifdef", DirectiveTypeIfdef},
 		{"#if", DirectiveTypeIf},
-		{"#include", DirectiveTypeInclude},
 		{"#include", DirectiveTypeInclude},
 		{"#pragma", DirectiveTypePragma},
 		{"#undef", DirectiveTypeUndef},
