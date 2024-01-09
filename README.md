@@ -129,11 +129,7 @@ Here is an example of how output looks like:
         char d char e,
         char f
     ) {
-        // Function calls do not automatically wrap
-        something(alpha, beta, gamma, delta, epsilon, zeta, eta, iota, kappa, lambda, mu, nu);
-    
-        // But you can make a function call wrap, if it hits the 80 columns threshold,
-        // by inserting a new line anywhere
+        // Same for function calls
         something(
             alpha,
             beta,
@@ -161,5 +157,3 @@ Here is an example of how output looks like:
             && (aLong <= anInt)
             && (aDouble < 3 && anInt++ < ALong);
     }
-
-
