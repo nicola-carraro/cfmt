@@ -8,13 +8,14 @@ import (
 )
 
 type Token struct {
-	Type          TokenType
-	Content       string
-	Whitespace    Whitespace
-	DirectiveType DirectiveType
-	KeywordType   KeywordType
-	Line          int
-	Column        int
+	Type            TokenType
+	Content         string
+	Whitespace      Whitespace
+	DirectiveType   DirectiveType
+	KeywordType     KeywordType
+	PunctuationType PunctuationType
+	Line            int
+	Column          int
 }
 
 type TokenType uint32
@@ -29,6 +30,25 @@ const (
 	TokenTypeSingleLineComment
 	TokenTypeMultilineComment
 	TokenTypeInvalid
+)
+
+type DirectiveType int
+
+const (
+	DirectiveTypeNone DirectiveType = iota
+	DirectiveTypeDefine
+	DirectiveTypeError
+	DirectiveTypeIf
+	DirectiveTypeElif
+	DirectiveTypeElse
+	DirectiveTypeEndif
+	DirectiveTypeIfdef
+	DirectiveTypeIfndef
+	DirectiveTypeIfDef
+	DirectiveTypeUndef
+	DirectiveTypeInclude
+	DirectiveTypeLine
+	DirectiveTypePragma
 )
 
 type DirectiveName struct {
@@ -105,6 +125,67 @@ type KeywordName struct {
 	KeywordType KeywordType
 }
 
+type PunctuationType int
+
+const (
+	PunctuationTypeNone PunctuationType = iota
+	PunctuationTypeLeftBracket
+	PunctuationTypeRightBracket
+	PunctuationTypeLeftParenthesis
+	PunctuationTypeRightParenthesis
+	PunctuationTypeLeftBrace
+	PunctuationTypeRightBrace
+	PunctuationTypeDot
+	PunctuationTypeArrow
+	PunctuationTypePlusPlus
+	PunctuationTypeMinusMinus
+	PunctuationTypeAmpersand
+	PunctuationTypeAsterisk
+	PunctuationTypePlus
+	PunctuationTypeMinus
+	PunctuationTypeBitwiseNot
+	PunctuationTypeLogicalNot
+	PunctuationTypeDivide
+	PunctuationTypeRemainder
+	PunctuationTypeReminder
+	PunctuationTypeLeftShift
+	PunctuationTypeRightShift
+	PunctuationTypeGreater
+	PunctuationTypeLessThan
+	PunctuationTypeLessThanOrEquals
+	PunctuationTypeGreaterOrEqual
+	PunctuationTypeEquals
+	PunctuationTypeNotEquals
+	PunctuationTypeXor
+	PunctuationTypeBitwiseOr
+	PunctuationTypeLogicalOr
+	PunctuationTpeLogicalAnd
+	PunctuationTypeQuestionMark
+	PunctuationTypeColumn
+	PunctuationTypeSemicolon
+	PunctuationTypeDots
+	PunctuationTypeAssignment
+	PunctuationTypeTimesEqual
+	PunctuationTypeDivideEqual
+	PunctuationTypeRemainderEquals
+	PunctuationTypePlusEquals
+	PunctuationTypeMinusEquals
+	PunctuationTypeRightShiftEquals
+	PunctuationTypeLeftShiftEquals
+	PunctuationTypeBitwiseAndEquals
+	PunctuationTypeXorEquals
+	PunctuationTypeBitwiseOrEquals
+	PunctuationTypeComma
+	PunctuationTypeStringizingOperator
+	PunctuationTypeTokenPastingOperator
+	PunctuationTypeCharizingOperator
+)
+
+type PunctuationTypeName struct {
+	Name            string
+	PunctuationType PunctuationType
+}
+
 type Whitespace struct {
 	HasSpace          bool
 	NewLines          int
@@ -148,35 +229,13 @@ func parseToken(input string) Token {
 		return parseMultilineComment(input)
 	}
 
+	token, punctuation := tryParsePunctuation(input)
+	if punctuation {
+		return token
+	}
+
 	if isSingleQuote(r) {
 		return parseChar(input)
-	}
-
-	if isFourCharsPunctuation(input) {
-		token.Type = TokenTypePunctuation
-		token.Content = input[:4]
-		return token
-	}
-
-	if isThreeCharsPunctuation(input) {
-		token.Type = TokenTypePunctuation
-		token.Content = input[:3]
-
-		return token
-	}
-
-	if isTwoCharsPunctuation(input) {
-		token.Type = TokenTypePunctuation
-		token.Content = input[:2]
-
-		return token
-	}
-
-	if isOneCharPunctuation(input) {
-		token.Type = TokenTypePunctuation
-		token.Content = input[:1]
-
-		return token
 	}
 
 	if strings.HasPrefix(input, "0x") || strings.HasPrefix(input, "0X") {
@@ -571,21 +630,73 @@ func isSignStart(r rune) bool {
 	return r == '+' || r == '-'
 }
 
-func isFourCharsPunctuation(text string) bool {
-	return strings.HasPrefix(text, "%:%:")
-}
+func tryParsePunctuation(text string) (Token, bool) {
 
-func isThreeCharsPunctuation(text string) bool {
-	threeChars := [...]string{"<<=", ">>=", "..."}
+	punctuation := [...]PunctuationTypeName{
+		{"%:%:", PunctuationTypeTokenPastingOperator},
+		{"<<=", PunctuationTypeLeftShiftEquals},
+		{">>=", PunctuationTypeRightShiftEquals},
+		{"...", PunctuationTypeDots},
+		{"++", PunctuationTypePlusPlus},
+		{"--", PunctuationTypeMinusMinus},
+		{"<<", PunctuationTypeLeftShift},
+		{">>", PunctuationTypeRightShift},
+		{"<=", PunctuationTypeLessThanOrEquals},
+		{">=", PunctuationTypeGreaterOrEqual},
+		{"==", PunctuationTypeEquals},
+		{"!=", PunctuationTypeNotEquals},
+		{"&&", PunctuationTpeLogicalAnd},
+		{"||", PunctuationTypeLogicalOr},
+		{"->", PunctuationTypeArrow},
+		{"*=", PunctuationTypeTimesEqual},
+		{"/=", PunctuationTypeDivideEqual},
+		{"%=", PunctuationTypeRemainderEquals},
+		{"+=", PunctuationTypePlusEquals},
+		{"-=", PunctuationTypeMinusEquals},
+		{"&=", PunctuationTypeBitwiseAndEquals},
+		{"^=", PunctuationTypeXorEquals},
+		{"|=", PunctuationTypeBitwiseOrEquals},
+		{"##", PunctuationTypeTokenPastingOperator},
+		{"<:", PunctuationTypeLeftBracket},
+		{":>", PunctuationTypeRightBracket},
+		{"<%", PunctuationTypeLeftBrace},
+		{"%>", PunctuationTypeRightBrace},
+		{"%:", PunctuationTypeTokenPastingOperator},
+		{"#@", PunctuationTypeCharizingOperator},
+		{"~", PunctuationTypeLogicalNot},
+		{"*", PunctuationTypeAsterisk},
+		{"/", PunctuationTypeDivide},
+		{"%", PunctuationTypeRemainder},
+		{"+", PunctuationTypePlus},
+		{"-", PunctuationTypeMinus},
+		{"<", PunctuationTypeLessThan},
+		{">", PunctuationTypeGreater},
+		{"&", PunctuationTypeAmpersand},
+		{"|", PunctuationTypeBitwiseOr},
+		{"^", PunctuationTypeXor},
+		{",", PunctuationTypeComma},
+		{"=", PunctuationTypeAssignment},
+		{"[", PunctuationTypeLeftBracket},
+		{"]", PunctuationTypeRightBracket},
+		{"(", PunctuationTypeLeftParenthesis},
+		{")", PunctuationTypeRightParenthesis},
+		{"{", PunctuationTypeLeftBrace},
+		{"}", PunctuationTypeRightBrace},
+		{".", PunctuationTypeDot},
+		{"!", PunctuationTypeLogicalNot},
+		{"?", PunctuationTypeQuestionMark},
+		{":", PunctuationTypeColumn},
+		{";", PunctuationTypeSemicolon},
+		{"#", PunctuationTypeStringizingOperator},
+	}
 
-	for _, o := range threeChars {
-		if strings.HasPrefix(text, o) {
-			return true
-
+	for _, p := range punctuation {
+		if strings.HasPrefix(text, p.Name) {
+			return Token{Type: TokenTypePunctuation, Content: p.Name, PunctuationType: p.PunctuationType}, true
 		}
 	}
 
-	return false
+	return Token{}, false
 }
 
 func isIdentifierStart(r rune) bool {
@@ -600,43 +711,15 @@ func isDecimal(r rune) bool {
 	return r >= '0' && r <= '9'
 }
 
-func isTwoCharsPunctuation(text string) bool {
-	twoChars := [...]string{"++", "--", "<<", ">>", "<=", ">=", "==",
-		"!=", "&&", "||", "->", "*=", "/=", "%=", "+=", "-=", "&=", "^=", "|=", "##",
-		"<:", ":>", "<%", "%>", "%:", "#@"}
-
-	for _, o := range twoChars {
-		if strings.HasPrefix(text, o) {
-			return true
-
-		}
-	}
-
-	return false
-}
-
-func isOneCharPunctuation(text string) bool {
-	oneChar := [...]string{"~", "*", "/", "%", "+", "-", "<", ">",
-		"&", "|", "^", ",", "=", "[", "]", "(", ")", "{",
-		"}", ".", "!", "?", ":", ";", "#"}
-
-	for _, o := range oneChar {
-		if strings.HasPrefix(text, o) {
-			return true
-
-		}
-	}
-
-	return false
-}
-
 func (t Token) String() string {
-	if t.Type == TokenTypeNone {
+	switch t.Type {
+	case TokenTypeNone:
 		return fmt.Sprintf("Token{Type: %s}", t.Type)
-	} else if t.Type == TokenTypeKeyword {
+	case TokenTypeKeyword:
 		return fmt.Sprintf("Token{Type: %s, Content: \"%s\", KeywordType: %s}", t.Type, t.Content, t.KeywordType)
-
-	} else {
+	case TokenTypeDirective:
+		return fmt.Sprintf("Token{Type: %s, Content: \"%s\", DirectiveType: %s}", t.Type, t.Content, t.DirectiveType)
+	default:
 		return fmt.Sprintf("Token{Type: %s, Content: \"%s\"}", t.Type, t.Content)
 	}
 }
@@ -650,7 +733,7 @@ func (t Token) isIdentifier() bool {
 }
 
 func (t Token) isLeftBrace() bool {
-	return t.Type == TokenTypePunctuation && t.Content == "{"
+	return t.Type == TokenTypePunctuation && t.PunctuationType == PunctuationTypeLeftBrace
 }
 
 func (t Token) isSingleLineComment() bool {
@@ -674,41 +757,42 @@ func (t Token) isPragmaDirective() bool {
 }
 
 func (t Token) isLeftParenthesis() bool {
-	return t.Type == TokenTypePunctuation && t.Content == "("
+	return t.Type == TokenTypePunctuation && t.PunctuationType == PunctuationTypeLeftParenthesis
 }
 
 func (t Token) isRightParenthesis() bool {
-	return t.Type == TokenTypePunctuation && t.Content == ")"
+	return t.Type == TokenTypePunctuation && t.PunctuationType == PunctuationTypeRightParenthesis
 }
 
 func (t Token) isRightBrace() bool {
-	return t.Type == TokenTypePunctuation && t.Content == "}"
+	return t.Type == TokenTypePunctuation && t.PunctuationType == PunctuationTypeRightBrace
 }
 
 func (t Token) isSemicolon() bool {
-	return t.Type == TokenTypePunctuation && t.Content == ";"
+	return t.Type == TokenTypePunctuation && t.PunctuationType == PunctuationTypeSemicolon
 }
 
 func (t Token) canBeLeftOperand() bool {
 	return t.Type == TokenTypeIdentifier ||
 		t.Type == TokenTypeConstant ||
-		(t.Type == TokenTypePunctuation && t.Content == ")")
+		t.isRightParenthesis()
 }
 
 func (t Token) canBePointerOperator() bool {
-	return t.Type == TokenTypePunctuation && (t.Content == "&" || t.Content == "*")
+	return t.Type == TokenTypePunctuation &&
+		(t.PunctuationType == PunctuationTypeAmpersand || t.PunctuationType == PunctuationTypeAsterisk)
 }
 
 func (t Token) isIncrDecrOperator() bool {
-	return t.Type == TokenTypePunctuation && (t.Content == "++" || t.Content == "--")
+	return t.Type == TokenTypePunctuation && (t.PunctuationType == PunctuationTypePlusPlus || t.PunctuationType == PunctuationTypeMinusMinus)
 }
 
 func (t Token) isDotOperator() bool {
-	return t.Type == TokenTypePunctuation && (t.Content == ".")
+	return t.Type == TokenTypePunctuation && t.PunctuationType == PunctuationTypeDot
 }
 
 func (t Token) isArrowOperator() bool {
-	return t.Type == TokenTypePunctuation && (t.Content == "->")
+	return t.Type == TokenTypePunctuation && t.PunctuationType == PunctuationTypeArrow
 }
 
 func (t Token) isStructOrUnion() bool {
@@ -720,14 +804,26 @@ func (t Token) isEnum() bool {
 }
 
 func (t Token) isAssignment() bool {
-	assignmentOps := []string{"=", "*=", "/=", "%=", "+=", "-=", "<<=", ">>=", "&=", "^=", "|="}
+	assignmentOps := []PunctuationType{
+		PunctuationTypeAssignment,
+		PunctuationTypeTimesEqual,
+		PunctuationTypeDivideEqual,
+		PunctuationTypeRemainderEquals,
+		PunctuationTypePlusEquals,
+		PunctuationTypeMinusEquals,
+		PunctuationTypeLeftShiftEquals,
+		PunctuationTypeRightShiftEquals,
+		PunctuationTypeBitwiseAndEquals,
+		PunctuationTypeXorEquals,
+		PunctuationTypeBitwiseOrEquals,
+	}
 
-	return t.Type == TokenTypePunctuation && slices.Contains(assignmentOps, t.Content)
+	return t.Type == TokenTypePunctuation && slices.Contains(assignmentOps, t.PunctuationType)
 }
 
 func (t Token) isComma() bool {
 
-	return t.Type == TokenTypePunctuation && t.Content == ","
+	return t.Type == TokenTypePunctuation && t.PunctuationType == PunctuationTypeComma
 }
 
 func (t Token) hasNewLines() bool {
@@ -739,27 +835,27 @@ func (t Token) isComment() bool {
 }
 
 func (t Token) isStringizingOp() bool {
-	return t.Type == TokenTypePunctuation && t.Content == "#"
+	return t.Type == TokenTypePunctuation && t.PunctuationType == PunctuationTypeStringizingOperator
 }
 
 func (t Token) isCharizingOp() bool {
-	return t.Type == TokenTypePunctuation && t.Content == "#@"
+	return t.Type == TokenTypePunctuation && t.PunctuationType == PunctuationTypeCharizingOperator
 }
 
 func (t Token) isTokenPastingOp() bool {
-	return t.Type == TokenTypePunctuation && t.Content == "##"
+	return t.Type == TokenTypePunctuation && t.PunctuationType == PunctuationTypeTokenPastingOperator
 }
 
 func (t Token) isLeftBracket() bool {
-	return t.Type == TokenTypePunctuation && t.Content == "["
+	return t.Type == TokenTypePunctuation && t.PunctuationType == PunctuationTypeLeftBracket
 }
 
 func (t Token) isRightBracket() bool {
-	return t.Type == TokenTypePunctuation && t.Content == "]"
+	return t.Type == TokenTypePunctuation && t.PunctuationType == PunctuationTypeRightBracket
 }
 
 func (t Token) isNegation() bool {
-	return t.Type == TokenTypePunctuation && (t.Content == "!" || t.Content == "~")
+	return t.Type == TokenTypePunctuation && (t.PunctuationType == PunctuationTypeLogicalNot || t.PunctuationType == PunctuationTypeBitwiseNot)
 }
 
 func (t Token) isSizeOf() bool {
@@ -767,11 +863,11 @@ func (t Token) isSizeOf() bool {
 }
 
 func (t Token) isGreaterThanSign() bool {
-	return t.Type == TokenTypePunctuation && t.Content == ">"
+	return t.Type == TokenTypePunctuation && t.PunctuationType == PunctuationTypeGreater
 }
 
 func (t Token) isLessThanSign() bool {
-	return t.Type == TokenTypePunctuation && t.Content == "<"
+	return t.Type == TokenTypePunctuation && t.PunctuationType == PunctuationTypeLessThan
 }
 
 func (t Token) isDo() bool {
@@ -791,6 +887,31 @@ func (t Token) hasUnescapedLines() bool {
 
 func (t Token) isInvalid() bool {
 	return t.Type == TokenTypeInvalid
+}
+
+func (t TokenType) String() string {
+	switch t {
+	case TokenTypeNone:
+		return "TokenTypeNone"
+	case TokenTypeIdentifier:
+		return "TokenTypeIdentifier"
+	case TokenTypeKeyword:
+		return "TokenTypeKeyword"
+	case TokenTypeConstant:
+		return "TokenTypeConstant"
+	case TokenTypePunctuation:
+		return "TokenTypePunctuation"
+	case TokenTypeDirective:
+		return "TokenTypeDirective"
+	case TokenTypeSingleLineComment:
+		return "TokenTypeSingleLineComment"
+	case TokenTypeMultilineComment:
+		return "TokenTypeMultilineComment"
+	case TokenTypeInvalid:
+		return "TokenTypeInvalid"
+	default:
+		panic("Invalid TokenType")
+	}
 }
 
 func (t KeywordType) String() string {
@@ -919,26 +1040,34 @@ func (t KeywordType) String() string {
 
 }
 
-func (t TokenType) String() string {
+func (t DirectiveType) String() string {
 	switch t {
-	case TokenTypeNone:
-		return "TokenTypeNone"
-	case TokenTypeIdentifier:
-		return "TokenTypeIdentifier"
-	case TokenTypeKeyword:
-		return "TokenTypeKeyword"
-	case TokenTypeConstant:
-		return "TokenTypeConstant"
-	case TokenTypePunctuation:
-		return "TokenTypePunctuation"
-	case TokenTypeDirective:
-		return "TokenTypeDirective"
-	case TokenTypeSingleLineComment:
-		return "TokenTypeSingleLineComment"
-	case TokenTypeMultilineComment:
-		return "TokenTypeMultilineComment"
-	case TokenTypeInvalid:
-		return "TokenTypeInvalid"
+	case DirectiveTypeNone:
+		return "DirectiveTypeNone"
+	case DirectiveTypeDefine:
+		return "DirectiveTypeDefine"
+	case DirectiveTypeError:
+		return "DirectiveTypeError"
+	case DirectiveTypeIf:
+		return "DirectiveTypeIf"
+	case DirectiveTypeElif:
+		return "DirectiveTypeElif"
+	case DirectiveTypeElse:
+		return "DirectiveTypeElse"
+	case DirectiveTypeEndif:
+		return "DirectiveTypeEndif"
+	case DirectiveTypeIfdef:
+		return "DirectiveTypeIfdef"
+	case DirectiveTypeIfndef:
+		return "DirectiveTypeIfndef"
+	case DirectiveTypeUndef:
+		return "DirectiveTypeUndef"
+	case DirectiveTypeInclude:
+		return "DirectiveTypeInclude"
+	case DirectiveTypeLine:
+		return "DirectiveTypeLine"
+	case DirectiveTypePragma:
+		return "DirectiveTypePragma"
 	default:
 		panic("Invalid TokenType")
 	}

@@ -37,25 +37,6 @@ const (
 	BlockTypeDoWhile
 )
 
-type DirectiveType int
-
-const (
-	DirectiveTypeNone DirectiveType = iota
-	DirectiveTypeDefine
-	DirectiveTypeError
-	DirectiveTypeIf
-	DirectiveTypeElif
-	DirectiveTypeElse
-	DirectiveTypeEndif
-	DirectiveTypeIfdef
-	DirectiveTypeIfndef
-	DirectiveTypeIfDef
-	DirectiveTypeUndef
-	DirectiveTypeInclude
-	DirectiveTypeLine
-	DirectiveTypePragma
-)
-
 func (t NodeType) String() string {
 	switch t {
 	case NodeTypeNone:
