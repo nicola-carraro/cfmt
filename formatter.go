@@ -380,7 +380,12 @@ func (f *Formatter) writeDefaultLines() {
 	switch f.Node().Type {
 	case NodeTypeTopLevel:
 		f.twoLinesOrEof()
-	case NodeTypeDirective, NodeTypeFuncOrMacro, NodeTypeInitializerList, NodeTypeStructOrUnion, NodeTypeEnum, NodeTypeForLoopParenthesis:
+	case NodeTypeDirective,
+		NodeTypeFuncOrMacro,
+		NodeTypeInitializerList,
+		NodeTypeStructOrUnion,
+		NodeTypeEnum,
+		NodeTypeForLoopParenthesis:
 		f.writeNewLines(1)
 	case NodeTypeBlock:
 		f.oneOrTwoLines()
@@ -394,19 +399,23 @@ func (formatter *Formatter) IsParenthesis() bool {
 }
 
 func (f *Formatter) isPointerOperator() bool {
-	return f.token().canBePointerOperator() && (!f.previousToken().canBeLeftOperand() || !f.Node().RightSideOfAssignment)
+	return f.token().canBePointerOperator() &&
+		(!f.previousToken().canBeLeftOperand() || !f.Node().RightSideOfAssignment)
 }
 
 func (f *Formatter) hasPostfixIncrDecr() bool {
-	return f.nextToken().isIncrDecrOperator() && (f.token().isIdentifier() || f.token().isRightParenthesis())
+	return f.nextToken().isIncrDecrOperator() &&
+		(f.token().isIdentifier() || f.token().isRightParenthesis())
 }
 
 func (f *Formatter) isPrefixIncrDecr() bool {
-	return f.token().isIncrDecrOperator() && (f.nextToken().isIdentifier() || f.nextToken().isLeftParenthesis())
+	return f.token().isIncrDecrOperator() &&
+		(f.nextToken().isIdentifier() || f.nextToken().isLeftParenthesis())
 }
 
 func (f *Formatter) hasTrailingComment() bool {
-	return f.nextToken().isSingleLineComment() && f.token().Whitespace.NewLines == 0
+	return f.nextToken().isSingleLineComment() &&
+		f.token().Whitespace.NewLines == 0
 }
 
 func (f *Formatter) formatMultilineComment() {
@@ -451,7 +460,9 @@ func (f *Formatter) startsFunctionArguments() bool {
 		return f.previousToken().Type == TokenTypeIdentifier && f.token().isLeftParenthesis()
 
 	} else {
-		return f.previousToken().Type == TokenTypeIdentifier && f.token().isLeftParenthesis() && !f.previousToken().Whitespace.HasSpace
+		return f.previousToken().Type == TokenTypeIdentifier &&
+			f.token().isLeftParenthesis() &&
+			!f.previousToken().Whitespace.HasSpace
 	}
 }
 
@@ -468,11 +479,15 @@ func (f *Formatter) isFuncOrMacroStart() bool {
 }
 
 func (f *Formatter) isFunctionName() bool {
-	return f.token().Type == TokenTypeIdentifier && f.nextToken().isLeftParenthesis() && (!f.Node().isDirective() || !f.token().Whitespace.HasSpace)
+	return f.token().Type == TokenTypeIdentifier &&
+		f.nextToken().isLeftParenthesis() &&
+		(!f.Node().isDirective() || !f.token().Whitespace.HasSpace)
 }
 
 func (f *Formatter) isFunctionStart() bool {
-	return f.previousToken().Type == TokenTypeIdentifier && f.token().isLeftParenthesis() && (!f.Node().isDirective() || !f.token().Whitespace.HasSpace)
+	return f.previousToken().Type == TokenTypeIdentifier &&
+		f.token().isLeftParenthesis() &&
+		(!f.Node().isDirective() || !f.token().Whitespace.HasSpace)
 }
 
 func (f *Formatter) neverSpace() bool {
@@ -500,7 +515,8 @@ func (f *Formatter) neverSpace() bool {
 		f.token().isCharizingOp() ||
 		f.token().isTokenPastingOp() ||
 		f.nextToken().isTokenPastingOp() ||
-		(f.Node().DirectiveType == DirectiveTypeInclude && ((f.nextToken().isGreaterThanSign()) || f.token().isLessThanSign()))
+		(f.Node().DirectiveType == DirectiveTypeInclude &&
+			((f.nextToken().isGreaterThanSign()) || f.token().isLessThanSign()))
 }
 
 func (f *Formatter) wrappingStrategyComma() bool {
@@ -520,24 +536,35 @@ func (f *Formatter) alwaysOneLine() bool {
 		(f.afterPragma() && f.nextToken().isPragmaDirective()) ||
 		(f.Node().isStructOrUnion() && f.token().isSemicolon()) ||
 		((f.Node().isEnum()) && f.token().isComma()) ||
-		((f.Node().isStructOrUnion() || f.Node().isBlock() || f.Node().isEnum()) && (f.isNodeStart() || f.nextToken().isRightBrace())) ||
+		((f.Node().isStructOrUnion() || f.Node().isBlock() || f.Node().isEnum()) &&
+			(f.isNodeStart() || f.nextToken().isRightBrace())) ||
 		(f.Wrapping && f.isWrappingNode() && f.wrappingStrategyComma() && f.token().isComma()) ||
 		(f.Wrapping && f.isWrappingNode() && f.isInitializerListStart()) ||
 		(f.Wrapping && f.isWrappingNode() && f.isFuncOrMacroStart()) ||
 		(f.Wrapping && f.isWrappingNode() && f.beforeEndOfFuncOrMacro()) ||
 		f.isBlockStart() ||
-		(f.Wrapping && f.isWrappingNode() && f.Node().isInitializerList() && f.nextToken().isRightBrace()) ||
-		(f.Wrapping && f.isWrappingNode() && f.wrappingStrategyLineBreakAfterComma() && f.token().isComma() && f.token().hasNewLines())
+		(f.Wrapping &&
+			f.isWrappingNode() &&
+			f.Node().isInitializerList() &&
+			f.nextToken().isRightBrace()) ||
+		(f.Wrapping && f.isWrappingNode() &&
+			f.wrappingStrategyLineBreakAfterComma() &&
+			f.token().isComma() &&
+			f.token().hasNewLines())
 }
 
 func (f *Formatter) indentedWrapping() bool {
-	return (f.Wrapping && f.isWrappingNode() && (f.Node().isBlock() || f.Node().isTopLevel()) && f.token().hasNewLines())
+	return (f.Wrapping && f.isWrappingNode() &&
+		(f.Node().isBlock() || f.Node().isTopLevel()) &&
+		f.token().hasNewLines())
 }
 
 func (f *Formatter) alwaysDefaultLines() bool {
 	return (f.nextToken().isDirective() && !f.previousToken().isAbsent()) ||
 		f.isEndOfDirective() ||
-		(f.token().isComment() && !f.previousToken().hasNewLines() && !f.previousToken().isAbsent()) ||
+		(f.token().isComment() &&
+			!f.previousToken().hasNewLines() &&
+			!f.previousToken().isAbsent()) ||
 		f.nextToken().isMultilineComment() ||
 		(f.token().isSemicolon() && !f.Node().isForLoopParenthesis() && !f.hasTrailingComment()) ||
 		(f.Node().isDirective() && f.token().hasEscapedLines()) ||
@@ -627,7 +654,8 @@ func (f *Formatter) isWrappingNode() bool {
 }
 
 func (f *Formatter) isTopLevelInNode() bool {
-	return f.OpenBraces == f.Node().InitialBraces && f.OpenParenthesis == f.Node().InitialParenthesis
+	return f.OpenBraces == f.Node().InitialBraces &&
+		f.OpenParenthesis == f.Node().InitialParenthesis
 }
 
 func (f *Formatter) afterInclude() bool {
@@ -639,7 +667,9 @@ func (f *Formatter) afterPragma() bool {
 }
 
 func (f *Formatter) beforeEndOfFuncOrMacro() bool {
-	return f.Node().isFuncOrMacro() && f.nextToken().isRightParenthesis() && f.OpenParenthesis == f.Node().InitialParenthesis
+	return f.Node().isFuncOrMacro() &&
+		f.nextToken().isRightParenthesis() &&
+		f.OpenParenthesis == f.Node().InitialParenthesis
 }
 
 func (f *Formatter) isRightSideOfAssignment() bool {
