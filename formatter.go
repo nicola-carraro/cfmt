@@ -76,7 +76,6 @@ func Format(input string) (string, error) {
 
 	_ = f.skipSpaceAndCountNewLines()
 	for f.update() {
-
 		if f.token().isInvalid() {
 			return "", fmt.Errorf("%d:%d invalid token", f.token().Line+1, f.token().Column+1)
 		}

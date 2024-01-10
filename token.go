@@ -712,12 +712,12 @@ func isDecimal(r rune) bool {
 
 func (t Token) String() string {
 	switch t.Type {
-	case TokenTypeNone:
-		return fmt.Sprintf("Token{Type: %s}", t.Type)
 	case TokenTypeKeyword:
 		return fmt.Sprintf("Token{Type: %s, Content: \"%s\", KeywordType: %s}", t.Type, t.Content, t.KeywordType)
 	case TokenTypeDirective:
 		return fmt.Sprintf("Token{Type: %s, Content: \"%s\", DirectiveType: %s}", t.Type, t.Content, t.DirectiveType)
+	case TokenTypePunctuation:
+		return fmt.Sprintf("Token{Type: %s, Content: \"%s\", PunctuationType: %s}", t.Type, t.Content, t.PunctuationType)
 	default:
 		return fmt.Sprintf("Token{Type: %s, Content: \"%s\"}", t.Type, t.Content)
 	}
@@ -1070,4 +1070,114 @@ func (t DirectiveType) String() string {
 	default:
 		panic("Invalid TokenType")
 	}
+}
+
+func (t PunctuationType) String() string {
+	switch t {
+	case PunctuationTypeNone:
+		return "PunctuationTypeNone"
+	case PunctuationTypeLeftBracket:
+		return "PunctuationTypeLeftBracket"
+	case PunctuationTypeRightBracket:
+		return "PunctuationTypeRightBracket"
+	case PunctuationTypeLeftParenthesis:
+		return "PunctuationTypeLeftParenthesis"
+	case PunctuationTypeRightParenthesis:
+		return "PunctuationTypeRightParenthesis"
+	case PunctuationTypeLeftBrace:
+		return "PunctuationTypeLeftBrace"
+	case PunctuationTypeRightBrace:
+		return "PunctuationTypeRightBrace"
+	case PunctuationTypeDot:
+		return "PunctuationTypeDot"
+	case PunctuationTypeArrow:
+		return "PunctuationTypeArrow"
+	case PunctuationTypePlusPlus:
+		return "PunctuationTypePlusPlus"
+	case PunctuationTypeMinusMinus:
+		return "PunctuationTypeMinusMinus"
+	case PunctuationTypeAmpersand:
+		return "PunctuationTypeAmpersand"
+	case PunctuationTypeAsterisk:
+		return "PunctuationTypeAsterisk"
+	case PunctuationTypePlus:
+		return "PunctuationTypePlus"
+	case PunctuationTypeMinus:
+		return "PunctuationTypeMinus"
+	case PunctuationTypeBitwiseNot:
+		return "PunctuationTypeBitwiseNot"
+	case PunctuationTypeLogicalNot:
+		return "PunctuationTypeLogicalNot"
+	case PunctuationTypeDivide:
+		return "PunctuationTypeDivide"
+	case PunctuationTypeRemainder:
+		return "PunctuationTypeRemainder"
+	case PunctuationTypeReminder:
+		return "PunctuationTypeReminder"
+	case PunctuationTypeLeftShift:
+		return "PunctuationTypeLeftShift"
+	case PunctuationTypeRightShift:
+		return "PunctuationTypeRightShift"
+	case PunctuationTypeGreater:
+		return "PunctuationTypeGreater"
+	case PunctuationTypeLessThan:
+		return "PunctuationTypeLessThan"
+	case PunctuationTypeLessThanOrEquals:
+		return "PunctuationTypeLessThanOrEquals"
+	case PunctuationTypeGreaterOrEqual:
+		return "PunctuationTypeGreaterOrEqual"
+	case PunctuationTypeEquals:
+		return "PunctuationTypeEquals"
+	case PunctuationTypeNotEquals:
+		return "PunctuationTypeNotEquals"
+	case PunctuationTypeXor:
+		return "PunctuationTypeXor"
+	case PunctuationTypeBitwiseOr:
+		return "PunctuationTypeBitwiseOr"
+	case PunctuationTypeLogicalOr:
+		return "PunctuationTypeLogicalOr"
+	case PunctuationTpeLogicalAnd:
+		return "PunctuationTpeLogicalAnd"
+	case PunctuationTypeQuestionMark:
+		return "PunctuationTypeQuestionMark"
+	case PunctuationTypeColumn:
+		return "PunctuationTypeColumn"
+	case PunctuationTypeSemicolon:
+		return "PunctuationTypeSemicolon"
+	case PunctuationTypeDots:
+		return "PunctuationTypeDots"
+	case PunctuationTypeAssignment:
+		return "PunctuationTypeAssignment"
+	case PunctuationTypeTimesEqual:
+		return "PunctuationTypeTimesEqual"
+	case PunctuationTypeDivideEqual:
+		return "PunctuationTypeDivideEqual"
+	case PunctuationTypeRemainderEquals:
+		return "PunctuationTypeRemainderEquals"
+	case PunctuationTypePlusEquals:
+		return "PunctuationTypePlusEquals"
+	case PunctuationTypeMinusEquals:
+		return "PunctuationTypeMinusEquals"
+	case PunctuationTypeRightShiftEquals:
+		return "PunctuationTypeRightShiftEquals"
+	case PunctuationTypeLeftShiftEquals:
+		return "PunctuationTypeLeftShiftEquals"
+	case PunctuationTypeBitwiseAndEquals:
+		return "PunctuationTypeBitwiseAndEquals"
+	case PunctuationTypeXorEquals:
+		return "PunctuationTypeXorEquals"
+	case PunctuationTypeBitwiseOrEquals:
+		return "PunctuationTypeBitwiseOrEquals"
+	case PunctuationTypeComma:
+		return "PunctuationTypeComma"
+	case PunctuationTypeStringizingOperator:
+		return "PunctuationTypeStringizingOperator"
+	case PunctuationTypeTokenPastingOperator:
+		return "PunctuationTypeTokenPastingOperator"
+	case PunctuationTypeCharizingOperator:
+		return "PunctuationTypeCharizingOperator"
+	default:
+		panic(fmt.Sprintf("Unknown punctuation type %d", t))
+	}
+
 }
