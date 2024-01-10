@@ -361,7 +361,7 @@ func parseString(text string) Token {
 			_, size := utf8.DecodeRuneInString(next)
 			tokenSize += size
 			next = next[size:]
-		} else if r == utf8.RuneError && size == 0 {
+		} else if r == utf8.RuneError {
 			return Token{Type: TokenTypeInvalid}
 		}
 	}
