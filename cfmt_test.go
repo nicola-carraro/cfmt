@@ -1414,4 +1414,25 @@ void stb_c_lexer_get_location(
 
 	_testFormat(t, input, expected)
 
+	input = `int main(void) {
+    const char *shader = "#version 330\n"
+        "layout(location = 0) in vec4 position;\n"
+        "void main()\n"
+        "{\n"
+        "    gl_Position = position;\n"
+        "}\n";
+}
+
+`
+
+	expected = `int main(void) {
+    const char *shader = "#version 330\n"
+        "layout(location = 0) in vec4 position;\n"
+        "void main()\n"
+        "{\n"
+        "    gl_Position = position;\n"
+        "}\n";
+}
+`
+	_testFormat(t, input, expected)
 }

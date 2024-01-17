@@ -1,0 +1,1 @@
+No new line in switch after break
