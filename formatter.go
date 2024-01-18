@@ -34,6 +34,8 @@ type SavedState struct {
 	Nodes     []Node
 }
 
+const MAX_COLUMNS int = 110
+
 func (f *Formatter) token() Token {
 	return f.tokenAt(f.TokenIndex)
 }
@@ -47,7 +49,7 @@ func (f *Formatter) nextToken() Token {
 }
 
 func (f *Formatter) shouldWrap() bool {
-	return f.OutputColumn > 80 ||
+	return f.OutputColumn > MAX_COLUMNS ||
 		((f.Node().isInitializerList() || f.Node().isFuncOrMacro()) &&
 			(f.nextToken().isComment() || f.nextToken().isDirective())) ||
 		(f.isInsideFuncOrMacro() && f.Node().isBlock())

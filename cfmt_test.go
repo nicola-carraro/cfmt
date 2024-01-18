@@ -142,7 +142,7 @@ func TestTokenizePunctuation(t *testing.T) {
 }
 
 func TestTokenizeSingleLineComment(t *testing.T) {
-	_testTokenizeSingleToken(t, "/*/ comment /*/", TokenTypeMultilineComment)
+	_testTokenizeSingleToken(t, "/*/ comment /*/", TokenTypeMultilineComment)                                          
 }
 
 func TestFormatStructDecl(t *testing.T) {
@@ -1046,39 +1046,19 @@ func TestFormatPointerTypes(t *testing.T) {
 
 func TestFunctionDecl(t *testing.T) {
 	input := "void c8_glyph(C8_State *state, C8_Glyph glyph, float x, float y, float width, float height, C8_Rgba rgb)"
-	expected := `void c8_glyph(
-    C8_State *state,
-    C8_Glyph glyph,
-    float x,
-    float y,
-    float width,
-    float height,
-    C8_Rgba rgb
-)
+	expected := `void c8_glyph(C8_State *state, C8_Glyph glyph, float x, float y, float width, float height, C8_Rgba rgb)
 `
 	_testFormat(t, input, expected)
 
 	input = "void c8_glyph(C8_State *state, C8_Glyph glyph, float x, float y, float width, float height, C8_Rgba rgb){}"
-	expected = `void c8_glyph(
-    C8_State *state,
-    C8_Glyph glyph,
-    float x,
-    float y,
-    float width,
-    float height,
-    C8_Rgba rgb
-) {
+	expected = `void c8_glyph(C8_State *state, C8_Glyph glyph, float x, float y, float width, float height, C8_Rgba rgb) {
 }
 `
 	_testFormat(t, input, expected)
 
 	input = `bool c8_read_entire_file(const char *path, 
-		C8_Arena *arena, C8_File *read_result) {}`
-	expected = `bool c8_read_entire_file(
-    const char *path,
-    C8_Arena *arena,
-    C8_File *read_result
-) {
+C8_Arena *arena, C8_File *read_result) {}`
+	expected = `bool c8_read_entire_file(const char *path, C8_Arena *arena, C8_File *read_result) {
 }
 `
 	_testFormat(t, input, expected)
@@ -1113,12 +1093,7 @@ LRESULT CALLBACK WindowProc(HWND window, UINT msg, WPARAM wparam, LPARAM lparam)
 	expected = `{
 }
 
-LRESULT CALLBACK WindowProc(
-    HWND window,
-    UINT msg,
-    WPARAM wparam,
-    LPARAM lparam
-) {
+LRESULT CALLBACK WindowProc(HWND window, UINT msg, WPARAM wparam, LPARAM lparam) {
 }
 `
 	_testFormat(t, input, expected)
@@ -1155,11 +1130,7 @@ func TestFormatFunctionCall(t *testing.T) {
 	input := `{bool c8_read_entire_file(const char *path,
 		 C8_Arena *arena, C8_File *read_result);}`
 	expected := `{
-    bool c8_read_entire_file(
-        const char *path,
-        C8_Arena *arena,
-        C8_File *read_result
-    );
+    bool c8_read_entire_file(const char *path, C8_Arena *arena, C8_File *read_result);
 }
 `
 	_testFormat(t, input, expected)
@@ -1183,15 +1154,7 @@ func TestFormatFunctionCall(t *testing.T) {
 	input = `{int c = foo(
 		foo(1, 2), foo(3, 4), foo(5, 6), foo(5, 6), foo(5, 6), foo(5, 6), foo(5, 6) );}`
 	expected = `{
-    int c = foo(
-        foo(1, 2),
-        foo(3, 4),
-        foo(5, 6),
-        foo(5, 6),
-        foo(5, 6),
-        foo(5, 6),
-        foo(5, 6)
-    );
+    int c = foo(foo(1, 2), foo(3, 4), foo(5, 6), foo(5, 6), foo(5, 6), foo(5, 6), foo(5, 6));
 }
 `
 	_testFormat(t, input, expected)
@@ -1299,87 +1262,19 @@ void c8_glyph(C8_State *state, C8_Glyph glyph, float x, float y, float width, fl
 	expected = `int i = 1 + 2 + 3 + 4 + 5 + 1 + 2 + 3 + 4 + 5 + 2 + 3 + 4 + 5 + 1 + 2 + 3 + 4 + 5 + 2 + 3 + 4 + 5 + 1 + 2 + 3 + 4 + 5 + 2 + 3 + 4 + 5
     + 1 + 2 + 3 + 4 + 5 + 2 + 3 + 4 + 5 + 1 + 2 + 3 + 4 + 5 + 2 + 3 + 4 + 5 + 1 + 2 + 3 + 4 + 5;
 
-void c8_glyph(
-    C8_State *state,
-    C8_Glyph glyph,
-    float x,
-    float y,
-    float width,
-    float height,
-    C8_Rgba rgb
-) {
+void c8_glyph(C8_State *state, C8_Glyph glyph, float x, float y, float width, float height, C8_Rgba rgb) {
     state->load_button.is_mouse_over = state->mouse_position.x >= load_button.x
         && state->mouse_position.x <= load_button.x + load_button.width
         && state->mouse_position.y >= load_button.y
         && state->mouse_position.y <= load_button.y + load_button.height;
 
-    c8_text_vertex(
-        state,
-        x,
-        y,
-        rgb.r,
-        rgb.g,
-        rgb.b,
-        rgb.a,
-        glyph.u_left,
-        glyph.v_top
-    );
-    c8_text_vertex(
-        state,
-        x + width,
-        y,
-        rgb.r,
-        rgb.g,
-        rgb.b,
-        rgb.a,
-        glyph.u_right,
-        glyph.v_top
-    );
-    c8_text_vertex(
-        state,
-        x + width,
-        y + height,
-        rgb.r,
-        rgb.g,
-        rgb.b,
-        rgb.a,
-        glyph.u_right,
-        glyph.v_bottom
-    );
+    c8_text_vertex(state, x, y, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_left, glyph.v_top);
+    c8_text_vertex(state, x + width, y, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_right, glyph.v_top);
+    c8_text_vertex(state, x + width, y + height, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_right, glyph.v_bottom);
 
-    c8_text_vertex(
-        state,
-        x,
-        y,
-        rgb.r,
-        rgb.g,
-        rgb.b,
-        rgb.a,
-        glyph.u_left,
-        glyph.v_top
-    );
-    c8_text_vertex(
-        state,
-        x + width,
-        y + height,
-        rgb.r,
-        rgb.g,
-        rgb.b,
-        rgb.a,
-        glyph.u_right,
-        glyph.v_bottom
-    );
-    c8_text_vertex(
-        state,
-        x,
-        y + height,
-        rgb.r,
-        rgb.g,
-        rgb.b,
-        rgb.a,
-        glyph.u_left,
-        glyph.v_bottom
-    );
+    c8_text_vertex(state, x, y, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_left, glyph.v_top);
+    c8_text_vertex(state, x + width, y + height, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_right, glyph.v_bottom);
+    c8_text_vertex(state, x, y + height, rgb.r, rgb.g, rgb.b, rgb.a, glyph.u_left, glyph.v_bottom);
 }
 `
 	_testFormat(t, input, expected)
@@ -1397,11 +1292,7 @@ void c8_glyph(
 	expected = `void a(int i) {
 }
 
-void stb_c_lexer_get_location(
-    const stb_lexer *lexer,
-    const char *where,
-    stb_lex_location *loc
-) {
+void stb_c_lexer_get_location(const stb_lexer *lexer, const char *where, stb_lex_location *loc) {
 }
 `
 	_testFormat(t, input, expected)
@@ -1435,4 +1326,52 @@ void stb_c_lexer_get_location(
 }
 `
 	_testFormat(t, input, expected)
+
+	input =`struct *Baz baz(
+    int a,
+    int b,
+    int c,
+    char d,
+    char e,
+    char f,
+    char d, char e,
+    char f,
+    char g,
+    char h,
+    char i,
+    char j
+) {
+}`
+
+	expected =`struct *Baz baz(
+    int a,
+    int b,
+    int c,
+    char d,
+    char e,
+    char f,
+    char d,
+    char e,
+    char f,
+    char g,
+    char h,
+    char i,
+    char j
+) {
+}
+`
+_testFormat(t, input, expected)
+
+
+input = `struct *Baz
+ baz(
+	int a, int b, int c, char d, char e, char f, 
+	char d, char e, char f, char g, char h, char i
+	) {
+}`
+expected = `struct *Baz baz(int a, int b, int c, char d, char e, char f, char d, char e, char f, char g, char h, char i) {
+}
+`
+_testFormat(t, input, expected)
+
 }

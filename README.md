@@ -74,7 +74,7 @@ Here is an example of how output looks like:
     } Foo;
     
     /*
-       We allow initializer lists to wrap anywhere, if they hit the 80 columns threshold
+       We allow initializer lists to wrap anywhere, if they hit the 111 columns threshold
     */
     const u8 FONT_SPRITES[] = {
         0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
@@ -116,7 +116,7 @@ Here is an example of how output looks like:
     }
     
     /*
-       If we hit the 80 columns threshold when declaring function arguments,
+       If we hit the 111 columns threshold when declaring function arguments,
        they go on separate lines
     */
     struct *Baz baz(
@@ -127,7 +127,11 @@ Here is an example of how output looks like:
         char e,
         char f,
         char d char e,
-        char f
+        char f,
+        char g,
+        char h,
+        char i,
+        char j
     ) {
         // Same for function calls
         something(
@@ -138,11 +142,15 @@ Here is an example of how output looks like:
             epsilon,
             zeta,
             eta,
+            theta,
             iota,
             kappa,
             lambda,
             mu,
-            nu
+            nu,
+            xi,
+            omicron,
+            pi
         );
     
         int anInt = 1;
@@ -150,10 +158,11 @@ Here is an example of how output looks like:
         long aLong = 1555.0L;
     
         /*
-           We allow statements to wrap anywhere, if they hit the 80 columns threshold,
+           We allow statements to wrap anywhere, if they hit the 110 columns threshold,
            indenting the continuation lines
         */
         bool result = (anInt >= aDouble)
             && (aLong <= anInt)
-            && (aDouble < 3 && anInt++ < ALong);
+            && (aDouble < 3 && anInt++ < ALong)
+            && (aDouble | 3 && anInt++ < ALong);
     }
