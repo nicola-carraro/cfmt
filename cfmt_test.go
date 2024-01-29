@@ -142,7 +142,7 @@ func TestTokenizePunctuation(t *testing.T) {
 }
 
 func TestTokenizeSingleLineComment(t *testing.T) {
-	_testTokenizeSingleToken(t, "/*/ comment /*/", TokenTypeMultilineComment)                                          
+	_testTokenizeSingleToken(t, "/*/ comment /*/", TokenTypeMultilineComment)
 }
 
 func TestFormatStructDecl(t *testing.T) {
@@ -1327,7 +1327,7 @@ void stb_c_lexer_get_location(const stb_lexer *lexer, const char *where, stb_lex
 `
 	_testFormat(t, input, expected)
 
-	input =`struct *Baz baz(
+	input = `struct *Baz baz(
     int a,
     int b,
     int c,
@@ -1343,7 +1343,7 @@ void stb_c_lexer_get_location(const stb_lexer *lexer, const char *where, stb_lex
 ) {
 }`
 
-	expected =`struct *Baz baz(
+	expected = `struct *Baz baz(
     int a,
     int b,
     int c,
@@ -1360,18 +1360,17 @@ void stb_c_lexer_get_location(const stb_lexer *lexer, const char *where, stb_lex
 ) {
 }
 `
-_testFormat(t, input, expected)
+	_testFormat(t, input, expected)
 
-
-input = `struct *Baz
+	input = `struct *Baz
  baz(
 	int a, int b, int c, char d, char e, char f, 
 	char d, char e, char f, char g, char h, char i
 	) {
 }`
-expected = `struct *Baz baz(int a, int b, int c, char d, char e, char f, char d, char e, char f, char g, char h, char i) {
+	expected = `struct *Baz baz(int a, int b, int c, char d, char e, char f, char d, char e, char f, char g, char h, char i) {
 }
 `
-_testFormat(t, input, expected)
+	_testFormat(t, input, expected)
 
 }

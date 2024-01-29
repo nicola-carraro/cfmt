@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
-	"time"
 )
 
 func usage() {
@@ -49,8 +48,7 @@ func formatFile(path string, stdout bool) {
 }
 
 func main() {
-	wg := sync.WaitGroup{}
-	timer := time.Now()
+
 	var stdout bool = false
 	flag.BoolVar(&stdout, "stdout", false, "print to standard output instead of overwriting files")
 	flag.Usage = usage
@@ -60,16 +58,32 @@ func main() {
 		usage()
 	}
 
+	paths := []string{}
+
 	for _, path := range flag.Args() {
+		matches, err := filepath.Glob(path)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %s", err)
+			return
+		}
+
+		paths = append(paths, matches...)
+	}
+
+	wg := sync.WaitGroup{}
+
+
+	for _, path := range paths {
 		path := path
+
 		wg.Add(1)
+
 		go func() {
 			defer wg.Done()
 			formatFile(path, stdout)
 		}()
+
 	}
 
 	wg.Wait()
-	elapsed := time.Since(timer)
-	fmt.Println(elapsed)
 }
