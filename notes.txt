@@ -1,1 +1,4 @@
-No new line in switch after break
+- No new line in switch after break
+- Line wrapping in nested initializer 
+- Support non c directives for  glsl
+- Do not automatically add new line before comment in initializer list
