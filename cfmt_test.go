@@ -141,6 +141,19 @@ func TestTokenizePunctuation(t *testing.T) {
 	_testTokenizeSingleToken(t, "##", TokenTypePunctuation)
 }
 
+func TestTokenizeDirective(t *testing.T) {
+	_testTokenizeSingleToken(t, "#define", TokenTypeDirective)
+	_testTokenizeSingleToken(t, "#elif", TokenTypeDirective)
+	_testTokenizeSingleToken(t, "#else", TokenTypeDirective)
+	_testTokenizeSingleToken(t, "#endif", TokenTypeDirective)
+	_testTokenizeSingleToken(t, "#ifndef", TokenTypeDirective)
+	_testTokenizeSingleToken(t, "#ifdef", TokenTypeDirective)
+	_testTokenizeSingleToken(t, "#include", TokenTypeDirective)
+	_testTokenizeSingleToken(t, "#undef", TokenTypeDirective)
+	_testTokenizeSingleToken(t, "#version", TokenTypeDirective)
+	_testTokenizeSingleToken(t, "#extension", TokenTypeDirective)
+}
+
 func TestTokenizeSingleLineComment(t *testing.T) {
 	_testTokenizeSingleToken(t, "/*/ comment /*/", TokenTypeMultilineComment)
 }
@@ -505,6 +518,28 @@ func TestFormatOperators(t *testing.T) {
 }
 `
 	_testFormat(t, input, expected)
+
+
+	input = `void main() {
+    gl_Position = - position;
+}
+`
+	expected = `void main() {
+    gl_Position = -position;
+}
+`
+	_testFormat(t, input, expected)
+
+		input = `void main() {
+    gl_Position = + position;
+}
+`
+	expected = `void main() {
+    gl_Position = +position;
+}
+`
+	_testFormat(t, input, expected)
+
 
 }
 
@@ -1371,6 +1406,29 @@ void stb_c_lexer_get_location(const stb_lexer *lexer, const char *where, stb_lex
 	expected = `struct *Baz baz(int a, int b, int c, char d, char e, char f, char d, char e, char f, char g, char h, char i) {
 }
 `
+	_testFormat(t, input, expected)
+
+}
+
+func TestFormatShader(t *testing.T) {
+	input := `#version 330
+
+layout(location = 0) in vec4 position;
+
+void main() {
+    gl_Position = position;
+}
+`
+
+	expected := `#version 330
+
+layout(location = 0) in vec4 position;
+
+void main() {
+    gl_Position = position;
+}
+`
+
 	_testFormat(t, input, expected)
 
 }

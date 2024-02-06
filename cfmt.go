@@ -72,7 +72,6 @@ func main() {
 
 	wg := sync.WaitGroup{}
 
-
 	for _, path := range paths {
 		path := path
 

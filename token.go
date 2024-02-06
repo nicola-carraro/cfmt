@@ -49,6 +49,8 @@ const (
 	DirectiveTypeInclude
 	DirectiveTypeLine
 	DirectiveTypePragma
+	DirectiveTypeVersion
+	DirectiveTypeExtension
 )
 
 type DirectiveName struct {
@@ -530,7 +532,8 @@ func tryParseDirective(s string) (Token, bool) {
 		{"#include", DirectiveTypeInclude},
 		{"#pragma", DirectiveTypePragma},
 		{"#undef", DirectiveTypeUndef},
-		{"#undef", DirectiveTypeUndef},
+		{"#version", DirectiveTypeVersion},
+		{"#extension", DirectiveTypeExtension},
 	}
 
 	for _, directive := range directives {
@@ -761,6 +764,18 @@ func (t Token) isLeftParenthesis() bool {
 
 func (t Token) isRightParenthesis() bool {
 	return t.Type == TokenTypePunctuation && t.PunctuationType == PunctuationTypeRightParenthesis
+}
+
+func (t Token) isPlus() bool {
+	return t.Type == TokenTypePunctuation && t.PunctuationType == PunctuationTypePlus
+}
+
+func (t Token) isMinus() bool {
+	return t.Type == TokenTypePunctuation && t.PunctuationType == PunctuationTypeMinus
+}
+
+func (t Token) isPlusOrMinus() bool {
+	return t.isPlus() || t.isMinus()
 }
 
 func (t Token) isRightBrace() bool {
