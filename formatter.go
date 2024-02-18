@@ -410,7 +410,6 @@ func (f *Formatter) isUnaryPlusMinus() bool {
 		!f.previousToken().canBeLeftOperand()
 }
 
-
 func (f *Formatter) hasPostfixIncrDecr() bool {
 	return f.nextToken().isIncrDecrOperator() &&
 		(f.token().isIdentifier() || f.token().isRightParenthesis())
@@ -509,7 +508,8 @@ func (f *Formatter) neverSpace() bool {
 		f.nextToken().isLeftBracket() ||
 		f.nextToken().isRightBracket() ||
 		f.isPointerOperator() ||
-		f.isUnaryPlusMinus()||
+		(f.nextToken().isColon() && !f.isRightSideOfAssignment()) ||
+		f.isUnaryPlusMinus() ||
 		f.isFunctionName() ||
 		f.hasPostfixIncrDecr() ||
 		f.isPrefixIncrDecr() ||

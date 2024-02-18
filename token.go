@@ -163,7 +163,7 @@ const (
 	PunctuationTypeLogicalOr
 	PunctuationTpeLogicalAnd
 	PunctuationTypeQuestionMark
-	PunctuationTypeColumn
+	PunctuationTypeColon
 	PunctuationTypeSemicolon
 	PunctuationTypeDots
 	PunctuationTypeAssignment
@@ -687,7 +687,7 @@ func tryParsePunctuation(text string) (Token, bool) {
 		{".", PunctuationTypeDot},
 		{"!", PunctuationTypeLogicalNot},
 		{"?", PunctuationTypeQuestionMark},
-		{":", PunctuationTypeColumn},
+		{":", PunctuationTypeColon},
 		{";", PunctuationTypeSemicolon},
 		{"#", PunctuationTypeStringizingOperator},
 	}
@@ -866,6 +866,11 @@ func (t Token) isLeftBracket() bool {
 
 func (t Token) isRightBracket() bool {
 	return t.Type == TokenTypePunctuation && t.PunctuationType == PunctuationTypeRightBracket
+}
+
+func (t Token) isColon() bool {
+	return t.Type == TokenTypePunctuation && t.PunctuationType == PunctuationTypeColon
+
 }
 
 func (t Token) isNegation() bool {
@@ -1155,8 +1160,8 @@ func (t PunctuationType) String() string {
 		return "PunctuationTpeLogicalAnd"
 	case PunctuationTypeQuestionMark:
 		return "PunctuationTypeQuestionMark"
-	case PunctuationTypeColumn:
-		return "PunctuationTypeColumn"
+	case PunctuationTypeColon:
+		return "PunctuationTypeColon"
 	case PunctuationTypeSemicolon:
 		return "PunctuationTypeSemicolon"
 	case PunctuationTypeDots:

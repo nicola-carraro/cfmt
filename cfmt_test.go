@@ -519,7 +519,6 @@ func TestFormatOperators(t *testing.T) {
 `
 	_testFormat(t, input, expected)
 
-
 	input = `void main() {
     gl_Position = - position;
 }
@@ -530,7 +529,7 @@ func TestFormatOperators(t *testing.T) {
 `
 	_testFormat(t, input, expected)
 
-		input = `void main() {
+	input = `void main() {
     gl_Position = + position;
 }
 `
@@ -539,7 +538,6 @@ func TestFormatOperators(t *testing.T) {
 }
 `
 	_testFormat(t, input, expected)
-
 
 }
 
@@ -1065,6 +1063,61 @@ func TestFormatBrackets(t *testing.T) {
 
 	input = "foo [ 1 ]=2;"
 	expected = "foo[1] = 2;\n"
+	_testFormat(t, input, expected)
+
+}
+
+func TestFormatColon(t *testing.T) {
+	input := `int main(void) {
+    int i = 0;
+
+    switch (i) {
+        case 0 : {
+            return 0;
+        }
+        break;
+        case 1 : {
+            return 2;
+        }
+        break;
+        default: {
+            return 86;
+        }
+    }
+}
+`
+	expected := `int main(void) {
+    int i = 0;
+
+    switch (i) {
+        case 0: {
+            return 0;
+        }
+        break;
+        case 1: {
+            return 2;
+        }
+        break;
+        default: {
+            return 86;
+        }
+    }
+}
+`
+	_testFormat(t, input, expected)
+
+	input = `int main(void) {
+    int i = 0;
+
+    char a = (i == 0) ? 'a':'b';
+}
+`
+	expected = `int main(void) {
+    int i = 0;
+
+    char a = (i == 0) ? 'a' : 'b';
+}
+`
 	_testFormat(t, input, expected)
 
 }
