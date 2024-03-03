@@ -7,3 +7,6 @@
 {\
     TIME_BLOCK(__func__);\
 }
+- multiplication in macro definition
+#define KB(b) (1024 *b)
+
