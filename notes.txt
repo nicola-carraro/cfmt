@@ -1,12 +1,6 @@
 - No new line in switch after break
 - Line wrapping in nested initializer 
 - Do not automatically add new line before comment in initializer list
-- Do not remove space after macro name in macro definition
-(ex.) 
-#define TIME_FUNCTION \
-{\
-    TIME_BLOCK(__func__);\
-}
 - multiplication in macro definition
 #define KB(b) (1024 *b)
 

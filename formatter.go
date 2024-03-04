@@ -69,6 +69,10 @@ func (f *Formatter) restore(savedState *SavedState) {
 	f.Nodes = slices.Clone(savedState.Nodes)
 }
 
+func(f *Formatter)isMacroDefName()bool{
+	return f.previousToken().isDefine() && !f.isEndOfDirective()
+}
+
 func Format(input string) (string, error) {
 
 	f := Formatter{Input: &input, Tokens: new([]Token), InputLine: new(int), InputColumn: new(int)}
@@ -82,13 +86,17 @@ func Format(input string) (string, error) {
 			return "", fmt.Errorf("%d:%d invalid token", f.token().Line+1, f.token().Column+1)
 		}
 
+		//fmt.Printf("%s\n", f.token())
+
 		f.formatToken()
 
 		if !f.Wrapping && f.shouldWrap() && f.TokenIndex > 0 {
 			f.restore(&saved)
 			f.Wrapping = true
 		} else {
-			if f.alwaysOneLine() {
+			if f.isMacroDefName() && !f.nextToken().isLeftParenthesis(){
+				f.writeString(" ")
+			} else if f.alwaysOneLine() {
 				f.writeNewLines(1)
 			} else if f.isEndOfDirective() || f.alwaysDefaultLines() {
 				f.writeDefaultLines()

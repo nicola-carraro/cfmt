@@ -706,6 +706,21 @@ int main() {
 	input = "#define makechar(x)  #@x\n"
 	expected = "#define makechar(x) #@x\n"
 	_testFormat(t, input, expected)
+
+	input = `#define TOTO   
+
+#define TIME_FUNCTION\
+{\
+    TIME_BLOCK(__func__);\
+}`
+expected = `#define TOTO
+
+#define TIME_FUNCTION {\
+    TIME_BLOCK(__func__);\
+}
+`
+	_testFormat(t, input, expected)
+
 }
 
 func TestFormatDirective(t *testing.T) {

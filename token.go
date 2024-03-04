@@ -730,6 +730,10 @@ func (t Token) isDirective() bool {
 	return t.Type == TokenTypeDirective
 }
 
+func (t Token) isDefine() bool {
+	return t.Type == TokenTypeDirective && t.DirectiveType == DirectiveTypeDefine
+}
+
 func (t Token) isIdentifier() bool {
 	return t.Type == TokenTypeIdentifier
 }
