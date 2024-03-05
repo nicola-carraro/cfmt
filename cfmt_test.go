@@ -401,6 +401,11 @@ func TestFormatOperators(t *testing.T) {
 	expected := "int a = b * c;\n"
 	_testFormat(t, input, expected)
 
+	input = `#define KB (b) (1024*b)`
+	expected = `#define KB (b) (1024 * b)
+`
+	_testFormat(t, input, expected)
+
 	input = "aa   -> bar =3;"
 	expected = "aa->bar = 3;\n"
 	_testFormat(t, input, expected)
@@ -713,7 +718,7 @@ int main() {
 {\
     TIME_BLOCK(__func__);\
 }`
-expected = `#define TOTO
+	expected = `#define TOTO
 
 #define TIME_FUNCTION {\
     TIME_BLOCK(__func__);\

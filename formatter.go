@@ -69,7 +69,7 @@ func (f *Formatter) restore(savedState *SavedState) {
 	f.Nodes = slices.Clone(savedState.Nodes)
 }
 
-func(f *Formatter)isMacroDefName()bool{
+func (f *Formatter) isMacroDefName() bool {
 	return f.previousToken().isDefine() && !f.isEndOfDirective()
 }
 
@@ -94,7 +94,7 @@ func Format(input string) (string, error) {
 			f.restore(&saved)
 			f.Wrapping = true
 		} else {
-			if f.isMacroDefName() && !f.nextToken().isLeftParenthesis(){
+			if f.isMacroDefName() && !f.nextToken().isLeftParenthesis() {
 				f.writeString(" ")
 			} else if f.alwaysOneLine() {
 				f.writeNewLines(1)
@@ -409,6 +409,10 @@ func (formatter *Formatter) IsParenthesis() bool {
 }
 
 func (f *Formatter) isPointerOperator() bool {
+	if f.previousToken().isConstant() || f.nextToken().isConstant() {
+		return false
+	}
+
 	return f.token().canBePointerOperator() &&
 		(!f.previousToken().canBeLeftOperand() || !f.Node().RightSideOfAssignment)
 }

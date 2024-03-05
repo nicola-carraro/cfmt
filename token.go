@@ -738,6 +738,10 @@ func (t Token) isIdentifier() bool {
 	return t.Type == TokenTypeIdentifier
 }
 
+func (t Token) isConstant() bool {
+	return t.Type == TokenTypeConstant
+}
+
 func (t Token) isLeftBrace() bool {
 	return t.Type == TokenTypePunctuation && t.PunctuationType == PunctuationTypeLeftBrace
 }
