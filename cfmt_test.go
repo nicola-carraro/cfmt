@@ -434,6 +434,17 @@ func TestFormatOperators(t *testing.T) {
 	expected = "a.b = c.d;\n"
 	_testFormat(t, input, expected)
 
+	input = `int main(void) {
+    D3D11_BLEND_DESC blendDesc = {0};
+    blendDesc.RenderTarget[0] .BlendEnable = TRUE;
+}
+`
+	expected = `int main(void) {
+    D3D11_BLEND_DESC blendDesc = {0};
+    blendDesc.RenderTarget[0].BlendEnable = TRUE;
+}
+`
+
 	input = "i = i ++ == i --;\n"
 	expected = "i = i++ == i--;\n"
 	_testFormat(t, input, expected)

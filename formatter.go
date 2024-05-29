@@ -526,6 +526,7 @@ func (f *Formatter) neverSpace() bool {
 		f.hasPostfixIncrDecr() ||
 		f.isPrefixIncrDecr() ||
 		(f.token().isIdentifier() && f.nextToken().isDotOperator()) ||
+		(f.token().isRightBracket() && f.nextToken().isDotOperator()) ||
 		f.token().isDotOperator() ||
 		f.token().isArrowOperator() ||
 		f.nextToken().isArrowOperator() ||
