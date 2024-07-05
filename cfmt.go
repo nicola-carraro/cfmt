@@ -39,7 +39,7 @@ func formatFile(path string, stdout bool) {
 	if stdout {
 		fmt.Print(formattedText)
 	} else {
-		os.WriteFile(path, []byte(formattedText), 0600)
+		err = os.WriteFile(path, []byte(formattedText), 0600)
 
 		if err != nil {
 			printError(err)
