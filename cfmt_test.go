@@ -98,6 +98,8 @@ func TestTokenizeInteger(t *testing.T) {
 	_testTokenizeSingleToken(t, "0x4a44000000000020I64", TokenTypeConstant)
 	_testTokenizeSingleToken(t, "0x8a44000000000040Ui64", TokenTypeConstant)
 
+	_testTokenizeSingleToken(t, "0b101010", TokenTypeConstant)
+
 }
 
 func TestTokenizePunctuation(t *testing.T) {

@@ -242,7 +242,10 @@ func parseToken(input string) Token {
 
 	if strings.HasPrefix(input, "0x") || strings.HasPrefix(input, "0X") {
 		return parseHex(input)
+	}
 
+	if strings.HasPrefix(input, "0b") || strings.HasPrefix(input, "0B") {
+		return parseBinary(input)
 	}
 
 	if isOneToNine(r) {
@@ -475,6 +478,10 @@ func parseHex(text string) Token {
 	return parseInt(text, 2, isHexDigit)
 }
 
+func parseBinary(text string) Token {
+	return parseInt(text, 2, isBinaryDigit)
+}
+
 func parseOctal(text string) Token {
 	return parseInt(text, 0, isOctalDigit)
 }
@@ -618,6 +625,10 @@ func isOctalDigit(r rune) bool {
 
 func isHexDigit(r rune) bool {
 	return (r >= '0' && r <= '9') || (r >= 'a' && r <= 'f') || (r >= 'A' && r <= 'F')
+}
+
+func isBinaryDigit(r rune) bool {
+	return r == '0' || r == '1'
 }
 
 func isExponentStart(r rune) bool {
