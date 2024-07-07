@@ -62,6 +62,12 @@ func main() {
 
 	for _, path := range flag.Args() {
 		matches, err := filepath.Glob(path)
+
+		if matches == nil {
+			fmt.Fprintf(os.Stderr, "Error: could not find: %s", path)
+			return
+		}
+
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %s", err)
 			return
