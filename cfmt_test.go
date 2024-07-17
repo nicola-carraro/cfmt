@@ -122,6 +122,7 @@ func TestTokenizePunctuation(t *testing.T) {
 	_testTokenizeSingleToken(t, "!=", TokenTypePunctuation)
 	_testTokenizeSingleToken(t, "||", TokenTypePunctuation)
 	_testTokenizeSingleToken(t, "&&", TokenTypePunctuation)
+	_testTokenizeSingleToken(t, "::", TokenTypePunctuation)
 	_testTokenizeSingleToken(t, "!", TokenTypePunctuation)
 	_testTokenizeSingleToken(t, "&", TokenTypePunctuation)
 	_testTokenizeSingleToken(t, "|", TokenTypePunctuation)
@@ -553,6 +554,14 @@ func TestFormatOperators(t *testing.T) {
 `
 	expected = `void main() {
     gl_Position = +position;
+}
+`
+
+	input = `if (pattern.src == OperandType  ::   rm) {
+    decodeRm(instruction->src, mod, rm, pattern.wide, instruction, buffer, byteIndex);
+}`
+	expected = `if (pattern.src == OperandType::rm) {
+    decodeRm(instruction->src, mod, rm, pattern.wide, instruction, buffer, byteIndex);
 }
 `
 	_testFormat(t, input, expected)

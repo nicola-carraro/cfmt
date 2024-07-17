@@ -164,6 +164,7 @@ const (
 	PunctuationTpeLogicalAnd
 	PunctuationTypeQuestionMark
 	PunctuationTypeColon
+	PunctuationTypeDoubleColon
 	PunctuationTypeSemicolon
 	PunctuationTypeDots
 	PunctuationTypeAssignment
@@ -670,6 +671,7 @@ func tryParsePunctuation(text string) (Token, bool) {
 		{"^=", PunctuationTypeXorEquals},
 		{"|=", PunctuationTypeBitwiseOrEquals},
 		{"##", PunctuationTypeTokenPastingOperator},
+		{"::", PunctuationTypeDoubleColon},
 		{"<:", PunctuationTypeLeftBracket},
 		{":>", PunctuationTypeRightBracket},
 		{"<%", PunctuationTypeLeftBrace},
@@ -855,8 +857,11 @@ func (t Token) isAssignment() bool {
 }
 
 func (t Token) isComma() bool {
-
 	return t.Type == TokenTypePunctuation && t.PunctuationType == PunctuationTypeComma
+}
+
+func (t Token) isDoubleColon() bool {
+	return t.Type == TokenTypePunctuation && t.PunctuationType == PunctuationTypeDoubleColon
 }
 
 func (t Token) hasNewLines() bool {

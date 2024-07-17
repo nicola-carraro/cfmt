@@ -519,6 +519,9 @@ func (f *Formatter) neverSpace() bool {
 		f.token().isLeftBracket() ||
 		f.nextToken().isLeftBracket() ||
 		f.nextToken().isRightBracket() ||
+		f.token().isDoubleColon() ||
+		f.nextToken().isDoubleColon() ||
+
 		f.isPointerOperator() ||
 		(f.nextToken().isColon() && !f.isRightSideOfAssignment()) ||
 		f.isUnaryPlusMinus() ||
