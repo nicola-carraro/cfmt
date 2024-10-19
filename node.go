@@ -21,7 +21,8 @@ const (
 	NodeTypeNone NodeType = iota
 	NodeTypeTopLevel
 	NodeTypeDirective
-	NodeTypeFuncOrMacro
+	NodeTypeFuncOrMacroCall
+	NodeTypeFuncOrMacroDef
 	NodeTypeBlock
 	NodeTypeInitializerList
 	NodeTypeStructOrUnion
@@ -46,8 +47,11 @@ func (t NodeType) String() string {
 	case NodeTypeDirective:
 		return "NodeTypeDirective"
 	case
-		NodeTypeFuncOrMacro:
-		return "NodeTypeFuncOrMacro"
+		NodeTypeFuncOrMacroCall:
+		return "NodeTypeFuncOrMacroCall"
+	case
+		NodeTypeFuncOrMacroDef:
+		return "NodeTypeFuncOrDef"
 	case NodeTypeBlock:
 		return "NodeTypeBlock"
 	case NodeTypeInitializerList:
@@ -93,7 +97,11 @@ func (n Node) isInitializerList() bool {
 }
 
 func (n Node) isFuncOrMacro() bool {
-	return n.Type == NodeTypeFuncOrMacro
+	return n.Type == NodeTypeFuncOrMacroCall || n.Type == NodeTypeFuncOrMacroDef
+}
+
+func (n Node) isFuncOrMacroDef() bool {
+	return n.Type == NodeTypeFuncOrMacroDef
 }
 
 func (n Node) isForLoopParenthesis() bool {

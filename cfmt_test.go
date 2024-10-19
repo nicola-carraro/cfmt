@@ -1164,13 +1164,52 @@ func TestFormatColon(t *testing.T) {
 
 }
 
-func TestFormatPointerTypes(t *testing.T) {
+func TestFormatPointer(t *testing.T) {
 	input := "C8_Keypad * keypad = &(global_state.keypad);\n"
 	expected := "C8_Keypad *keypad = &(global_state.keypad);\n"
 	_testFormat(t, input, expected)
 
 	input = "void c8_load_from_file_dialog(C8_State*state) {\n    printf(\"Hi\");\n}\n"
 	expected = "void c8_load_from_file_dialog(C8_State *state) {\n    printf(\"Hi\");\n}\n"
+	_testFormat(t, input, expected)
+
+	input = `int main(       void){int a = foo(a*b);}`
+	expected = `int main(void) {
+    int a = foo(a * b);
+}
+`
+	_testFormat(t, input, expected)
+
+	input = `int main(void) {int a = (b) * (c);}`
+
+	expected = `int main(void) {
+    int a = (b) * (c);
+}
+`
+	_testFormat(t, input, expected)
+
+	input = "C8_Keypad *keypad = & (global_state.keypad);"
+	expected = "C8_Keypad *keypad = &(global_state.keypad);\n"
+	_testFormat(t, input, expected)
+
+	input = "File json = readFile(inputPath, & buffer);"
+	expected = "File json = readFile(inputPath, &buffer);\n"
+	_testFormat(t, input, expected)
+
+	input = `int main(void) {
+    if (a) {
+    }
+
+    *buffer = 0;
+}`
+
+	expected = `int main(void) {
+    if (a) {
+    }
+
+    *buffer = 0;
+}
+`
 	_testFormat(t, input, expected)
 }
 

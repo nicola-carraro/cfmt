@@ -775,8 +775,28 @@ func (t Token) isIncludeDirective() bool {
 	return t.isDirective() && t.Content == "#include"
 }
 
+func (t Token) isPunctuation() bool {
+	return t.Type == TokenTypePunctuation
+}
+
+func (t Token) isEquals() bool {
+	return t.Type == TokenTypePunctuation && t.PunctuationType == PunctuationTypeEquals
+}
+
 func (t Token) isPragmaDirective() bool {
 	return t.isDirective() && t.Content == "#pragma"
+}
+
+func (t Token) isLeftBracesBracketsOrParenthesis() bool {
+	return t.Type == TokenTypePunctuation && (t.PunctuationType == PunctuationTypeLeftParenthesis ||
+		t.PunctuationType == PunctuationTypeLeftBrace || t.PunctuationType == PunctuationTypeLeftBracket)
+
+}
+
+func (t Token) isRightBracesBracketsOrParenthesis() bool {
+	return t.Type == TokenTypePunctuation && (t.PunctuationType == PunctuationTypeRightParenthesis ||
+		t.PunctuationType == PunctuationTypeRightBrace || t.PunctuationType == PunctuationTypeRightBracket)
+
 }
 
 func (t Token) isLeftParenthesis() bool {

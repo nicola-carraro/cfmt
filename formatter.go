@@ -194,8 +194,11 @@ func (f *Formatter) update() bool {
 
 		if f.token().isDirective() {
 			f.pushNode(NodeTypeDirective)
+		} else if f.startsFuncOrMacroDef() {
+			f.pushNode(NodeTypeFuncOrMacroDef)
+
 		} else if f.startsFunctionArguments() {
-			f.pushNode(NodeTypeFuncOrMacro)
+			f.pushNode(NodeTypeFuncOrMacroCall)
 
 		} else if f.token().isLeftParenthesis() && f.previousToken().isFor() {
 			f.pushNode(NodeTypeForLoopParenthesis)
@@ -391,7 +394,8 @@ func (f *Formatter) writeDefaultLines() {
 	case NodeTypeTopLevel:
 		f.twoLinesOrEof()
 	case NodeTypeDirective,
-		NodeTypeFuncOrMacro,
+		NodeTypeFuncOrMacroCall,
+		NodeTypeFuncOrMacroDef,
 		NodeTypeInitializerList,
 		NodeTypeStructOrUnion,
 		NodeTypeEnum,
@@ -409,12 +413,12 @@ func (formatter *Formatter) IsParenthesis() bool {
 }
 
 func (f *Formatter) isPointerOperator() bool {
-	if f.previousToken().isConstant() || f.nextToken().isConstant() {
-		return false
-	}
-
 	return f.token().canBePointerOperator() &&
-		(!f.previousToken().canBeLeftOperand() || !f.Node().RightSideOfAssignment)
+		!f.previousToken().isConstant() &&
+		!f.previousToken().isRightParenthesis() &&
+		!f.previousToken().isRightBracket() &&
+		!f.nextToken().isConstant() &&
+		(!f.isRightSideOfAssignment() || f.previousToken().isRightParenthesis() || f.previousToken().isRightBracket() || f.previousToken().isComma() || f.previousToken().isRightBracket() || f.previousToken().isAssignment() || f.Node().isFuncOrMacroDef() || f.Node().isStructOrUnion() || f.previousToken().isLeftBracesBracketsOrParenthesis())
 }
 
 func (f *Formatter) isUnaryPlusMinus() bool {
@@ -472,6 +476,10 @@ func (f *Formatter) formatToken() {
 	} else {
 		f.writeString(f.token().Content)
 	}
+}
+
+func (f *Formatter) startsFuncOrMacroDef() bool {
+	return f.startsFunctionArguments() && f.Node().isTopLevel()
 }
 
 func (f *Formatter) startsFunctionArguments() bool {
@@ -663,7 +671,7 @@ func (f *Formatter) isInsideNode(nodeType NodeType) bool {
 }
 
 func (f *Formatter) isInsideFuncOrMacro() bool {
-	return f.isInsideNode(NodeTypeFuncOrMacro)
+	return f.isInsideNode(NodeTypeFuncOrMacroCall)
 }
 
 func (f *Formatter) isNodeStart() bool {
