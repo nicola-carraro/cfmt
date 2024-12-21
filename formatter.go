@@ -549,7 +549,7 @@ func (f *Formatter) neverSpace() bool {
 		f.token().isTokenPastingOp() ||
 		f.nextToken().isTokenPastingOp() ||
 		(f.Node().DirectiveType == DirectiveTypeInclude &&
-			((f.nextToken().isGreaterThanSign()) || f.token().isLessThanSign()))
+			((f.nextToken().isGreaterThanSign()) || f.token().isLessThanSign() || f.previousToken().isLessThanSign()))
 }
 
 func (f *Formatter) wrappingStrategyComma() bool {

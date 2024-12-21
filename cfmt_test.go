@@ -759,6 +759,10 @@ func TestFormatDirective(t *testing.T) {
 	expected = "#include <stdio.h>\n"
 	_testFormat(t, input, expected)
 
+	input = "#include < float .h  >\n"
+	expected = "#include <float.h>\n"
+	_testFormat(t, input, expected)
+
 	input = `#include <stdio.h>
 
 #include "something.h"
