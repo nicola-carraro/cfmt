@@ -14,6 +14,7 @@ type Token struct {
 	DirectiveType   DirectiveType
 	KeywordType     KeywordType
 	PunctuationType PunctuationType
+	ConstantType    ConstantType
 	Line            int
 	Column          int
 }
@@ -182,6 +183,16 @@ const (
 	PunctuationTypeStringizingOperator
 	PunctuationTypeTokenPastingOperator
 	PunctuationTypeCharizingOperator
+)
+
+type ConstantType int
+
+const (
+	ConstantTypeNone ConstantType = iota
+	ConstantTypeInteger
+	ConstantTypeFloat
+	ConstantTypeCharacter
+	ConstantTypeString
 )
 
 type PunctuationTypeName struct {
@@ -361,7 +372,7 @@ func parseString(text string) Token {
 		tokenSize += size
 		next = next[size:]
 		if r == '"' {
-			token := Token{Type: TokenTypeConstant, Content: text[:tokenSize]}
+			token := Token{Type: TokenTypeConstant, ConstantType: ConstantTypeString, Content: text[:tokenSize]}
 			return token
 		} else if r == '\\' {
 			_, size := utf8.DecodeRuneInString(next)
@@ -465,7 +476,7 @@ func tryParseFloat(text string) (Token, bool) {
 		tokenSize += size
 	}
 
-	token := Token{Type: TokenTypeConstant, Content: text[:tokenSize]}
+	token := Token{Type: TokenTypeConstant, ConstantType: ConstantTypeFloat, Content: text[:tokenSize]}
 
 	return token, true
 
@@ -502,7 +513,7 @@ func parseInt(text string, prefixLen int, isDigit IsDigitFunction) Token {
 
 	tokenSize += suffixLength(next)
 
-	return Token{Type: TokenTypeConstant, Content: text[:tokenSize]}
+	return Token{Type: TokenTypeConstant, ConstantType: ConstantTypeInteger, Content: text[:tokenSize]}
 }
 
 func parseMultilineComment(text string) Token {
@@ -753,6 +764,10 @@ func (t Token) isIdentifier() bool {
 
 func (t Token) isConstant() bool {
 	return t.Type == TokenTypeConstant
+}
+
+func (t Token) isString() bool {
+	return t.isConstant() && t.ConstantType == ConstantTypeString
 }
 
 func (t Token) isLeftBrace() bool {
