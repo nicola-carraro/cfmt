@@ -393,7 +393,7 @@ func parseChar(text string) Token {
 		tokenSize += size
 		next = next[size:]
 		if r == '\'' {
-			token := Token{Type: TokenTypeConstant, Content: text[:tokenSize]}
+			token := Token{Type: TokenTypeConstant, ConstantType: ConstantTypeCharacter, Content: text[:tokenSize]}
 			return token
 		} else if r == '\\' {
 			_, size := utf8.DecodeRuneInString(next)
