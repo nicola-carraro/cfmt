@@ -588,7 +588,7 @@ func (f *Formatter) alwaysOneLine() bool {
 
 func (f *Formatter) indentedWrapping() bool {
 	return (f.Wrapping && f.isWrappingNode() &&
-		(f.Node().isBlock() || f.Node().isTopLevel()) &&
+		(f.Node().isBlock() || f.Node().isTopLevel() || f.Node().isFuncOrMacro()) &&
 		f.token().hasNewLines())
 }
 

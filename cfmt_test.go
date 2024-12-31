@@ -1569,4 +1569,40 @@ void main() {
 
 	_testFormat(t, input, expected)
 
+	input = `printf(
+    "ERROR\n" "Function           %s\n"
+     "Input              %f\n"
+    "Expected           %.60f\n"
+        "Found              %.60f\n"
+        "Delta              %.60f\n"
+        "Epsilon            %.60f\n"
+        "Over epsilon by    %.60f\n\n",
+    functionTest.functionName,
+    test.input,
+    test.expected,
+    found,
+    delta,
+    epsilon,
+    overTolleranceBy
+);`
+
+	expected = `printf(
+    "ERROR\n" "Function           %s\n"
+        "Input              %f\n"
+        "Expected           %.60f\n"
+        "Found              %.60f\n"
+        "Delta              %.60f\n"
+        "Epsilon            %.60f\n"
+        "Over epsilon by    %.60f\n\n",
+    functionTest.functionName,
+    test.input,
+    test.expected,
+    found,
+    delta,
+    epsilon,
+    overTolleranceBy
+);
+`
+	_testFormat(t, input, expected)
+
 }
