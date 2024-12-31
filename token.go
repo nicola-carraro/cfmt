@@ -766,10 +766,6 @@ func (t Token) isConstant() bool {
 	return t.Type == TokenTypeConstant
 }
 
-func (t Token) isString() bool {
-	return t.isConstant() && t.ConstantType == ConstantTypeString
-}
-
 func (t Token) isLeftBrace() bool {
 	return t.Type == TokenTypePunctuation && t.PunctuationType == PunctuationTypeLeftBrace
 }
