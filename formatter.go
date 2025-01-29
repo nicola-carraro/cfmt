@@ -253,7 +253,10 @@ func (f *Formatter) update() bool {
 
 	if f.token().isRightBrace() {
 		f.OpenBraces--
-
+		if f.OpenBraces == 0 {
+			f.AcceptEnum = false
+			f.AcceptStructOrUnion = false
+		}
 	}
 
 	if f.Node().isDirective() {

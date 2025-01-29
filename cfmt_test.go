@@ -267,6 +267,18 @@ func TestFormatEnum(t *testing.T) {
 `
 	_testFormat(t, input, expected)
 
+	input = `typedef struct {u32 scalerType;}OffsetSubtable;typedef enum {TableType_None,TableType_Acnt,} TableType;`
+
+	expected = `typedef struct {
+    u32 scalerType;
+} OffsetSubtable;
+
+typedef enum {
+    TableType_None,
+    TableType_Acnt,
+} TableType;
+`
+
 }
 
 func TestFormatInitializerList(t *testing.T) {
