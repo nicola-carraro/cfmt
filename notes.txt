@@ -1,6 +1,5 @@
-- No new line in switch after break
-- Line wrapping in nested initializer 
-- Do not automatically add new line before comment in initializer list
-- multiplication in macro definition
-#define KB(b) (1024 *b)
+
+
+i64 numPoints = endpointsOfContours.elements[endpointsOfContours.count - 1] +1;
+
 
