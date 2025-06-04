@@ -568,6 +568,7 @@ func TestFormatOperators(t *testing.T) {
     gl_Position = +position;
 }
 `
+	_testFormat(t, input, expected)
 
 	input = `if (pattern.src == OperandType  ::   rm) {
     decodeRm(instruction->src, mod, rm, pattern.wide, instruction, buffer, byteIndex);
@@ -575,6 +576,12 @@ func TestFormatOperators(t *testing.T) {
 	expected = `if (pattern.src == OperandType::rm) {
     decodeRm(instruction->src, mod, rm, pattern.wide, instruction, buffer, byteIndex);
 }
+`
+	_testFormat(t, input, expected)
+
+	input = `i64 numPoints = endpointsOfContours.elements[endpointsOfContours.count - 1] +1;
+`
+	expected = `i64 numPoints = endpointsOfContours.elements[endpointsOfContours.count - 1] + 1;
 `
 	_testFormat(t, input, expected)
 

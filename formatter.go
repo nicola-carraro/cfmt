@@ -426,7 +426,9 @@ func (f *Formatter) isPointerOperator() bool {
 
 func (f *Formatter) isUnaryPlusMinus() bool {
 	return f.token().isPlusOrMinus() &&
-		!f.previousToken().canBeLeftOperand()
+		!f.previousToken().canBeLeftOperand() &&
+		!f.previousToken().isRightBracket() &&
+		!f.previousToken().isRightParenthesis()
 }
 
 func (f *Formatter) hasPostfixIncrDecr() bool {
